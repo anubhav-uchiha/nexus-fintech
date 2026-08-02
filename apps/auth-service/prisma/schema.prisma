@@ -1,0 +1,138 @@
+generator client {
+    provider = "prisma-client"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+enum UserStatus {
+    ACTIVE
+    INACTIVE
+    SUSPENDED
+    BLOCKED
+}
+
+enum LoginMethod {
+    EMAIL
+    USERNAME
+    LOGIN_ID
+    PHONE_PASSWORD
+}
+
+model Identity {
+    id                 String     @id @default(uuid())
+    loginId            String     @unique
+
+    firstName          String
+    lastName           String
+
+    username           String     @unique
+    email              String     @unique
+    phoneNumber        String     @unique
+
+    password           String
+
+    status             UserStatus @default(ACTIVE)
+
+    isEmailVerified    Boolean    @default(false)
+    isPhoneVerified    Boolean    @default(false)
+
+   preferredLoginMethod LoginMethod @default(EMAIL)
+
+    lastLoginAt        DateTime?
+    passwordChangedAt  DateTime?
+
+    roleId             String
+    role               Role       @relation(fields: [roleId],references: [id], onDelete: Restrict)
+    sessions           Session[]
+
+    createdAt          DateTime   @default(now())
+    updatedAt          DateTime   @updatedAt
+
+    @@index([email])
+    @@index([username])
+    @@index([phoneNumber])
+    @@index([roleId])
+    @@index([preferredLoginMethod])
+    @@map("identities")
+}
+
+model Role {
+    id          String   @id @default(uuid())
+    name        String   @unique
+    description String?
+
+    identities  Identity[]
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@map("roles")
+}
+
+enum OtpType {
+    PHONE
+    EMAIL
+}
+
+enum OtpPurpose {
+    REGISTER
+    LOGIN
+    FORGOT_PASSWORD
+    CHANGE_EMAIL
+    CHANGE_PHONE
+    TRANSACTION
+}
+
+
+
+model Otp {
+    id String               @id @default(cuid())
+
+    type        OtpType
+    purpose     OtpPurpose
+
+    phoneNumber String?
+    email       String?
+    otpHash     String
+
+    attempts    Int         @default(0)
+
+    expiresAt   DateTime
+    verifiedAt  DateTime?
+
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+
+    @@index([phoneNumber])
+    @@index([email])
+    @@index([purpose])
+}
+
+model Session {
+  id             String   @id @default(cuid())
+
+  identityId     String
+
+  refreshToken   String
+
+  device         String?
+  ipAddress      String?
+  userAgent      String?
+
+  expiresAt      DateTime
+
+  revoked        Boolean  @default(false)
+
+  lastUsedAt     DateTime @default(now())
+
+  createdAt      DateTime @default(now())
+
+  updatedAt      DateTime @updatedAt
+
+  identity Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+
+  @@index([identityId])
+}
