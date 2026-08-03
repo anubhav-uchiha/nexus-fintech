@@ -4,6 +4,8 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
 import {
   LoginDto,
+  LogoutDto,
+  RefreshTokenDto,
   RegisterDto,
   SendEmailOtpDto,
   SendPhoneOtpDto,
@@ -44,6 +46,16 @@ export class AuthKafkaController {
   @MessagePattern(AUTH_PATTERNS.VERIFY_EMAIL_OTP)
   verifyEmailOtp(@Payload() dto: VerifyEmailOtpDto) {
     return this.authService.verifyEmailOtp(dto);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.REFRESH_TOKEN)
+  refresh(@Payload() dto: RefreshTokenDto) {
+    return this.authService.refresh(dto);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.LOGOUT)
+  logout(@Payload() dto: LogoutDto) {
+    return this.authService.logout(dto);
   }
 
   @MessagePattern(AUTH_PATTERNS.CACHE_TEST)

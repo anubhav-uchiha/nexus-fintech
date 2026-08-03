@@ -11,9 +11,9 @@ export const RedisProvider: Provider = {
 
   useFactory: (configService: ConfigService) => {
     const client = new Redis({
-      host: configService.get<string>('REDIS_HOST'),
-      port: configService.get<number>('REDIS_PORT'),
-      password: configService.get<string>('REDIS_PASSWORD') || undefined,
+      host: configService.get<string>('redis.host'),
+      port: configService.get<number>('redis.port'),
+      password: configService.get<string>('redis.password') || undefined,
 
       lazyConnect: true,
 

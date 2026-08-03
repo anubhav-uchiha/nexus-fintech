@@ -57,14 +57,13 @@ export class SessionService {
     });
   }
 
-  updateRefreshToken(sessionId: string, refreshToken: string, expiresAt: Date) {
+  updateRefreshToken(sessionId: string, refreshToken: string) {
     return this.prisma.session.update({
       where: {
         id: sessionId,
       },
       data: {
         refreshToken,
-        expiresAt,
         lastUsedAt: new Date(),
       },
     });
@@ -78,6 +77,25 @@ export class SessionService {
       },
       orderBy: {
         createdAt: 'desc',
+      },
+    });
+  }
+
+  findValidSession(refreshToken: string) {
+    return this.prisma.session.findFirst({
+      where: {
+        refreshToken,
+        revoked: false,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        identity: {
+          include: {
+            role: true,
+          },
+        },
       },
     });
   }

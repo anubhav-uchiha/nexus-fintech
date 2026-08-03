@@ -1,5 +1,7 @@
-export class LoginResponseDto {
+export class RefreshKafkaResponseDto {
   accessToken!: string;
+
+  refreshToken!: string;
 
   identity!: {
     id: string;

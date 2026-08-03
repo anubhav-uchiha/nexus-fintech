@@ -7,6 +7,7 @@ import { RoleModule } from '../role/role.module';
 import { JwtModule } from './jwt/jwt.module';
 import { OtpModule } from '../otp/otp.module';
 import { AuthKafkaController } from './auth.kafka.controller';
+import { SessionModule } from '../session/session.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthKafkaController } from './auth.kafka.controller';
     PasswordModule,
     JwtModule,
     OtpModule,
+    SessionModule,
   ],
   controllers: [AuthKafkaController],
   providers: [AuthService],

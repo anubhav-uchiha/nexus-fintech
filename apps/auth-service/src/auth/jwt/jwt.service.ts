@@ -21,22 +21,33 @@ export class JwtService {
     });
   }
 
-  async generateRefreshToken(payload: JwtPayload): Promise<string> {
-    return this.jwtService.signAsync(payload, {
-      secret: this.config.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.config.get<string>(
+  async generateRefreshToken(
+    payload: JwtPayload,
+    refreshExpiresAt?: Date,
+  ): Promise<string> {
+    let expiresIn: SignOptions['expiresIn'];
+    if (refreshExpiresAt) {
+      expiresIn = Math.max(
+        1,
+        Math.floor((refreshExpiresAt.getTime() - Date.now()) / 1000),
+      );
+    } else {
+      expiresIn = this.config.getOrThrow<string>(
         'JWT_REFRESH_EXPIRES',
-      ) as SignOptions['expiresIn'],
-      //   expiresIn: '7d',
+      ) as SignOptions['expiresIn'];
+    }
+    return this.jwtService.signAsync(payload, {
+      secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      expiresIn,
     });
   }
 
-  async generateTokens(payload: JwtPayload) {
-    const [accessToken, refreshToken] = await Promise.all([
-      this.generateAccessToken(payload),
-      this.generateRefreshToken(payload),
-    ]);
-
+  async generateTokens(payload: JwtPayload, refreshExpiresAt?: Date) {
+    const accessToken = await this.generateAccessToken(payload);
+    const refreshToken = await this.generateRefreshToken(
+      payload,
+      refreshExpiresAt,
+    );
     return {
       accessToken,
       refreshToken,

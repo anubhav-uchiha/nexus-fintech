@@ -1,5 +1,6 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
+import { LogoutDto, RefreshTokenDto } from '@nexus/common';
 import { AUTH_PATTERNS } from '@nexus/common/auth/auth.patterns';
 import { firstValueFrom } from 'rxjs';
 
@@ -19,6 +20,10 @@ export class AuthGatewayService implements OnModuleInit {
 
     this.client.subscribeToResponseOf(AUTH_PATTERNS.VERIFY_PHONE_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.VERIFY_EMAIL_OTP);
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.REFRESH_TOKEN);
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.LOGOUT);
 
     this.client.subscribeToResponseOf(AUTH_PATTERNS.CACHE_TEST);
 
@@ -50,6 +55,14 @@ export class AuthGatewayService implements OnModuleInit {
     return firstValueFrom(
       this.client.send(AUTH_PATTERNS.VERIFY_EMAIL_OTP, dto),
     );
+  }
+
+  refreshToken(dto: RefreshTokenDto) {
+    return firstValueFrom(this.client.send(AUTH_PATTERNS.REFRESH_TOKEN, dto));
+  }
+
+  logout(dto: LogoutDto) {
+    return firstValueFrom(this.client.send(AUTH_PATTERNS.LOGOUT, dto));
   }
 
   cacheTest() {

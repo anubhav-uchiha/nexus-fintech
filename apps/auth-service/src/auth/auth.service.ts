@@ -13,7 +13,10 @@ import { OtpPurpose, OtpType, UserStatus } from '../../generated/prisma/enums';
 import { OtpService } from '../otp/otp.service';
 import {
   LoginDto,
-  LoginResponseDto,
+  LoginKafkaResponseDto,
+  LogoutDto,
+  RefreshKafkaResponseDto,
+  RefreshTokenDto,
   RegisterDto,
   RegisterResponseDto,
   SendEmailOtpDto,
@@ -115,7 +118,7 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto): Promise<LoginResponseDto> {
+  async login(dto: LoginDto): Promise<LoginKafkaResponseDto> {
     const identity = await this.identityService.findByIdentifier(
       dto.identifier,
     );
@@ -211,5 +214,59 @@ export class AuthService {
       undefined,
       dto.email,
     );
+  }
+  async refresh(dto: RefreshTokenDto): Promise<RefreshKafkaResponseDto> {
+    const session = await this.sessionService.findValidSession(
+      dto.refreshToken,
+    );
+
+    if (!session) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const payload = {
+      sub: session.identity.id,
+      username: session.identity.username,
+      email: session.identity.email,
+      role: session.identity.role.name,
+    };
+
+    const tokens = await this.jwtService.generateTokens(
+      payload,
+      session.expiresAt,
+    );
+
+    await this.sessionService.updateRefreshToken(
+      session.id,
+      tokens.refreshToken,
+    );
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      identity: {
+        id: session.identity.id,
+        firstName: session.identity.firstName,
+        lastName: session.identity.lastName,
+        username: session.identity.username,
+        email: session.identity.email,
+        phoneNumber: session.identity.phoneNumber,
+        role: session.identity.role.name,
+        status: session.identity.status,
+      },
+    };
+  }
+
+  async logout(dto: LogoutDto) {
+    const session = await this.sessionService.findByRefreshToken(
+      dto.refreshToken,
+    );
+    if (!session) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    await this.sessionService.revoke(session.id);
+
+    return {
+      message: 'Logged out successfully',
+    };
   }
 }

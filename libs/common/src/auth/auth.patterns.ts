@@ -8,5 +8,9 @@ export const AUTH_PATTERNS = {
   VERIFY_PHONE_OTP: 'auth.verify-phone-otp',
   VERIFY_EMAIL_OTP: 'auth.verify-email-otp',
 
+  REFRESH_TOKEN: 'auth.refresh-token',
+
+  LOGOUT: 'auth.logout',
+
   CACHE_TEST: 'auth.cache-test',
 } as const;

@@ -5,7 +5,11 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
+  Res,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { AuthGatewayService } from './auth.gateway.service';
@@ -13,6 +17,7 @@ import { AuthGatewayService } from './auth.gateway.service';
 import {
   LoginDto,
   LoginResponseDto,
+  RefreshTokenResponseDto,
   RegisterDto,
   RegisterResponseDto,
   SendEmailOtpDto,
@@ -20,6 +25,8 @@ import {
   VerifyEmailOtpDto,
   VerifyPhoneOtpDto,
 } from '@nexus/common/auth';
+import { AUTH_COOKIE } from '@nexus/common/auth/auth.constants';
+import { REFRESH_COOKIE_OPTIONS } from '@nexus/common/auth/auth-cookie';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -47,8 +54,23 @@ export class AuthController {
     status: 200,
     type: LoginResponseDto,
   })
-  login(@Body() dto: LoginDto) {
-    return this.authGatewayService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authGatewayService.login(dto);
+
+    res.cookie(AUTH_COOKIE.REFRESH_TOKEN, result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: result.refreshExpiresAt,
+    });
+    return {
+      accessToken: result.accessToken,
+      identity: result.identity,
+    };
   }
 
   @Post('send-phone-otp')
@@ -69,6 +91,60 @@ export class AuthController {
   @Post('verify-email-otp')
   verifyEmailOtp(@Body() dto: VerifyEmailOtpDto) {
     return this.authGatewayService.verifyEmailOtp(dto);
+  }
+
+  @Post('refresh')
+  @ApiResponse({ status: 200, type: RefreshTokenResponseDto })
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<RefreshTokenResponseDto> {
+    console.log('Cookies:', req.cookies);
+    console.log('Header:', req.headers.cookie);
+
+    const refreshToken = req.cookies?.[AUTH_COOKIE.REFRESH_TOKEN];
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token missing');
+    }
+    const result = await this.authGatewayService.refreshToken({ refreshToken });
+
+    res.cookie(AUTH_COOKIE.REFRESH_TOKEN, result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: result.refreshExpiresAt,
+    });
+
+    return {
+      accessToken: result.accessToken,
+      identity: result.identity,
+    };
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    console.log('Cookies:', req.cookies);
+    console.log('Header:', req.headers.cookie);
+
+    const refreshToken = req.cookies?.[AUTH_COOKIE.REFRESH_TOKEN];
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token missing');
+    }
+    const logout = await this.authGatewayService.logout({ refreshToken });
+
+    res.clearCookie(AUTH_COOKIE.REFRESH_TOKEN, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: logout.refreshExpiresAt,
+    });
+    return {
+      message: 'Logout Successfully',
+    };
   }
 
   @Get('cache-test')
