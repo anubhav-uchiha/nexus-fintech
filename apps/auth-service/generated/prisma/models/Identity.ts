@@ -369,6 +369,7 @@ export type IdentityWhereInput = {
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
   sessions?: Prisma.SessionListRelationFilter
   otp?: Prisma.OtpListRelationFilter
+  passwordResetDrafts?: Prisma.PasswordResetDraftListRelationFilter
 }
 
 export type IdentityOrderByWithRelationInput = {
@@ -403,6 +404,7 @@ export type IdentityOrderByWithRelationInput = {
   role?: Prisma.RoleOrderByWithRelationInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
   otp?: Prisma.OtpOrderByRelationAggregateInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftOrderByRelationAggregateInput
 }
 
 export type IdentityWhereUniqueInput = Prisma.AtLeast<{
@@ -440,6 +442,7 @@ export type IdentityWhereUniqueInput = Prisma.AtLeast<{
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
   sessions?: Prisma.SessionListRelationFilter
   otp?: Prisma.OtpListRelationFilter
+  passwordResetDrafts?: Prisma.PasswordResetDraftListRelationFilter
 }, "id" | "loginId" | "username" | "email" | "phoneNumber" | "aadhaarNumber" | "panNumber">
 
 export type IdentityOrderByWithAggregationInput = {
@@ -541,6 +544,7 @@ export type IdentityCreateInput = {
   role: Prisma.RoleCreateNestedOneWithoutIdentitiesInput
   sessions?: Prisma.SessionCreateNestedManyWithoutIdentityInput
   otp?: Prisma.OtpCreateNestedManyWithoutIdentityInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityUncheckedCreateInput = {
@@ -574,6 +578,7 @@ export type IdentityUncheckedCreateInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutIdentityInput
   otp?: Prisma.OtpUncheckedCreateNestedManyWithoutIdentityInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUncheckedCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityUpdateInput = {
@@ -607,6 +612,7 @@ export type IdentityUpdateInput = {
   role?: Prisma.RoleUpdateOneRequiredWithoutIdentitiesNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutIdentityNestedInput
   otp?: Prisma.OtpUpdateManyWithoutIdentityNestedInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateInput = {
@@ -640,6 +646,7 @@ export type IdentityUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutIdentityNestedInput
   otp?: Prisma.OtpUncheckedUpdateManyWithoutIdentityNestedInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUncheckedUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityCreateManyInput = {
@@ -947,6 +954,20 @@ export type IdentityUpdateOneRequiredWithoutSessionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.IdentityUpdateToOneWithWhereWithoutSessionsInput, Prisma.IdentityUpdateWithoutSessionsInput>, Prisma.IdentityUncheckedUpdateWithoutSessionsInput>
 }
 
+export type IdentityCreateNestedOneWithoutPasswordResetDraftsInput = {
+  create?: Prisma.XOR<Prisma.IdentityCreateWithoutPasswordResetDraftsInput, Prisma.IdentityUncheckedCreateWithoutPasswordResetDraftsInput>
+  connectOrCreate?: Prisma.IdentityCreateOrConnectWithoutPasswordResetDraftsInput
+  connect?: Prisma.IdentityWhereUniqueInput
+}
+
+export type IdentityUpdateOneRequiredWithoutPasswordResetDraftsNestedInput = {
+  create?: Prisma.XOR<Prisma.IdentityCreateWithoutPasswordResetDraftsInput, Prisma.IdentityUncheckedCreateWithoutPasswordResetDraftsInput>
+  connectOrCreate?: Prisma.IdentityCreateOrConnectWithoutPasswordResetDraftsInput
+  upsert?: Prisma.IdentityUpsertWithoutPasswordResetDraftsInput
+  connect?: Prisma.IdentityWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.IdentityUpdateToOneWithWhereWithoutPasswordResetDraftsInput, Prisma.IdentityUpdateWithoutPasswordResetDraftsInput>, Prisma.IdentityUncheckedUpdateWithoutPasswordResetDraftsInput>
+}
+
 export type IdentityCreateWithoutRoleInput = {
   id?: string
   loginId: string
@@ -977,6 +998,7 @@ export type IdentityCreateWithoutRoleInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutIdentityInput
   otp?: Prisma.OtpCreateNestedManyWithoutIdentityInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityUncheckedCreateWithoutRoleInput = {
@@ -1009,6 +1031,7 @@ export type IdentityUncheckedCreateWithoutRoleInput = {
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutIdentityInput
   otp?: Prisma.OtpUncheckedCreateNestedManyWithoutIdentityInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUncheckedCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityCreateOrConnectWithoutRoleInput = {
@@ -1101,6 +1124,7 @@ export type IdentityCreateWithoutOtpInput = {
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutIdentitiesInput
   sessions?: Prisma.SessionCreateNestedManyWithoutIdentityInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityUncheckedCreateWithoutOtpInput = {
@@ -1133,6 +1157,7 @@ export type IdentityUncheckedCreateWithoutOtpInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutIdentityInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUncheckedCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityCreateOrConnectWithoutOtpInput = {
@@ -1181,6 +1206,7 @@ export type IdentityUpdateWithoutOtpInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutIdentitiesNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutIdentityNestedInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateWithoutOtpInput = {
@@ -1213,6 +1239,7 @@ export type IdentityUncheckedUpdateWithoutOtpInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutIdentityNestedInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUncheckedUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityCreateWithoutSessionsInput = {
@@ -1245,6 +1272,7 @@ export type IdentityCreateWithoutSessionsInput = {
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutIdentitiesInput
   otp?: Prisma.OtpCreateNestedManyWithoutIdentityInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityUncheckedCreateWithoutSessionsInput = {
@@ -1277,6 +1305,7 @@ export type IdentityUncheckedCreateWithoutSessionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   otp?: Prisma.OtpUncheckedCreateNestedManyWithoutIdentityInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUncheckedCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityCreateOrConnectWithoutSessionsInput = {
@@ -1325,6 +1354,7 @@ export type IdentityUpdateWithoutSessionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutIdentitiesNestedInput
   otp?: Prisma.OtpUpdateManyWithoutIdentityNestedInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateWithoutSessionsInput = {
@@ -1356,6 +1386,155 @@ export type IdentityUncheckedUpdateWithoutSessionsInput = {
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  otp?: Prisma.OtpUncheckedUpdateManyWithoutIdentityNestedInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUncheckedUpdateManyWithoutIdentityNestedInput
+}
+
+export type IdentityCreateWithoutPasswordResetDraftsInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber: string
+  password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role: Prisma.RoleCreateNestedOneWithoutIdentitiesInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutIdentityInput
+  otp?: Prisma.OtpCreateNestedManyWithoutIdentityInput
+}
+
+export type IdentityUncheckedCreateWithoutPasswordResetDraftsInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber: string
+  password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  roleId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutIdentityInput
+  otp?: Prisma.OtpUncheckedCreateNestedManyWithoutIdentityInput
+}
+
+export type IdentityCreateOrConnectWithoutPasswordResetDraftsInput = {
+  where: Prisma.IdentityWhereUniqueInput
+  create: Prisma.XOR<Prisma.IdentityCreateWithoutPasswordResetDraftsInput, Prisma.IdentityUncheckedCreateWithoutPasswordResetDraftsInput>
+}
+
+export type IdentityUpsertWithoutPasswordResetDraftsInput = {
+  update: Prisma.XOR<Prisma.IdentityUpdateWithoutPasswordResetDraftsInput, Prisma.IdentityUncheckedUpdateWithoutPasswordResetDraftsInput>
+  create: Prisma.XOR<Prisma.IdentityCreateWithoutPasswordResetDraftsInput, Prisma.IdentityUncheckedCreateWithoutPasswordResetDraftsInput>
+  where?: Prisma.IdentityWhereInput
+}
+
+export type IdentityUpdateToOneWithWhereWithoutPasswordResetDraftsInput = {
+  where?: Prisma.IdentityWhereInput
+  data: Prisma.XOR<Prisma.IdentityUpdateWithoutPasswordResetDraftsInput, Prisma.IdentityUncheckedUpdateWithoutPasswordResetDraftsInput>
+}
+
+export type IdentityUpdateWithoutPasswordResetDraftsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.RoleUpdateOneRequiredWithoutIdentitiesNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutIdentityNestedInput
+  otp?: Prisma.OtpUpdateManyWithoutIdentityNestedInput
+}
+
+export type IdentityUncheckedUpdateWithoutPasswordResetDraftsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  roleId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutIdentityNestedInput
   otp?: Prisma.OtpUncheckedUpdateManyWithoutIdentityNestedInput
 }
 
@@ -1419,6 +1598,7 @@ export type IdentityUpdateWithoutRoleInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutIdentityNestedInput
   otp?: Prisma.OtpUpdateManyWithoutIdentityNestedInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateWithoutRoleInput = {
@@ -1451,6 +1631,7 @@ export type IdentityUncheckedUpdateWithoutRoleInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutIdentityNestedInput
   otp?: Prisma.OtpUncheckedUpdateManyWithoutIdentityNestedInput
+  passwordResetDrafts?: Prisma.PasswordResetDraftUncheckedUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateManyWithoutRoleInput = {
@@ -1491,11 +1672,13 @@ export type IdentityUncheckedUpdateManyWithoutRoleInput = {
 export type IdentityCountOutputType = {
   sessions: number
   otp: number
+  passwordResetDrafts: number
 }
 
 export type IdentityCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | IdentityCountOutputTypeCountSessionsArgs
   otp?: boolean | IdentityCountOutputTypeCountOtpArgs
+  passwordResetDrafts?: boolean | IdentityCountOutputTypeCountPasswordResetDraftsArgs
 }
 
 /**
@@ -1520,6 +1703,13 @@ export type IdentityCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Typ
  */
 export type IdentityCountOutputTypeCountOtpArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OtpWhereInput
+}
+
+/**
+ * IdentityCountOutputType without action
+ */
+export type IdentityCountOutputTypeCountPasswordResetDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PasswordResetDraftWhereInput
 }
 
 
@@ -1555,6 +1745,7 @@ export type IdentitySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   sessions?: boolean | Prisma.Identity$sessionsArgs<ExtArgs>
   otp?: boolean | Prisma.Identity$otpArgs<ExtArgs>
+  passwordResetDrafts?: boolean | Prisma.Identity$passwordResetDraftsArgs<ExtArgs>
   _count?: boolean | Prisma.IdentityCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["identity"]>
 
@@ -1658,6 +1849,7 @@ export type IdentityInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   sessions?: boolean | Prisma.Identity$sessionsArgs<ExtArgs>
   otp?: boolean | Prisma.Identity$otpArgs<ExtArgs>
+  passwordResetDrafts?: boolean | Prisma.Identity$passwordResetDraftsArgs<ExtArgs>
   _count?: boolean | Prisma.IdentityCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type IdentityIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1673,6 +1865,7 @@ export type $IdentityPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     role: Prisma.$RolePayload<ExtArgs>
     sessions: Prisma.$SessionPayload<ExtArgs>[]
     otp: Prisma.$OtpPayload<ExtArgs>[]
+    passwordResetDrafts: Prisma.$PasswordResetDraftPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2100,6 +2293,7 @@ export interface Prisma__IdentityClient<T, Null = never, ExtArgs extends runtime
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   sessions<T extends Prisma.Identity$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Identity$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   otp<T extends Prisma.Identity$otpArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Identity$otpArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OtpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  passwordResetDrafts<T extends Prisma.Identity$passwordResetDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Identity$passwordResetDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PasswordResetDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2603,6 +2797,30 @@ export type Identity$otpArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.OtpScalarFieldEnum | Prisma.OtpScalarFieldEnum[]
+}
+
+/**
+ * Identity.passwordResetDrafts
+ */
+export type Identity$passwordResetDraftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PasswordResetDraft
+   */
+  select?: Prisma.PasswordResetDraftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PasswordResetDraft
+   */
+  omit?: Prisma.PasswordResetDraftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PasswordResetDraftInclude<ExtArgs> | null
+  where?: Prisma.PasswordResetDraftWhereInput
+  orderBy?: Prisma.PasswordResetDraftOrderByWithRelationInput | Prisma.PasswordResetDraftOrderByWithRelationInput[]
+  cursor?: Prisma.PasswordResetDraftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PasswordResetDraftScalarFieldEnum | Prisma.PasswordResetDraftScalarFieldEnum[]
 }
 
 /**

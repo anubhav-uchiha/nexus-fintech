@@ -8,6 +8,7 @@ import { SendOtpDto } from './dto/send-otp.dto';
 import { ConfigService } from '@nestjs/config';
 import { CacheService } from 'libs/cache/src';
 import { KAFKA_TOPICS, KafkaProducerService } from 'libs/kafka/src';
+import { identity } from 'rxjs';
 
 @Injectable()
 export class OtpService {
@@ -98,16 +99,24 @@ export class OtpService {
         phoneNumber!,
       );
 
-      if (identity) {
+      if (purpose === OtpPurpose.REGISTER && identity) {
         throw new BadRequestException('Phone number already registered');
+      }
+
+      if (purpose === OtpPurpose.FORGOT_PASSWORD && !identity) {
+        throw new BadRequestException('Phone number not found');
       }
     }
 
     if (type === OtpType.EMAIL) {
       const identity = await this.identityService.findByEmail(email!);
 
-      if (identity) {
+      if (purpose === OtpPurpose.REGISTER && identity) {
         throw new BadRequestException('Email already registered');
+      }
+
+      if (purpose === OtpPurpose.FORGOT_PASSWORD && !identity) {
+        throw new BadRequestException('Email not found');
       }
     }
 

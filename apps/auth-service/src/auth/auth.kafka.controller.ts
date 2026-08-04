@@ -20,6 +20,9 @@ import { VerifyRegistrationOtpDto } from '@nexus/common/auth/dto/register/verify
 import { RegisterPanDto } from '@nexus/common/auth/dto/register/register-pan.dto';
 import { RegisterDetailsDto } from '@nexus/common/auth/dto/register/register-details.dto';
 import { LoginMethod } from 'apps/auth-service/generated/prisma/enums';
+import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-password/verify-user.dto';
+import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
+import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
 
 @Controller()
 export class AuthKafkaController {
@@ -78,6 +81,21 @@ export class AuthKafkaController {
   @MessagePattern(AUTH_PATTERNS.CHANGE_MPIN)
   changeMpin(@Payload() dto: ChangeMpinDto & { identityId: string }) {
     return this.authService.changeMpin(dto);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_USER)
+  forgotPasswordVerifyUser(@Payload() dto: VerifyForgotPasswordUserDto) {
+    return this.authService.forgotPasswordVerifyUser(dto);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_OTP)
+  forgotPasswordVerifyOtp(@Payload() dto: VerifyForgotPasswordOtpDto) {
+    return this.authService.forgotPasswordVerifyOtp(dto);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.FORGOT_PASSWORD_RESET)
+  forgotPasswordReset(@Payload() dto: ResetForgotPasswordDto) {
+    return this.authService.forgotPasswordReset(dto);
   }
 
   @MessagePattern(AUTH_PATTERNS.SEND_PHONE_OTP)

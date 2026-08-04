@@ -6,6 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import dayjs from 'dayjs';
 import { IdentityService } from '../identity/identity.service';
 import { RoleService } from '../role/role.service';
 import { PasswordService } from './password/password.service';
@@ -24,8 +25,6 @@ import {
   LogoutDto,
   RefreshKafkaResponseDto,
   RefreshTokenDto,
-  RegisterDto,
-  RegisterResponseDto,
   SendEmailOtpDto,
   SendPhoneOtpDto,
   VerifyEmailOtpDto,
@@ -41,6 +40,9 @@ import { RegisterPhoneDto } from '@nexus/common/auth/dto/register/register-phone
 import { RegisterRoleDto } from '@nexus/common/auth/dto/register/register-role.dto';
 import { generateMpin } from './utils/mpin-generator';
 import { generatePassword } from './utils/password-generator';
+import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-password/verify-user.dto';
+import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
+import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -552,6 +554,107 @@ Please change your password after first login.
     await this.identityService.updateMpin(dto.identityId, hashedMpin);
     return {
       message: 'MPIN changed successfully',
+    };
+  }
+
+  async forgotPasswordVerifyUser(dto: VerifyForgotPasswordUserDto) {
+    const user = await this.identityService.findByLoginId(dto.loginId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.panNumber !== dto.panNumber) {
+      throw new BadRequestException('PAN number is incorrect');
+    }
+
+    const last4 = user.aadhaarNumber.slice(-4);
+
+    if (last4 !== dto.aadharLast4) {
+      throw new BadRequestException('Last 4 digits of Aadhaar are incorrect');
+    }
+
+    const otp = await this.otpService.sendOtp({
+      type: OtpType.PHONE,
+      purpose: OtpPurpose.FORGOT_PASSWORD,
+      phoneNumber: user.phoneNumber,
+    });
+
+    const draft = await this.identityService.createPasswordResetDraft({
+      identityId: user.id,
+      expiresAt: dayjs().add(10, 'minute').toDate(),
+    });
+
+    return {
+      draftId: draft.id,
+      nextStep: 'VERIFY_OTP',
+      otp,
+      message: 'OTP sent successfully',
+    };
+  }
+
+  async forgotPasswordVerifyOtp(dto: VerifyForgotPasswordOtpDto) {
+    const draft = await this.identityService.findPasswordResetDraft(
+      dto.draftId,
+    );
+
+    if (!draft) {
+      throw new NotFoundException('Password reset request not found');
+    }
+
+    if (draft.expiresAt < new Date()) {
+      throw new BadRequestException('Password reset request has expired');
+    }
+
+    await this.otpService.verifyOtp(
+      OtpType.PHONE,
+      OtpPurpose.FORGOT_PASSWORD,
+      dto.otp,
+      draft.identity.phoneNumber,
+    );
+
+    await this.identityService.updatePasswordRestedDraft(draft.id, {
+      otpVerified: true,
+    });
+
+    return {
+      draftId: draft.id,
+      nextStep: 'REST_PASSWORD',
+      message: 'OTP verified successfully',
+    };
+  }
+
+  async forgotPasswordReset(dto: ResetForgotPasswordDto) {
+    if (dto.newPassword !== dto.confirmPassword) {
+      throw new BadRequestException('Password do not match');
+    }
+    const draft = await this.identityService.findPasswordResetDraft(
+      dto.draftId,
+    );
+
+    if (!draft) {
+      throw new NotFoundException('Pasword reset request not found');
+    }
+
+    if (draft.expiresAt < new Date()) {
+      throw new BadRequestException('Password reset request expired');
+    }
+
+    if (!draft.otpVerified) {
+      throw new BadRequestException('OTP verification required');
+    }
+
+    const hashedPassword = await this.passwordService.hash(dto.newPassword);
+
+    await this.identityService.updatePassword(draft.identityId, hashedPassword);
+
+    await this.sessionService.revokeAll(draft.identityId);
+
+    await this.identityService.deletePasswordResetDraft(draft.id);
+
+    return {
+      success: true,
+      message: 'Password reset successfully. Please login.',
     };
   }
 

@@ -45,7 +45,7 @@ export class SessionService {
     });
   }
 
-  revokeAll(identityId: string) {
+  async revokeAll(identityId: string) {
     return this.prisma.session.updateMany({
       where: {
         identityId,

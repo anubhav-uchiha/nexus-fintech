@@ -35,6 +35,9 @@ import { RegisterDetailsDto } from '@nexus/common/auth/dto/register/register-det
 import { JwtPayload } from 'apps/auth-service/src/auth/jwt/interfaces/jwt-payload.interface';
 import { JwtAuthGuard } from './guards/jwt-auth-guard';
 import { CurrentUser } from './decorator/current-user.decorator';
+import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-password/verify-user.dto';
+import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
+import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -175,6 +178,22 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   changeMpin(@CurrentUser() user: JwtPayload, @Body() dto: ChangeMpinDto) {
     return this.authGatewayService.changeMpin(dto, user.sub);
+  }
+
+  @Post('forgot-password/verify-user')
+  forgotPasswordVerifyUser(@Body() dto: VerifyForgotPasswordUserDto) {
+    console.log(dto);
+    return this.authGatewayService.forgotPasswordVerifyUser(dto);
+  }
+
+  @Post('forgot-password/verify-otp')
+  forgotPasswordVerifyOtp(@Body() dto: VerifyForgotPasswordOtpDto) {
+    return this.authGatewayService.forgotPasswordVerifyOtp(dto);
+  }
+
+  @Post('forgot-password/reset')
+  forgotPasswordReset(@Body() dto: ResetForgotPasswordDto) {
+    return this.authGatewayService.forgotPasswordReset(dto);
   }
 
   @Post('logout')

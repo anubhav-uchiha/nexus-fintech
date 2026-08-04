@@ -12,6 +12,10 @@ export const AUTH_PATTERNS = {
   CHANGE_PASSWORD: 'auth.change-password',
   CHANGE_MPIN: 'auth.change-mpin',
 
+  FORGOT_PASSWORD_VERIFY_USER: 'auth.forgot-password.verify-user',
+  FORGOT_PASSWORD_VERIFY_OTP: 'auth.forgot-password.verify-otp',
+  FORGOT_PASSWORD_RESET: 'auth.forgot-password.reset',
+
   SEND_PHONE_OTP: 'auth.send-phone-otp',
   SEND_EMAIL_OTP: 'auth.send-email-otp',
 

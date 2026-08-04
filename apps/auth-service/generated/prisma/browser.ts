@@ -42,3 +42,8 @@ export type Session = Prisma.SessionModel
  * 
  */
 export type RegistrationDraft = Prisma.RegistrationDraftModel
+/**
+ * Model PasswordResetDraft
+ * 
+ */
+export type PasswordResetDraft = Prisma.PasswordResetDraftModel

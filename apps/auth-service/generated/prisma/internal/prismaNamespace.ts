@@ -401,7 +401,8 @@ export const ModelName = {
   Role: 'Role',
   Otp: 'Otp',
   Session: 'Session',
-  RegistrationDraft: 'RegistrationDraft'
+  RegistrationDraft: 'RegistrationDraft',
+  PasswordResetDraft: 'PasswordResetDraft'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "identity" | "role" | "otp" | "session" | "registrationDraft"
+    modelProps: "identity" | "role" | "otp" | "session" | "registrationDraft" | "passwordResetDraft"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -791,6 +792,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PasswordResetDraft: {
+      payload: Prisma.$PasswordResetDraftPayload<ExtArgs>
+      fields: Prisma.PasswordResetDraftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PasswordResetDraftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PasswordResetDraftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>
+        }
+        findFirst: {
+          args: Prisma.PasswordResetDraftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PasswordResetDraftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>
+        }
+        findMany: {
+          args: Prisma.PasswordResetDraftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>[]
+        }
+        create: {
+          args: Prisma.PasswordResetDraftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>
+        }
+        createMany: {
+          args: Prisma.PasswordResetDraftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PasswordResetDraftCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>[]
+        }
+        delete: {
+          args: Prisma.PasswordResetDraftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>
+        }
+        update: {
+          args: Prisma.PasswordResetDraftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>
+        }
+        deleteMany: {
+          args: Prisma.PasswordResetDraftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PasswordResetDraftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PasswordResetDraftUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>[]
+        }
+        upsert: {
+          args: Prisma.PasswordResetDraftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PasswordResetDraftPayload>
+        }
+        aggregate: {
+          args: Prisma.PasswordResetDraftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePasswordResetDraft>
+        }
+        groupBy: {
+          args: Prisma.PasswordResetDraftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PasswordResetDraftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PasswordResetDraftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PasswordResetDraftCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -934,6 +1009,17 @@ export const RegistrationDraftScalarFieldEnum = {
 } as const
 
 export type RegistrationDraftScalarFieldEnum = (typeof RegistrationDraftScalarFieldEnum)[keyof typeof RegistrationDraftScalarFieldEnum]
+
+
+export const PasswordResetDraftScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  otpVerified: 'otpVerified',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type PasswordResetDraftScalarFieldEnum = (typeof PasswordResetDraftScalarFieldEnum)[keyof typeof PasswordResetDraftScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1254,6 +1340,7 @@ export type GlobalOmitConfig = {
   otp?: Prisma.OtpOmit
   session?: Prisma.SessionOmit
   registrationDraft?: Prisma.RegistrationDraftOmit
+  passwordResetDraft?: Prisma.PasswordResetDraftOmit
 }
 
 /* Types for Logging */

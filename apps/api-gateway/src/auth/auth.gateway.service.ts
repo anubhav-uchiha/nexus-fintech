@@ -8,6 +8,9 @@ import {
 } from '@nexus/common';
 import { AUTH_PATTERNS } from '@nexus/common/auth/auth.patterns';
 import { ChangeLoginMethodDto } from '@nexus/common/auth/dto/change-login-method.dto';
+import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
+import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
+import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-password/verify-user.dto';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
@@ -40,6 +43,14 @@ export class AuthGatewayService implements OnModuleInit {
     this.client.subscribeToResponseOf(AUTH_PATTERNS.CHANGE_PASSWORD);
 
     this.client.subscribeToResponseOf(AUTH_PATTERNS.CHANGE_MPIN);
+
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_USER,
+    );
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_OTP);
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.FORGOT_PASSWORD_RESET);
 
     this.client.subscribeToResponseOf(AUTH_PATTERNS.LOGOUT);
 
@@ -127,6 +138,24 @@ export class AuthGatewayService implements OnModuleInit {
         identityId,
         ...dto,
       }),
+    );
+  }
+
+  forgotPasswordVerifyUser(dto: VerifyForgotPasswordUserDto) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_USER, dto),
+    );
+  }
+
+  forgotPasswordVerifyOtp(dto: VerifyForgotPasswordOtpDto) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_OTP, dto),
+    );
+  }
+
+  forgotPasswordReset(dto: ResetForgotPasswordDto) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.FORGOT_PASSWORD_RESET, dto),
     );
   }
 

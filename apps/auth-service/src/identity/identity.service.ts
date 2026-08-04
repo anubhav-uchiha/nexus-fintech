@@ -235,7 +235,7 @@ export class IdentityService {
       }
     }
 
-    return `KUR${nextNumber.toString().padStart(4, '0')}`;
+    return `KRT${nextNumber.toString().padStart(4, '0')}`;
   }
 
   async updateLastLogin(identityId: string) {
@@ -437,6 +437,44 @@ export class IdentityService {
       },
       data: {
         mpin: hashedMpin,
+      },
+    });
+  }
+
+  async createPasswordResetDraft(data: {
+    identityId: string;
+    expiresAt: Date;
+  }) {
+    return this.prisma.passwordResetDraft.create({
+      data,
+    });
+  }
+
+  async findPasswordResetDraft(id: string) {
+    return this.prisma.passwordResetDraft.findUnique({
+      where: { id },
+      include: {
+        identity: true,
+      },
+    });
+  }
+
+  async updatePasswordRestedDraft(
+    id: string,
+    data: {
+      otpVerified?: boolean;
+    },
+  ) {
+    return this.prisma.passwordResetDraft.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async deletePasswordResetDraft(id: string) {
+    return this.prisma.passwordResetDraft.delete({
+      where: {
+        id,
       },
     });
   }

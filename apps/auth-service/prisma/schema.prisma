@@ -66,10 +66,11 @@ model Identity {
   lastLoginAt       DateTime?
   passwordChangedAt DateTime?
 
-  roleId   String
-  role     Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  sessions Session[]
-  otp      Otp[]
+  roleId              String
+  role                Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  sessions            Session[]
+  otp                 Otp[]
+  passwordResetDrafts PasswordResetDraft[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -204,4 +205,17 @@ model RegistrationDraft {
   @@index([email])
   @@index([registrationStep])
   @@map("registration_drafts")
+}
+
+model PasswordResetDraft {
+  id String @id @default(cuid())
+
+  identityId  String
+  identity    Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  otpVerified Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  @@index([identityId])
+  @@map("password_reset_drafts")
 }

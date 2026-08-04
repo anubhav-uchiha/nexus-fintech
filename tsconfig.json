@@ -22,17 +22,39 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@generated/prisma/*": ["generated/prisma/*"],
-      "@nexus/common": ["libs/common/src"],
-      "@nexus/common/*": ["libs/common/src/*"],
-      "@nexus/config": ["libs/config/src"],
-      "@nexus/config/*": ["libs/config/src/*"],
-      "@nexus/database": ["libs/database/src"],
-      "@nexus/database/*": ["libs/database/src/*"],
-      "@nexus/logger": ["libs/logger/src"],
-      "@nexus/logger/*": ["libs/logger/src/*"],
-      "@nexus/messaging": ["libs/messaging/src"],
-      "@nexus/messaging/*": ["libs/messaging/src/*"]
+      "@generated/prisma/*": [
+        "generated/prisma/*"
+      ],
+      "@nexus/common": [
+        "libs/common/src"
+      ],
+      "@nexus/common/*": [
+        "libs/common/src/*"
+      ],
+      "@nexus/config": [
+        "libs/config/src"
+      ],
+      "@nexus/config/*": [
+        "libs/config/src/*"
+      ],
+      "@nexus/database": [
+        "libs/database/src"
+      ],
+      "@nexus/database/*": [
+        "libs/database/src/*"
+      ],
+      "@nexus/logger": [
+        "libs/logger/src"
+      ],
+      "@nexus/logger/*": [
+        "libs/logger/src/*"
+      ],
+      "@nexus/messaging": [
+        "libs/messaging/src"
+      ],
+      "@nexus/messaging/*": [
+        "libs/messaging/src/*"
+      ]
     }
   }
 }

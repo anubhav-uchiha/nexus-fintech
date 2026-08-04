@@ -55,7 +55,8 @@ export const ModelName = {
   Role: 'Role',
   Otp: 'Otp',
   Session: 'Session',
-  RegistrationDraft: 'RegistrationDraft'
+  RegistrationDraft: 'RegistrationDraft',
+  PasswordResetDraft: 'PasswordResetDraft'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -178,6 +179,17 @@ export const RegistrationDraftScalarFieldEnum = {
 } as const
 
 export type RegistrationDraftScalarFieldEnum = (typeof RegistrationDraftScalarFieldEnum)[keyof typeof RegistrationDraftScalarFieldEnum]
+
+
+export const PasswordResetDraftScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  otpVerified: 'otpVerified',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt'
+} as const
+
+export type PasswordResetDraftScalarFieldEnum = (typeof PasswordResetDraftScalarFieldEnum)[keyof typeof PasswordResetDraftScalarFieldEnum]
 
 
 export const SortOrder = {
