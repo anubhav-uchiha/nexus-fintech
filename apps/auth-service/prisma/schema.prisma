@@ -1,138 +1,207 @@
 generator client {
-    provider = "prisma-client"
-    output   = "../generated/prisma"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-    provider = "postgresql"
+  provider = "postgresql"
 }
 
 enum UserStatus {
-    ACTIVE
-    INACTIVE
-    SUSPENDED
-    BLOCKED
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  BLOCKED
 }
 
 enum LoginMethod {
-    EMAIL
-    USERNAME
-    LOGIN_ID
-    PHONE_PASSWORD
+  EMAIL
+  USERNAME
+  LOGIN_ID
+  PHONENUMBER
+}
+
+enum RegistrationStep {
+  ROLE_SELECTED
+  PHONE_VERIFIED
+  PAN_VERIFIED
+  DETAILS_COMPLETED
+  COMPLETED
 }
 
 model Identity {
-    id                 String     @id @default(uuid())
-    loginId            String     @unique
+  id      String @id @default(uuid())
+  loginId String @unique
 
-    firstName          String
-    lastName           String
+  fullName String
 
-    username           String     @unique
-    email              String     @unique
-    phoneNumber        String     @unique
+  username    String @unique
+  email       String @unique
+  phoneNumber String @unique
 
-    password           String
+  password String
+  mpin     String
 
-    status             UserStatus @default(ACTIVE)
+  aadhaarNumber String @unique
+  panNumber     String @unique
 
-    isEmailVerified    Boolean    @default(false)
-    isPhoneVerified    Boolean    @default(false)
+  shopName    String
+  shopAddress String
+  shopCity    String
+  shopState   String
 
-   preferredLoginMethod LoginMethod @default(EMAIL)
+  city    String
+  state   String
+  pincode String
 
-    lastLoginAt        DateTime?
-    passwordChangedAt  DateTime?
+  status UserStatus @default(ACTIVE)
 
-    roleId             String
-    role               Role       @relation(fields: [roleId],references: [id], onDelete: Restrict)
-    sessions           Session[]
+  isEmailVerified Boolean @default(false)
+  isPhoneVerified Boolean @default(false)
+  isPanVerified   Boolean @default(false)
 
-    createdAt          DateTime   @default(now())
-    updatedAt          DateTime   @updatedAt
+  preferredLoginMethod LoginMethod      @default(LOGIN_ID)
+  registrationStep     RegistrationStep @default(ROLE_SELECTED)
 
-    @@index([email])
-    @@index([username])
-    @@index([phoneNumber])
-    @@index([roleId])
-    @@index([preferredLoginMethod])
-    @@map("identities")
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+
+  roleId   String
+  role     Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  sessions Session[]
+  otp      Otp[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([username])
+  @@index([phoneNumber])
+  @@index([roleId])
+  @@index([preferredLoginMethod])
+  @@map("identities")
 }
 
 model Role {
-    id          String   @id @default(uuid())
-    name        String   @unique
-    description String?
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
 
-    identities  Identity[]
+  identities         Identity[]
+  registrationDrafts RegistrationDraft[]
 
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@map("roles")
+  @@map("roles")
 }
 
 enum OtpType {
-    PHONE
-    EMAIL
+  PHONE
+  EMAIL
 }
 
 enum OtpPurpose {
-    REGISTER
-    LOGIN
-    FORGOT_PASSWORD
-    CHANGE_EMAIL
-    CHANGE_PHONE
-    TRANSACTION
+  REGISTER
+  LOGIN
+  FORGOT_PASSWORD
+  CHANGE_EMAIL
+  CHANGE_PHONE
+  TRANSACTION
 }
 
-
-
 model Otp {
-    id String               @id @default(cuid())
+  id         String     @id @default(cuid())
+  identityId String?
+  identity   Identity?  @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  type       OtpType
+  purpose    OtpPurpose
 
-    type        OtpType
-    purpose     OtpPurpose
+  phoneNumber String?
+  email       String?
+  otpHash     String
 
-    phoneNumber String?
-    email       String?
-    otpHash     String
+  attempts Int @default(0)
 
-    attempts    Int         @default(0)
+  expiresAt  DateTime
+  verifiedAt DateTime?
 
-    expiresAt   DateTime
-    verifiedAt  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    createdAt   DateTime    @default(now())
-    updatedAt   DateTime    @updatedAt
-
-    @@index([phoneNumber])
-    @@index([email])
-    @@index([purpose])
+  @@index([phoneNumber])
+  @@index([email])
+  @@index([purpose])
 }
 
 model Session {
-  id             String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  identityId     String
+  identityId String
 
-  refreshToken   String
+  refreshToken String
 
-  device         String?
-  ipAddress      String?
-  userAgent      String?
+  device    String?
+  ipAddress String?
+  userAgent String?
 
-  expiresAt      DateTime
+  expiresAt DateTime
 
-  revoked        Boolean  @default(false)
+  revoked Boolean @default(false)
 
-  lastUsedAt     DateTime @default(now())
+  lastUsedAt DateTime @default(now())
 
-  createdAt      DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  updatedAt      DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 
   identity Identity @relation(fields: [identityId], references: [id], onDelete: Cascade)
 
   @@index([identityId])
+}
+
+model RegistrationDraft {
+  id String @id @default(cuid())
+
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  phoneNumber     String? @unique
+  isPhoneVerified Boolean @default(false)
+
+  panNumber     String? @unique
+  isPanVerified Boolean @default(false)
+
+  fullName String?
+
+  username String? @unique
+
+  email String? @unique
+
+  aadhaarNumber String? @unique
+
+  shopName String?
+
+  shopAddress String?
+
+  shopCity String?
+
+  shopState String?
+
+  city String?
+
+  state String?
+
+  pincode String?
+
+  registrationStep RegistrationStep @default(ROLE_SELECTED)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([phoneNumber])
+  @@index([email])
+  @@index([registrationStep])
+  @@map("registration_drafts")
 }

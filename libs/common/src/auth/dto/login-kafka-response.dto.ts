@@ -4,12 +4,13 @@ export class LoginKafkaResponseDto {
 
   identity!: {
     id: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
+    loginId: string;
     username: string;
     email: string;
     phoneNumber: string;
     role: string;
     status: string;
+    preferredLoginMethod: string;
   };
 }

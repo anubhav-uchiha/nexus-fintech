@@ -1,7 +1,12 @@
-import { LoginMethod, Prisma } from '../../generated/prisma/client';
+import {
+  LoginMethod,
+  Prisma,
+  RegistrationStep,
+} from '../../generated/prisma/client';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CacheService } from 'libs/cache/src';
+import { CompleteRegistrationData } from '../auth/types/register.type';
 
 export type DuplicateField = 'email' | 'username' | 'phoneNumber' | null;
 
@@ -105,6 +110,14 @@ export class IdentityService {
     return identity;
   }
 
+  async findById(id: string) {
+    return this.prisma.identity.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
   async findByIdentifier(identifier: string) {
     let identity = await this.findByEmail(identifier);
 
@@ -126,11 +139,27 @@ export class IdentityService {
 
     identity = await this.findByPhoneNumber(identifier);
 
-    if (identity?.preferredLoginMethod === LoginMethod.PHONE_PASSWORD) {
+    if (identity?.preferredLoginMethod === LoginMethod.PHONENUMBER) {
       return identity;
     }
 
     return null;
+  }
+
+  async findByPanNumber(panNumber: string) {
+    return this.prisma.identity.findUnique({
+      where: {
+        panNumber,
+      },
+    });
+  }
+
+  async findByAadhaarNumber(aadhaarNumber: string) {
+    return this.prisma.identity.findUnique({
+      where: {
+        aadhaarNumber,
+      },
+    });
   }
 
   async checkDuplicate(
@@ -187,7 +216,7 @@ export class IdentityService {
   }
 
   async generateLoginId(): Promise<string> {
-    const lastUser = await this.prisma.identity.findFirst({
+    const lastIdentity = await this.prisma.identity.findFirst({
       orderBy: {
         createdAt: 'desc',
       },
@@ -198,15 +227,15 @@ export class IdentityService {
 
     let nextNumber = 1;
 
-    if (lastUser?.loginId) {
-      const numericPart = Number(lastUser.loginId.replace(/^KUR/, ''));
+    if (lastIdentity?.loginId) {
+      const numericPart = Number(lastIdentity.loginId.replace(/^KRT/, ''));
 
       if (!Number.isNaN(numericPart)) {
         nextNumber = numericPart + 1;
       }
     }
 
-    return `KUR${nextNumber.toString().padStart(6, '0')}`;
+    return `KUR${nextNumber.toString().padStart(4, '0')}`;
   }
 
   async updateLastLogin(identityId: string) {
@@ -243,6 +272,173 @@ export class IdentityService {
     if (identity.phoneNumber) {
       await this.cacheService.del(`identity:phone:${identity.phoneNumber}`);
     }
+  }
+
+  async createRegistrationDraft(data: Prisma.RegistrationDraftCreateInput) {
+    return this.prisma.registrationDraft.create({
+      data,
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  async findRegistrationDraft(id: string) {
+    return this.prisma.registrationDraft.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  async findRegistrationDraftByPhone(phoneNumber: string) {
+    return this.prisma.registrationDraft.findUnique({
+      where: {
+        phoneNumber,
+      },
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  async findRegistrationDraftByEmail(email: string) {
+    return this.prisma.registrationDraft.findUnique({
+      where: {
+        email,
+      },
+    });
+  }
+
+  async findRegistrationDraftByUsername(username: string) {
+    return this.prisma.registrationDraft.findUnique({
+      where: {
+        username,
+      },
+    });
+  }
+
+  async findRegistrationDraftByPan(panNumber: string) {
+    return this.prisma.registrationDraft.findUnique({
+      where: {
+        panNumber,
+      },
+    });
+  }
+
+  async findRegistrationDraftByAadhaar(aadhaarNumber: string) {
+    return this.prisma.registrationDraft.findUnique({
+      where: {
+        aadhaarNumber,
+      },
+    });
+  }
+
+  async updateRegistrationStep(
+    draftId: string,
+    registrationStep: RegistrationStep,
+  ) {
+    return this.prisma.registrationDraft.update({
+      where: {
+        id: draftId,
+      },
+      data: {
+        registrationStep,
+      },
+    });
+  }
+
+  async updateRegistrationDraft(
+    id: string,
+    data: Prisma.RegistrationDraftUpdateInput,
+  ) {
+    return this.prisma.registrationDraft.update({
+      where: {
+        id,
+      },
+      data,
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  async deleteRegistrationDraft(id: string) {
+    return this.prisma.registrationDraft.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async completeRegistration(data: CompleteRegistrationData) {
+    const identity = await this.prisma.$transaction(async (tx) => {
+      const createdIdentity = await tx.identity.create({
+        data: data.identity,
+        include: {
+          role: true,
+        },
+      });
+
+      await tx.registrationDraft.delete({
+        where: {
+          id: data.draftId,
+        },
+      });
+
+      return createdIdentity;
+    });
+
+    await this.clearIdentityCache(identity);
+
+    return identity;
+  }
+
+  async updatePreferredLoginMethod(
+    identityId: string,
+    preferredLoginMethod: LoginMethod,
+  ) {
+    const identity = await this.prisma.identity.update({
+      where: {
+        id: identityId,
+      },
+      data: {
+        preferredLoginMethod,
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    await this.clearIdentityCache(identity);
+
+    return identity;
+  }
+
+  async updatePassword(identityId: string, password: string) {
+    return this.prisma.identity.update({
+      where: {
+        id: identityId,
+      },
+      data: {
+        password,
+        passwordChangedAt: new Date(),
+      },
+    });
+  }
+
+  async updateMpin(identityId: string, hashedMpin: string) {
+    return this.prisma.identity.update({
+      where: {
+        id: identityId,
+      },
+      data: {
+        mpin: hashedMpin,
+      },
+    });
   }
 
   async create(data: Prisma.IdentityCreateInput): Promise<IdentityWithRole> {

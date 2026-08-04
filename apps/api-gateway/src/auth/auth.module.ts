@@ -4,9 +4,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthController } from './auth.controller';
 import { AuthGatewayService } from './auth.gateway.service';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthGuard } from './guards/jwt-auth-guard';
 
 @Module({
   imports: [
+    PassportModule,
     ClientsModule.registerAsync([
       {
         name: 'AUTH_SERVICE',
@@ -27,11 +31,18 @@ import { AuthGatewayService } from './auth.gateway.service';
         }),
       },
     ]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_ACCESS_SECRET'),
+      }),
+    }),
   ],
 
   controllers: [AuthController],
 
-  providers: [AuthGatewayService],
+  providers: [AuthGatewayService, JwtAuthGuard],
 
   exports: [AuthGatewayService],
 })

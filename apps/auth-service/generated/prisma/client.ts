@@ -59,3 +59,8 @@ export type Otp = Prisma.OtpModel
  * 
  */
 export type Session = Prisma.SessionModel
+/**
+ * Model RegistrationDraft
+ * 
+ */
+export type RegistrationDraft = Prisma.RegistrationDraftModel

@@ -400,7 +400,8 @@ export const ModelName = {
   Identity: 'Identity',
   Role: 'Role',
   Otp: 'Otp',
-  Session: 'Session'
+  Session: 'Session',
+  RegistrationDraft: 'RegistrationDraft'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "identity" | "role" | "otp" | "session"
+    modelProps: "identity" | "role" | "otp" | "session" | "registrationDraft"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -716,6 +717,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    RegistrationDraft: {
+      payload: Prisma.$RegistrationDraftPayload<ExtArgs>
+      fields: Prisma.RegistrationDraftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RegistrationDraftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RegistrationDraftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>
+        }
+        findFirst: {
+          args: Prisma.RegistrationDraftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RegistrationDraftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>
+        }
+        findMany: {
+          args: Prisma.RegistrationDraftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>[]
+        }
+        create: {
+          args: Prisma.RegistrationDraftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>
+        }
+        createMany: {
+          args: Prisma.RegistrationDraftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RegistrationDraftCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>[]
+        }
+        delete: {
+          args: Prisma.RegistrationDraftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>
+        }
+        update: {
+          args: Prisma.RegistrationDraftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>
+        }
+        deleteMany: {
+          args: Prisma.RegistrationDraftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RegistrationDraftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RegistrationDraftUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>[]
+        }
+        upsert: {
+          args: Prisma.RegistrationDraftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RegistrationDraftPayload>
+        }
+        aggregate: {
+          args: Prisma.RegistrationDraftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRegistrationDraft>
+        }
+        groupBy: {
+          args: Prisma.RegistrationDraftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RegistrationDraftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RegistrationDraftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RegistrationDraftCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -758,16 +833,27 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const IdentityScalarFieldEnum = {
   id: 'id',
   loginId: 'loginId',
-  firstName: 'firstName',
-  lastName: 'lastName',
+  fullName: 'fullName',
   username: 'username',
   email: 'email',
   phoneNumber: 'phoneNumber',
   password: 'password',
+  mpin: 'mpin',
+  aadhaarNumber: 'aadhaarNumber',
+  panNumber: 'panNumber',
+  shopName: 'shopName',
+  shopAddress: 'shopAddress',
+  shopCity: 'shopCity',
+  shopState: 'shopState',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
   status: 'status',
   isEmailVerified: 'isEmailVerified',
   isPhoneVerified: 'isPhoneVerified',
+  isPanVerified: 'isPanVerified',
   preferredLoginMethod: 'preferredLoginMethod',
+  registrationStep: 'registrationStep',
   lastLoginAt: 'lastLoginAt',
   passwordChangedAt: 'passwordChangedAt',
   roleId: 'roleId',
@@ -791,6 +877,7 @@ export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof Role
 
 export const OtpScalarFieldEnum = {
   id: 'id',
+  identityId: 'identityId',
   type: 'type',
   purpose: 'purpose',
   phoneNumber: 'phoneNumber',
@@ -821,6 +908,32 @@ export const SessionScalarFieldEnum = {
 } as const
 
 export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
+
+
+export const RegistrationDraftScalarFieldEnum = {
+  id: 'id',
+  roleId: 'roleId',
+  phoneNumber: 'phoneNumber',
+  isPhoneVerified: 'isPhoneVerified',
+  panNumber: 'panNumber',
+  isPanVerified: 'isPanVerified',
+  fullName: 'fullName',
+  username: 'username',
+  email: 'email',
+  aadhaarNumber: 'aadhaarNumber',
+  shopName: 'shopName',
+  shopAddress: 'shopAddress',
+  shopCity: 'shopCity',
+  shopState: 'shopState',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
+  registrationStep: 'registrationStep',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RegistrationDraftScalarFieldEnum = (typeof RegistrationDraftScalarFieldEnum)[keyof typeof RegistrationDraftScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -899,6 +1012,20 @@ export type EnumLoginMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'LoginMethod[]'
  */
 export type ListEnumLoginMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LoginMethod[]'>
+    
+
+
+/**
+ * Reference to a field of type 'RegistrationStep'
+ */
+export type EnumRegistrationStepFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RegistrationStep'>
+    
+
+
+/**
+ * Reference to a field of type 'RegistrationStep[]'
+ */
+export type ListEnumRegistrationStepFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RegistrationStep[]'>
     
 
 
@@ -1126,6 +1253,7 @@ export type GlobalOmitConfig = {
   role?: Prisma.RoleOmit
   otp?: Prisma.OtpOmit
   session?: Prisma.SessionOmit
+  registrationDraft?: Prisma.RegistrationDraftOmit
 }
 
 /* Types for Logging */

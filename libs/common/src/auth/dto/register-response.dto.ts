@@ -1,8 +1,7 @@
 export class RegisterResponseDto {
   id!: string;
   loginId!: string;
-  firstName!: string;
-  lastName!: string;
+  fullName!: string;
   username!: string;
   email!: string;
   phoneNumber!: string;

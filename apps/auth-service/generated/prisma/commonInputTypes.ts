@@ -48,6 +48,13 @@ export type EnumLoginMethodFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumLoginMethodFilter<$PrismaModel> | $Enums.LoginMethod
 }
 
+export type EnumRegistrationStepFilter<$PrismaModel = never> = {
+  equals?: $Enums.RegistrationStep | Prisma.EnumRegistrationStepFieldRefInput<$PrismaModel>
+  in?: $Enums.RegistrationStep[] | Prisma.ListEnumRegistrationStepFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RegistrationStep[] | Prisma.ListEnumRegistrationStepFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRegistrationStepFilter<$PrismaModel> | $Enums.RegistrationStep
+}
+
 export type DateTimeNullableFilter<$PrismaModel = never> = {
   equals?: Date | string | Prisma.DateTimeFieldRefInput<$PrismaModel> | null
   in?: Date[] | string[] | Prisma.ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -119,6 +126,16 @@ export type EnumLoginMethodWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumLoginMethodFilter<$PrismaModel>
   _max?: Prisma.NestedEnumLoginMethodFilter<$PrismaModel>
+}
+
+export type EnumRegistrationStepWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RegistrationStep | Prisma.EnumRegistrationStepFieldRefInput<$PrismaModel>
+  in?: $Enums.RegistrationStep[] | Prisma.ListEnumRegistrationStepFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RegistrationStep[] | Prisma.ListEnumRegistrationStepFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRegistrationStepWithAggregatesFilter<$PrismaModel> | $Enums.RegistrationStep
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRegistrationStepFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRegistrationStepFilter<$PrismaModel>
 }
 
 export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -276,6 +293,13 @@ export type NestedEnumLoginMethodFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumLoginMethodFilter<$PrismaModel> | $Enums.LoginMethod
 }
 
+export type NestedEnumRegistrationStepFilter<$PrismaModel = never> = {
+  equals?: $Enums.RegistrationStep | Prisma.EnumRegistrationStepFieldRefInput<$PrismaModel>
+  in?: $Enums.RegistrationStep[] | Prisma.ListEnumRegistrationStepFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RegistrationStep[] | Prisma.ListEnumRegistrationStepFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRegistrationStepFilter<$PrismaModel> | $Enums.RegistrationStep
+}
+
 export type NestedDateTimeNullableFilter<$PrismaModel = never> = {
   equals?: Date | string | Prisma.DateTimeFieldRefInput<$PrismaModel> | null
   in?: Date[] | string[] | Prisma.ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -352,6 +376,16 @@ export type NestedEnumLoginMethodWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumLoginMethodFilter<$PrismaModel>
   _max?: Prisma.NestedEnumLoginMethodFilter<$PrismaModel>
+}
+
+export type NestedEnumRegistrationStepWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.RegistrationStep | Prisma.EnumRegistrationStepFieldRefInput<$PrismaModel>
+  in?: $Enums.RegistrationStep[] | Prisma.ListEnumRegistrationStepFieldRefInput<$PrismaModel>
+  notIn?: $Enums.RegistrationStep[] | Prisma.ListEnumRegistrationStepFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumRegistrationStepWithAggregatesFilter<$PrismaModel> | $Enums.RegistrationStep
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumRegistrationStepFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumRegistrationStepFilter<$PrismaModel>
 }
 
 export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {

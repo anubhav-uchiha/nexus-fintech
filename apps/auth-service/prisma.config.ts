@@ -7,7 +7,7 @@ export default defineConfig({
 
   migrations: {
     path: path.join(__dirname, 'prisma/migrations'),
-    seed: 'tsx apps/auth-service/prisma/seed.ts',
+    seed: 'tsx prisma/seed.ts',
   },
   datasource: {
     url:

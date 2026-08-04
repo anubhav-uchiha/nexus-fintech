@@ -1,6 +1,16 @@
 export const AUTH_PATTERNS = {
-  REGISTER: 'auth.register',
+  REGISTER_ROLE: 'auth.register.role',
+  REGISTER_SEND_OTP: 'auth.register.send-otp',
+  REGISTER_VERIFY_OTP: 'auth.register.verify-otp',
+  REGISTER_PAN: 'auth.register.pan',
+  REGISTER_DETAILS: 'auth.register.details',
+
+  CHANGE_LOGIN_METHOD: 'auth.change-login-method',
+
   LOGIN: 'auth.login',
+
+  CHANGE_PASSWORD: 'auth.change-password',
+  CHANGE_MPIN: 'auth.change-mpin',
 
   SEND_PHONE_OTP: 'auth.send-phone-otp',
   SEND_EMAIL_OTP: 'auth.send-email-otp',

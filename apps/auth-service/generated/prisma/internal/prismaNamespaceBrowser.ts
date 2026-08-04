@@ -54,7 +54,8 @@ export const ModelName = {
   Identity: 'Identity',
   Role: 'Role',
   Otp: 'Otp',
-  Session: 'Session'
+  Session: 'Session',
+  RegistrationDraft: 'RegistrationDraft'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -76,16 +77,27 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const IdentityScalarFieldEnum = {
   id: 'id',
   loginId: 'loginId',
-  firstName: 'firstName',
-  lastName: 'lastName',
+  fullName: 'fullName',
   username: 'username',
   email: 'email',
   phoneNumber: 'phoneNumber',
   password: 'password',
+  mpin: 'mpin',
+  aadhaarNumber: 'aadhaarNumber',
+  panNumber: 'panNumber',
+  shopName: 'shopName',
+  shopAddress: 'shopAddress',
+  shopCity: 'shopCity',
+  shopState: 'shopState',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
   status: 'status',
   isEmailVerified: 'isEmailVerified',
   isPhoneVerified: 'isPhoneVerified',
+  isPanVerified: 'isPanVerified',
   preferredLoginMethod: 'preferredLoginMethod',
+  registrationStep: 'registrationStep',
   lastLoginAt: 'lastLoginAt',
   passwordChangedAt: 'passwordChangedAt',
   roleId: 'roleId',
@@ -109,6 +121,7 @@ export type RoleScalarFieldEnum = (typeof RoleScalarFieldEnum)[keyof typeof Role
 
 export const OtpScalarFieldEnum = {
   id: 'id',
+  identityId: 'identityId',
   type: 'type',
   purpose: 'purpose',
   phoneNumber: 'phoneNumber',
@@ -139,6 +152,32 @@ export const SessionScalarFieldEnum = {
 } as const
 
 export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
+
+
+export const RegistrationDraftScalarFieldEnum = {
+  id: 'id',
+  roleId: 'roleId',
+  phoneNumber: 'phoneNumber',
+  isPhoneVerified: 'isPhoneVerified',
+  panNumber: 'panNumber',
+  isPanVerified: 'isPanVerified',
+  fullName: 'fullName',
+  username: 'username',
+  email: 'email',
+  aadhaarNumber: 'aadhaarNumber',
+  shopName: 'shopName',
+  shopAddress: 'shopAddress',
+  shopCity: 'shopCity',
+  shopState: 'shopState',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
+  registrationStep: 'registrationStep',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RegistrationDraftScalarFieldEnum = (typeof RegistrationDraftScalarFieldEnum)[keyof typeof RegistrationDraftScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -1,3 +1,5 @@
+import { LoginMethod } from 'apps/auth-service/generated/prisma/enums';
+
 export class RefreshKafkaResponseDto {
   accessToken!: string;
 
@@ -5,12 +7,12 @@ export class RefreshKafkaResponseDto {
 
   identity!: {
     id: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     username: string;
     email: string;
     phoneNumber: string;
     role: string;
     status: string;
+    preferredLoginMethod: LoginMethod;
   };
 }

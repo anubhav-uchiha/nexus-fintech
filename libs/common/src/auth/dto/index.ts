@@ -11,3 +11,4 @@ export * from './refresh-token-response.dto';
 export * from './login-kafka-response.dto';
 export * from './refresh-kafka-response.dto';
 export * from './logout.dto';
+export * from './change-password.dto';

@@ -36,6 +36,7 @@ export type OtpSumAggregateOutputType = {
 
 export type OtpMinAggregateOutputType = {
   id: string | null
+  identityId: string | null
   type: $Enums.OtpType | null
   purpose: $Enums.OtpPurpose | null
   phoneNumber: string | null
@@ -50,6 +51,7 @@ export type OtpMinAggregateOutputType = {
 
 export type OtpMaxAggregateOutputType = {
   id: string | null
+  identityId: string | null
   type: $Enums.OtpType | null
   purpose: $Enums.OtpPurpose | null
   phoneNumber: string | null
@@ -64,6 +66,7 @@ export type OtpMaxAggregateOutputType = {
 
 export type OtpCountAggregateOutputType = {
   id: number
+  identityId: number
   type: number
   purpose: number
   phoneNumber: number
@@ -88,6 +91,7 @@ export type OtpSumAggregateInputType = {
 
 export type OtpMinAggregateInputType = {
   id?: true
+  identityId?: true
   type?: true
   purpose?: true
   phoneNumber?: true
@@ -102,6 +106,7 @@ export type OtpMinAggregateInputType = {
 
 export type OtpMaxAggregateInputType = {
   id?: true
+  identityId?: true
   type?: true
   purpose?: true
   phoneNumber?: true
@@ -116,6 +121,7 @@ export type OtpMaxAggregateInputType = {
 
 export type OtpCountAggregateInputType = {
   id?: true
+  identityId?: true
   type?: true
   purpose?: true
   phoneNumber?: true
@@ -217,6 +223,7 @@ export type OtpGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
 
 export type OtpGroupByOutputType = {
   id: string
+  identityId: string | null
   type: $Enums.OtpType
   purpose: $Enums.OtpPurpose
   phoneNumber: string | null
@@ -254,6 +261,7 @@ export type OtpWhereInput = {
   OR?: Prisma.OtpWhereInput[]
   NOT?: Prisma.OtpWhereInput | Prisma.OtpWhereInput[]
   id?: Prisma.StringFilter<"Otp"> | string
+  identityId?: Prisma.StringNullableFilter<"Otp"> | string | null
   type?: Prisma.EnumOtpTypeFilter<"Otp"> | $Enums.OtpType
   purpose?: Prisma.EnumOtpPurposeFilter<"Otp"> | $Enums.OtpPurpose
   phoneNumber?: Prisma.StringNullableFilter<"Otp"> | string | null
@@ -264,10 +272,12 @@ export type OtpWhereInput = {
   verifiedAt?: Prisma.DateTimeNullableFilter<"Otp"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Otp"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Otp"> | Date | string
+  identity?: Prisma.XOR<Prisma.IdentityNullableScalarRelationFilter, Prisma.IdentityWhereInput> | null
 }
 
 export type OtpOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  identityId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -278,6 +288,7 @@ export type OtpOrderByWithRelationInput = {
   verifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  identity?: Prisma.IdentityOrderByWithRelationInput
 }
 
 export type OtpWhereUniqueInput = Prisma.AtLeast<{
@@ -285,6 +296,7 @@ export type OtpWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.OtpWhereInput | Prisma.OtpWhereInput[]
   OR?: Prisma.OtpWhereInput[]
   NOT?: Prisma.OtpWhereInput | Prisma.OtpWhereInput[]
+  identityId?: Prisma.StringNullableFilter<"Otp"> | string | null
   type?: Prisma.EnumOtpTypeFilter<"Otp"> | $Enums.OtpType
   purpose?: Prisma.EnumOtpPurposeFilter<"Otp"> | $Enums.OtpPurpose
   phoneNumber?: Prisma.StringNullableFilter<"Otp"> | string | null
@@ -295,10 +307,12 @@ export type OtpWhereUniqueInput = Prisma.AtLeast<{
   verifiedAt?: Prisma.DateTimeNullableFilter<"Otp"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Otp"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Otp"> | Date | string
+  identity?: Prisma.XOR<Prisma.IdentityNullableScalarRelationFilter, Prisma.IdentityWhereInput> | null
 }, "id">
 
 export type OtpOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  identityId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -321,6 +335,7 @@ export type OtpScalarWhereWithAggregatesInput = {
   OR?: Prisma.OtpScalarWhereWithAggregatesInput[]
   NOT?: Prisma.OtpScalarWhereWithAggregatesInput | Prisma.OtpScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Otp"> | string
+  identityId?: Prisma.StringNullableWithAggregatesFilter<"Otp"> | string | null
   type?: Prisma.EnumOtpTypeWithAggregatesFilter<"Otp"> | $Enums.OtpType
   purpose?: Prisma.EnumOtpPurposeWithAggregatesFilter<"Otp"> | $Enums.OtpPurpose
   phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"Otp"> | string | null
@@ -345,10 +360,12 @@ export type OtpCreateInput = {
   verifiedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  identity?: Prisma.IdentityCreateNestedOneWithoutOtpInput
 }
 
 export type OtpUncheckedCreateInput = {
   id?: string
+  identityId?: string | null
   type: $Enums.OtpType
   purpose: $Enums.OtpPurpose
   phoneNumber?: string | null
@@ -373,10 +390,12 @@ export type OtpUpdateInput = {
   verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  identity?: Prisma.IdentityUpdateOneWithoutOtpNestedInput
 }
 
 export type OtpUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumOtpTypeFieldUpdateOperationsInput | $Enums.OtpType
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -391,6 +410,7 @@ export type OtpUncheckedUpdateInput = {
 
 export type OtpCreateManyInput = {
   id?: string
+  identityId?: string | null
   type: $Enums.OtpType
   purpose: $Enums.OtpPurpose
   phoneNumber?: string | null
@@ -419,6 +439,7 @@ export type OtpUpdateManyMutationInput = {
 
 export type OtpUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.EnumOtpTypeFieldUpdateOperationsInput | $Enums.OtpType
   purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -431,8 +452,19 @@ export type OtpUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type OtpListRelationFilter = {
+  every?: Prisma.OtpWhereInput
+  some?: Prisma.OtpWhereInput
+  none?: Prisma.OtpWhereInput
+}
+
+export type OtpOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
 export type OtpCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  identityId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
@@ -451,6 +483,7 @@ export type OtpAvgOrderByAggregateInput = {
 
 export type OtpMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  identityId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
@@ -465,6 +498,7 @@ export type OtpMaxOrderByAggregateInput = {
 
 export type OtpMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  identityId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   purpose?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
@@ -479,6 +513,48 @@ export type OtpMinOrderByAggregateInput = {
 
 export type OtpSumOrderByAggregateInput = {
   attempts?: Prisma.SortOrder
+}
+
+export type OtpCreateNestedManyWithoutIdentityInput = {
+  create?: Prisma.XOR<Prisma.OtpCreateWithoutIdentityInput, Prisma.OtpUncheckedCreateWithoutIdentityInput> | Prisma.OtpCreateWithoutIdentityInput[] | Prisma.OtpUncheckedCreateWithoutIdentityInput[]
+  connectOrCreate?: Prisma.OtpCreateOrConnectWithoutIdentityInput | Prisma.OtpCreateOrConnectWithoutIdentityInput[]
+  createMany?: Prisma.OtpCreateManyIdentityInputEnvelope
+  connect?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+}
+
+export type OtpUncheckedCreateNestedManyWithoutIdentityInput = {
+  create?: Prisma.XOR<Prisma.OtpCreateWithoutIdentityInput, Prisma.OtpUncheckedCreateWithoutIdentityInput> | Prisma.OtpCreateWithoutIdentityInput[] | Prisma.OtpUncheckedCreateWithoutIdentityInput[]
+  connectOrCreate?: Prisma.OtpCreateOrConnectWithoutIdentityInput | Prisma.OtpCreateOrConnectWithoutIdentityInput[]
+  createMany?: Prisma.OtpCreateManyIdentityInputEnvelope
+  connect?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+}
+
+export type OtpUpdateManyWithoutIdentityNestedInput = {
+  create?: Prisma.XOR<Prisma.OtpCreateWithoutIdentityInput, Prisma.OtpUncheckedCreateWithoutIdentityInput> | Prisma.OtpCreateWithoutIdentityInput[] | Prisma.OtpUncheckedCreateWithoutIdentityInput[]
+  connectOrCreate?: Prisma.OtpCreateOrConnectWithoutIdentityInput | Prisma.OtpCreateOrConnectWithoutIdentityInput[]
+  upsert?: Prisma.OtpUpsertWithWhereUniqueWithoutIdentityInput | Prisma.OtpUpsertWithWhereUniqueWithoutIdentityInput[]
+  createMany?: Prisma.OtpCreateManyIdentityInputEnvelope
+  set?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+  disconnect?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+  delete?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+  connect?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+  update?: Prisma.OtpUpdateWithWhereUniqueWithoutIdentityInput | Prisma.OtpUpdateWithWhereUniqueWithoutIdentityInput[]
+  updateMany?: Prisma.OtpUpdateManyWithWhereWithoutIdentityInput | Prisma.OtpUpdateManyWithWhereWithoutIdentityInput[]
+  deleteMany?: Prisma.OtpScalarWhereInput | Prisma.OtpScalarWhereInput[]
+}
+
+export type OtpUncheckedUpdateManyWithoutIdentityNestedInput = {
+  create?: Prisma.XOR<Prisma.OtpCreateWithoutIdentityInput, Prisma.OtpUncheckedCreateWithoutIdentityInput> | Prisma.OtpCreateWithoutIdentityInput[] | Prisma.OtpUncheckedCreateWithoutIdentityInput[]
+  connectOrCreate?: Prisma.OtpCreateOrConnectWithoutIdentityInput | Prisma.OtpCreateOrConnectWithoutIdentityInput[]
+  upsert?: Prisma.OtpUpsertWithWhereUniqueWithoutIdentityInput | Prisma.OtpUpsertWithWhereUniqueWithoutIdentityInput[]
+  createMany?: Prisma.OtpCreateManyIdentityInputEnvelope
+  set?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+  disconnect?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+  delete?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+  connect?: Prisma.OtpWhereUniqueInput | Prisma.OtpWhereUniqueInput[]
+  update?: Prisma.OtpUpdateWithWhereUniqueWithoutIdentityInput | Prisma.OtpUpdateWithWhereUniqueWithoutIdentityInput[]
+  updateMany?: Prisma.OtpUpdateManyWithWhereWithoutIdentityInput | Prisma.OtpUpdateManyWithWhereWithoutIdentityInput[]
+  deleteMany?: Prisma.OtpScalarWhereInput | Prisma.OtpScalarWhereInput[]
 }
 
 export type EnumOtpTypeFieldUpdateOperationsInput = {
@@ -497,10 +573,139 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type OtpCreateWithoutIdentityInput = {
+  id?: string
+  type: $Enums.OtpType
+  purpose: $Enums.OtpPurpose
+  phoneNumber?: string | null
+  email?: string | null
+  otpHash: string
+  attempts?: number
+  expiresAt: Date | string
+  verifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OtpUncheckedCreateWithoutIdentityInput = {
+  id?: string
+  type: $Enums.OtpType
+  purpose: $Enums.OtpPurpose
+  phoneNumber?: string | null
+  email?: string | null
+  otpHash: string
+  attempts?: number
+  expiresAt: Date | string
+  verifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OtpCreateOrConnectWithoutIdentityInput = {
+  where: Prisma.OtpWhereUniqueInput
+  create: Prisma.XOR<Prisma.OtpCreateWithoutIdentityInput, Prisma.OtpUncheckedCreateWithoutIdentityInput>
+}
+
+export type OtpCreateManyIdentityInputEnvelope = {
+  data: Prisma.OtpCreateManyIdentityInput | Prisma.OtpCreateManyIdentityInput[]
+  skipDuplicates?: boolean
+}
+
+export type OtpUpsertWithWhereUniqueWithoutIdentityInput = {
+  where: Prisma.OtpWhereUniqueInput
+  update: Prisma.XOR<Prisma.OtpUpdateWithoutIdentityInput, Prisma.OtpUncheckedUpdateWithoutIdentityInput>
+  create: Prisma.XOR<Prisma.OtpCreateWithoutIdentityInput, Prisma.OtpUncheckedCreateWithoutIdentityInput>
+}
+
+export type OtpUpdateWithWhereUniqueWithoutIdentityInput = {
+  where: Prisma.OtpWhereUniqueInput
+  data: Prisma.XOR<Prisma.OtpUpdateWithoutIdentityInput, Prisma.OtpUncheckedUpdateWithoutIdentityInput>
+}
+
+export type OtpUpdateManyWithWhereWithoutIdentityInput = {
+  where: Prisma.OtpScalarWhereInput
+  data: Prisma.XOR<Prisma.OtpUpdateManyMutationInput, Prisma.OtpUncheckedUpdateManyWithoutIdentityInput>
+}
+
+export type OtpScalarWhereInput = {
+  AND?: Prisma.OtpScalarWhereInput | Prisma.OtpScalarWhereInput[]
+  OR?: Prisma.OtpScalarWhereInput[]
+  NOT?: Prisma.OtpScalarWhereInput | Prisma.OtpScalarWhereInput[]
+  id?: Prisma.StringFilter<"Otp"> | string
+  identityId?: Prisma.StringNullableFilter<"Otp"> | string | null
+  type?: Prisma.EnumOtpTypeFilter<"Otp"> | $Enums.OtpType
+  purpose?: Prisma.EnumOtpPurposeFilter<"Otp"> | $Enums.OtpPurpose
+  phoneNumber?: Prisma.StringNullableFilter<"Otp"> | string | null
+  email?: Prisma.StringNullableFilter<"Otp"> | string | null
+  otpHash?: Prisma.StringFilter<"Otp"> | string
+  attempts?: Prisma.IntFilter<"Otp"> | number
+  expiresAt?: Prisma.DateTimeFilter<"Otp"> | Date | string
+  verifiedAt?: Prisma.DateTimeNullableFilter<"Otp"> | Date | string | null
+  createdAt?: Prisma.DateTimeFilter<"Otp"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Otp"> | Date | string
+}
+
+export type OtpCreateManyIdentityInput = {
+  id?: string
+  type: $Enums.OtpType
+  purpose: $Enums.OtpPurpose
+  phoneNumber?: string | null
+  email?: string | null
+  otpHash: string
+  attempts?: number
+  expiresAt: Date | string
+  verifiedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type OtpUpdateWithoutIdentityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumOtpTypeFieldUpdateOperationsInput | $Enums.OtpType
+  purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpHash?: Prisma.StringFieldUpdateOperationsInput | string
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type OtpUncheckedUpdateWithoutIdentityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumOtpTypeFieldUpdateOperationsInput | $Enums.OtpType
+  purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpHash?: Prisma.StringFieldUpdateOperationsInput | string
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type OtpUncheckedUpdateManyWithoutIdentityInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumOtpTypeFieldUpdateOperationsInput | $Enums.OtpType
+  purpose?: Prisma.EnumOtpPurposeFieldUpdateOperationsInput | $Enums.OtpPurpose
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  otpHash?: Prisma.StringFieldUpdateOperationsInput | string
+  attempts?: Prisma.IntFieldUpdateOperationsInput | number
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 
 
 export type OtpSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  identityId?: boolean
   type?: boolean
   purpose?: boolean
   phoneNumber?: boolean
@@ -511,10 +716,12 @@ export type OtpSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
   verifiedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  identity?: boolean | Prisma.Otp$identityArgs<ExtArgs>
 }, ExtArgs["result"]["otp"]>
 
 export type OtpSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  identityId?: boolean
   type?: boolean
   purpose?: boolean
   phoneNumber?: boolean
@@ -525,10 +732,12 @@ export type OtpSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extension
   verifiedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  identity?: boolean | Prisma.Otp$identityArgs<ExtArgs>
 }, ExtArgs["result"]["otp"]>
 
 export type OtpSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  identityId?: boolean
   type?: boolean
   purpose?: boolean
   phoneNumber?: boolean
@@ -539,10 +748,12 @@ export type OtpSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extension
   verifiedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  identity?: boolean | Prisma.Otp$identityArgs<ExtArgs>
 }, ExtArgs["result"]["otp"]>
 
 export type OtpSelectScalar = {
   id?: boolean
+  identityId?: boolean
   type?: boolean
   purpose?: boolean
   phoneNumber?: boolean
@@ -555,13 +766,25 @@ export type OtpSelectScalar = {
   updatedAt?: boolean
 }
 
-export type OtpOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "purpose" | "phoneNumber" | "email" | "otpHash" | "attempts" | "expiresAt" | "verifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["otp"]>
+export type OtpOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "identityId" | "type" | "purpose" | "phoneNumber" | "email" | "otpHash" | "attempts" | "expiresAt" | "verifiedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["otp"]>
+export type OtpInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  identity?: boolean | Prisma.Otp$identityArgs<ExtArgs>
+}
+export type OtpIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  identity?: boolean | Prisma.Otp$identityArgs<ExtArgs>
+}
+export type OtpIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  identity?: boolean | Prisma.Otp$identityArgs<ExtArgs>
+}
 
 export type $OtpPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Otp"
-  objects: {}
+  objects: {
+    identity: Prisma.$IdentityPayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    identityId: string | null
     type: $Enums.OtpType
     purpose: $Enums.OtpPurpose
     phoneNumber: string | null
@@ -966,6 +1189,7 @@ readonly fields: OtpFieldRefs;
  */
 export interface Prisma__OtpClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  identity<T extends Prisma.Otp$identityArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Otp$identityArgs<ExtArgs>>): Prisma.Prisma__IdentityClient<runtime.Types.Result.GetResult<Prisma.$IdentityPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -996,6 +1220,7 @@ export interface Prisma__OtpClient<T, Null = never, ExtArgs extends runtime.Type
  */
 export interface OtpFieldRefs {
   readonly id: Prisma.FieldRef<"Otp", 'String'>
+  readonly identityId: Prisma.FieldRef<"Otp", 'String'>
   readonly type: Prisma.FieldRef<"Otp", 'OtpType'>
   readonly purpose: Prisma.FieldRef<"Otp", 'OtpPurpose'>
   readonly phoneNumber: Prisma.FieldRef<"Otp", 'String'>
@@ -1023,6 +1248,10 @@ export type OtpFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
+  /**
    * Filter, which Otp to fetch.
    */
   where: Prisma.OtpWhereUniqueInput
@@ -1041,6 +1270,10 @@ export type OtpFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
+  /**
    * Filter, which Otp to fetch.
    */
   where: Prisma.OtpWhereUniqueInput
@@ -1058,6 +1291,10 @@ export type OtpFindFirstArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Otp
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
   /**
    * Filter, which Otp to fetch.
    */
@@ -1107,6 +1344,10 @@ export type OtpFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
+  /**
    * Filter, which Otp to fetch.
    */
   where?: Prisma.OtpWhereInput
@@ -1154,6 +1395,10 @@ export type OtpFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    * Omit specific fields from the Otp
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
   /**
    * Filter, which Otps to fetch.
    */
@@ -1203,6 +1448,10 @@ export type OtpCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs 
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
+  /**
    * The data needed to create a Otp.
    */
   data: Prisma.XOR<Prisma.OtpCreateInput, Prisma.OtpUncheckedCreateInput>
@@ -1236,6 +1485,10 @@ export type OtpCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.
    */
   data: Prisma.OtpCreateManyInput | Prisma.OtpCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1250,6 +1503,10 @@ export type OtpUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs 
    * Omit specific fields from the Otp
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
   /**
    * The data needed to update a Otp.
    */
@@ -1302,6 +1559,10 @@ export type OtpUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many Otps to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1316,6 +1577,10 @@ export type OtpUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs 
    * Omit specific fields from the Otp
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
   /**
    * The filter to search for the Otp to update in case it exists.
    */
@@ -1343,6 +1608,10 @@ export type OtpDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs 
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
+  /**
    * Filter which Otp to delete.
    */
   where: Prisma.OtpWhereUniqueInput
@@ -1363,6 +1632,25 @@ export type OtpDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 }
 
 /**
+ * Otp.identity
+ */
+export type Otp$identityArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Identity
+   */
+  select?: Prisma.IdentitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Identity
+   */
+  omit?: Prisma.IdentityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IdentityInclude<ExtArgs> | null
+  where?: Prisma.IdentityWhereInput
+}
+
+/**
  * Otp without action
  */
 export type OtpDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1374,4 +1662,8 @@ export type OtpDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
    * Omit specific fields from the Otp
    */
   omit?: Prisma.OtpOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
 }

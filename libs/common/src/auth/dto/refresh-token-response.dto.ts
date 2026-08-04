@@ -3,8 +3,7 @@ export class RefreshTokenResponseDto {
 
   identity!: {
     id: string;
-    firstName: string;
-    lastName: string;
+    fullName: string;
     username: string;
     email: string;
     phoneNumber: string;

@@ -23,10 +23,21 @@ export const LoginMethod = {
   EMAIL: 'EMAIL',
   USERNAME: 'USERNAME',
   LOGIN_ID: 'LOGIN_ID',
-  PHONE_PASSWORD: 'PHONE_PASSWORD'
+  PHONENUMBER: 'PHONENUMBER'
 } as const
 
 export type LoginMethod = (typeof LoginMethod)[keyof typeof LoginMethod]
+
+
+export const RegistrationStep = {
+  ROLE_SELECTED: 'ROLE_SELECTED',
+  PHONE_VERIFIED: 'PHONE_VERIFIED',
+  PAN_VERIFIED: 'PAN_VERIFIED',
+  DETAILS_COMPLETED: 'DETAILS_COMPLETED',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type RegistrationStep = (typeof RegistrationStep)[keyof typeof RegistrationStep]
 
 
 export const OtpType = {

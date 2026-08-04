@@ -27,16 +27,27 @@ export type AggregateIdentity = {
 export type IdentityMinAggregateOutputType = {
   id: string | null
   loginId: string | null
-  firstName: string | null
-  lastName: string | null
+  fullName: string | null
   username: string | null
   email: string | null
   phoneNumber: string | null
   password: string | null
+  mpin: string | null
+  aadhaarNumber: string | null
+  panNumber: string | null
+  shopName: string | null
+  shopAddress: string | null
+  shopCity: string | null
+  shopState: string | null
+  city: string | null
+  state: string | null
+  pincode: string | null
   status: $Enums.UserStatus | null
   isEmailVerified: boolean | null
   isPhoneVerified: boolean | null
+  isPanVerified: boolean | null
   preferredLoginMethod: $Enums.LoginMethod | null
+  registrationStep: $Enums.RegistrationStep | null
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
   roleId: string | null
@@ -47,16 +58,27 @@ export type IdentityMinAggregateOutputType = {
 export type IdentityMaxAggregateOutputType = {
   id: string | null
   loginId: string | null
-  firstName: string | null
-  lastName: string | null
+  fullName: string | null
   username: string | null
   email: string | null
   phoneNumber: string | null
   password: string | null
+  mpin: string | null
+  aadhaarNumber: string | null
+  panNumber: string | null
+  shopName: string | null
+  shopAddress: string | null
+  shopCity: string | null
+  shopState: string | null
+  city: string | null
+  state: string | null
+  pincode: string | null
   status: $Enums.UserStatus | null
   isEmailVerified: boolean | null
   isPhoneVerified: boolean | null
+  isPanVerified: boolean | null
   preferredLoginMethod: $Enums.LoginMethod | null
+  registrationStep: $Enums.RegistrationStep | null
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
   roleId: string | null
@@ -67,16 +89,27 @@ export type IdentityMaxAggregateOutputType = {
 export type IdentityCountAggregateOutputType = {
   id: number
   loginId: number
-  firstName: number
-  lastName: number
+  fullName: number
   username: number
   email: number
   phoneNumber: number
   password: number
+  mpin: number
+  aadhaarNumber: number
+  panNumber: number
+  shopName: number
+  shopAddress: number
+  shopCity: number
+  shopState: number
+  city: number
+  state: number
+  pincode: number
   status: number
   isEmailVerified: number
   isPhoneVerified: number
+  isPanVerified: number
   preferredLoginMethod: number
+  registrationStep: number
   lastLoginAt: number
   passwordChangedAt: number
   roleId: number
@@ -89,16 +122,27 @@ export type IdentityCountAggregateOutputType = {
 export type IdentityMinAggregateInputType = {
   id?: true
   loginId?: true
-  firstName?: true
-  lastName?: true
+  fullName?: true
   username?: true
   email?: true
   phoneNumber?: true
   password?: true
+  mpin?: true
+  aadhaarNumber?: true
+  panNumber?: true
+  shopName?: true
+  shopAddress?: true
+  shopCity?: true
+  shopState?: true
+  city?: true
+  state?: true
+  pincode?: true
   status?: true
   isEmailVerified?: true
   isPhoneVerified?: true
+  isPanVerified?: true
   preferredLoginMethod?: true
+  registrationStep?: true
   lastLoginAt?: true
   passwordChangedAt?: true
   roleId?: true
@@ -109,16 +153,27 @@ export type IdentityMinAggregateInputType = {
 export type IdentityMaxAggregateInputType = {
   id?: true
   loginId?: true
-  firstName?: true
-  lastName?: true
+  fullName?: true
   username?: true
   email?: true
   phoneNumber?: true
   password?: true
+  mpin?: true
+  aadhaarNumber?: true
+  panNumber?: true
+  shopName?: true
+  shopAddress?: true
+  shopCity?: true
+  shopState?: true
+  city?: true
+  state?: true
+  pincode?: true
   status?: true
   isEmailVerified?: true
   isPhoneVerified?: true
+  isPanVerified?: true
   preferredLoginMethod?: true
+  registrationStep?: true
   lastLoginAt?: true
   passwordChangedAt?: true
   roleId?: true
@@ -129,16 +184,27 @@ export type IdentityMaxAggregateInputType = {
 export type IdentityCountAggregateInputType = {
   id?: true
   loginId?: true
-  firstName?: true
-  lastName?: true
+  fullName?: true
   username?: true
   email?: true
   phoneNumber?: true
   password?: true
+  mpin?: true
+  aadhaarNumber?: true
+  panNumber?: true
+  shopName?: true
+  shopAddress?: true
+  shopCity?: true
+  shopState?: true
+  city?: true
+  state?: true
+  pincode?: true
   status?: true
   isEmailVerified?: true
   isPhoneVerified?: true
+  isPanVerified?: true
   preferredLoginMethod?: true
+  registrationStep?: true
   lastLoginAt?: true
   passwordChangedAt?: true
   roleId?: true
@@ -222,16 +288,27 @@ export type IdentityGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 export type IdentityGroupByOutputType = {
   id: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status: $Enums.UserStatus
   isEmailVerified: boolean
   isPhoneVerified: boolean
+  isPanVerified: boolean
   preferredLoginMethod: $Enums.LoginMethod
+  registrationStep: $Enums.RegistrationStep
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
   roleId: string
@@ -263,16 +340,27 @@ export type IdentityWhereInput = {
   NOT?: Prisma.IdentityWhereInput | Prisma.IdentityWhereInput[]
   id?: Prisma.StringFilter<"Identity"> | string
   loginId?: Prisma.StringFilter<"Identity"> | string
-  firstName?: Prisma.StringFilter<"Identity"> | string
-  lastName?: Prisma.StringFilter<"Identity"> | string
+  fullName?: Prisma.StringFilter<"Identity"> | string
   username?: Prisma.StringFilter<"Identity"> | string
   email?: Prisma.StringFilter<"Identity"> | string
   phoneNumber?: Prisma.StringFilter<"Identity"> | string
   password?: Prisma.StringFilter<"Identity"> | string
+  mpin?: Prisma.StringFilter<"Identity"> | string
+  aadhaarNumber?: Prisma.StringFilter<"Identity"> | string
+  panNumber?: Prisma.StringFilter<"Identity"> | string
+  shopName?: Prisma.StringFilter<"Identity"> | string
+  shopAddress?: Prisma.StringFilter<"Identity"> | string
+  shopCity?: Prisma.StringFilter<"Identity"> | string
+  shopState?: Prisma.StringFilter<"Identity"> | string
+  city?: Prisma.StringFilter<"Identity"> | string
+  state?: Prisma.StringFilter<"Identity"> | string
+  pincode?: Prisma.StringFilter<"Identity"> | string
   status?: Prisma.EnumUserStatusFilter<"Identity"> | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFilter<"Identity"> | boolean
   isPhoneVerified?: Prisma.BoolFilter<"Identity"> | boolean
+  isPanVerified?: Prisma.BoolFilter<"Identity"> | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFilter<"Identity"> | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFilter<"Identity"> | $Enums.RegistrationStep
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   roleId?: Prisma.StringFilter<"Identity"> | string
@@ -280,21 +368,33 @@ export type IdentityWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Identity"> | Date | string
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
   sessions?: Prisma.SessionListRelationFilter
+  otp?: Prisma.OtpListRelationFilter
 }
 
 export type IdentityOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   loginId?: Prisma.SortOrder
-  firstName?: Prisma.SortOrder
-  lastName?: Prisma.SortOrder
+  fullName?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  mpin?: Prisma.SortOrder
+  aadhaarNumber?: Prisma.SortOrder
+  panNumber?: Prisma.SortOrder
+  shopName?: Prisma.SortOrder
+  shopAddress?: Prisma.SortOrder
+  shopCity?: Prisma.SortOrder
+  shopState?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  state?: Prisma.SortOrder
+  pincode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   isPhoneVerified?: Prisma.SortOrder
+  isPanVerified?: Prisma.SortOrder
   preferredLoginMethod?: Prisma.SortOrder
+  registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   roleId?: Prisma.SortOrder
@@ -302,6 +402,7 @@ export type IdentityOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   role?: Prisma.RoleOrderByWithRelationInput
   sessions?: Prisma.SessionOrderByRelationAggregateInput
+  otp?: Prisma.OtpOrderByRelationAggregateInput
 }
 
 export type IdentityWhereUniqueInput = Prisma.AtLeast<{
@@ -310,16 +411,27 @@ export type IdentityWhereUniqueInput = Prisma.AtLeast<{
   username?: string
   email?: string
   phoneNumber?: string
+  aadhaarNumber?: string
+  panNumber?: string
   AND?: Prisma.IdentityWhereInput | Prisma.IdentityWhereInput[]
   OR?: Prisma.IdentityWhereInput[]
   NOT?: Prisma.IdentityWhereInput | Prisma.IdentityWhereInput[]
-  firstName?: Prisma.StringFilter<"Identity"> | string
-  lastName?: Prisma.StringFilter<"Identity"> | string
+  fullName?: Prisma.StringFilter<"Identity"> | string
   password?: Prisma.StringFilter<"Identity"> | string
+  mpin?: Prisma.StringFilter<"Identity"> | string
+  shopName?: Prisma.StringFilter<"Identity"> | string
+  shopAddress?: Prisma.StringFilter<"Identity"> | string
+  shopCity?: Prisma.StringFilter<"Identity"> | string
+  shopState?: Prisma.StringFilter<"Identity"> | string
+  city?: Prisma.StringFilter<"Identity"> | string
+  state?: Prisma.StringFilter<"Identity"> | string
+  pincode?: Prisma.StringFilter<"Identity"> | string
   status?: Prisma.EnumUserStatusFilter<"Identity"> | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFilter<"Identity"> | boolean
   isPhoneVerified?: Prisma.BoolFilter<"Identity"> | boolean
+  isPanVerified?: Prisma.BoolFilter<"Identity"> | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFilter<"Identity"> | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFilter<"Identity"> | $Enums.RegistrationStep
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   roleId?: Prisma.StringFilter<"Identity"> | string
@@ -327,21 +439,33 @@ export type IdentityWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Identity"> | Date | string
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
   sessions?: Prisma.SessionListRelationFilter
-}, "id" | "loginId" | "username" | "email" | "phoneNumber">
+  otp?: Prisma.OtpListRelationFilter
+}, "id" | "loginId" | "username" | "email" | "phoneNumber" | "aadhaarNumber" | "panNumber">
 
 export type IdentityOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   loginId?: Prisma.SortOrder
-  firstName?: Prisma.SortOrder
-  lastName?: Prisma.SortOrder
+  fullName?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  mpin?: Prisma.SortOrder
+  aadhaarNumber?: Prisma.SortOrder
+  panNumber?: Prisma.SortOrder
+  shopName?: Prisma.SortOrder
+  shopAddress?: Prisma.SortOrder
+  shopCity?: Prisma.SortOrder
+  shopState?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  state?: Prisma.SortOrder
+  pincode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   isPhoneVerified?: Prisma.SortOrder
+  isPanVerified?: Prisma.SortOrder
   preferredLoginMethod?: Prisma.SortOrder
+  registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   roleId?: Prisma.SortOrder
@@ -358,16 +482,27 @@ export type IdentityScalarWhereWithAggregatesInput = {
   NOT?: Prisma.IdentityScalarWhereWithAggregatesInput | Prisma.IdentityScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Identity"> | string
   loginId?: Prisma.StringWithAggregatesFilter<"Identity"> | string
-  firstName?: Prisma.StringWithAggregatesFilter<"Identity"> | string
-  lastName?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  fullName?: Prisma.StringWithAggregatesFilter<"Identity"> | string
   username?: Prisma.StringWithAggregatesFilter<"Identity"> | string
   email?: Prisma.StringWithAggregatesFilter<"Identity"> | string
   phoneNumber?: Prisma.StringWithAggregatesFilter<"Identity"> | string
   password?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  mpin?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  aadhaarNumber?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  panNumber?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  shopName?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  shopAddress?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  shopCity?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  shopState?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  city?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  state?: Prisma.StringWithAggregatesFilter<"Identity"> | string
+  pincode?: Prisma.StringWithAggregatesFilter<"Identity"> | string
   status?: Prisma.EnumUserStatusWithAggregatesFilter<"Identity"> | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolWithAggregatesFilter<"Identity"> | boolean
   isPhoneVerified?: Prisma.BoolWithAggregatesFilter<"Identity"> | boolean
+  isPanVerified?: Prisma.BoolWithAggregatesFilter<"Identity"> | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodWithAggregatesFilter<"Identity"> | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepWithAggregatesFilter<"Identity"> | $Enums.RegistrationStep
   lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Identity"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Identity"> | Date | string | null
   roleId?: Prisma.StringWithAggregatesFilter<"Identity"> | string
@@ -378,100 +513,159 @@ export type IdentityScalarWhereWithAggregatesInput = {
 export type IdentityCreateInput = {
   id?: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status?: $Enums.UserStatus
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutIdentitiesInput
   sessions?: Prisma.SessionCreateNestedManyWithoutIdentityInput
+  otp?: Prisma.OtpCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityUncheckedCreateInput = {
   id?: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status?: $Enums.UserStatus
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   roleId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutIdentityInput
+  otp?: Prisma.OtpUncheckedCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutIdentitiesNestedInput
   sessions?: Prisma.SessionUpdateManyWithoutIdentityNestedInput
+  otp?: Prisma.OtpUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutIdentityNestedInput
+  otp?: Prisma.OtpUncheckedUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityCreateManyInput = {
   id?: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status?: $Enums.UserStatus
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   roleId: string
@@ -482,16 +676,27 @@ export type IdentityCreateManyInput = {
 export type IdentityUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -501,16 +706,27 @@ export type IdentityUpdateManyMutationInput = {
 export type IdentityUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -521,16 +737,27 @@ export type IdentityUncheckedUpdateManyInput = {
 export type IdentityCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   loginId?: Prisma.SortOrder
-  firstName?: Prisma.SortOrder
-  lastName?: Prisma.SortOrder
+  fullName?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  mpin?: Prisma.SortOrder
+  aadhaarNumber?: Prisma.SortOrder
+  panNumber?: Prisma.SortOrder
+  shopName?: Prisma.SortOrder
+  shopAddress?: Prisma.SortOrder
+  shopCity?: Prisma.SortOrder
+  shopState?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  state?: Prisma.SortOrder
+  pincode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   isPhoneVerified?: Prisma.SortOrder
+  isPanVerified?: Prisma.SortOrder
   preferredLoginMethod?: Prisma.SortOrder
+  registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
@@ -541,16 +768,27 @@ export type IdentityCountOrderByAggregateInput = {
 export type IdentityMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   loginId?: Prisma.SortOrder
-  firstName?: Prisma.SortOrder
-  lastName?: Prisma.SortOrder
+  fullName?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  mpin?: Prisma.SortOrder
+  aadhaarNumber?: Prisma.SortOrder
+  panNumber?: Prisma.SortOrder
+  shopName?: Prisma.SortOrder
+  shopAddress?: Prisma.SortOrder
+  shopCity?: Prisma.SortOrder
+  shopState?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  state?: Prisma.SortOrder
+  pincode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   isPhoneVerified?: Prisma.SortOrder
+  isPanVerified?: Prisma.SortOrder
   preferredLoginMethod?: Prisma.SortOrder
+  registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
@@ -561,16 +799,27 @@ export type IdentityMaxOrderByAggregateInput = {
 export type IdentityMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   loginId?: Prisma.SortOrder
-  firstName?: Prisma.SortOrder
-  lastName?: Prisma.SortOrder
+  fullName?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
   password?: Prisma.SortOrder
+  mpin?: Prisma.SortOrder
+  aadhaarNumber?: Prisma.SortOrder
+  panNumber?: Prisma.SortOrder
+  shopName?: Prisma.SortOrder
+  shopAddress?: Prisma.SortOrder
+  shopCity?: Prisma.SortOrder
+  shopState?: Prisma.SortOrder
+  city?: Prisma.SortOrder
+  state?: Prisma.SortOrder
+  pincode?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isEmailVerified?: Prisma.SortOrder
   isPhoneVerified?: Prisma.SortOrder
+  isPanVerified?: Prisma.SortOrder
   preferredLoginMethod?: Prisma.SortOrder
+  registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
@@ -586,6 +835,11 @@ export type IdentityListRelationFilter = {
 
 export type IdentityOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type IdentityNullableScalarRelationFilter = {
+  is?: Prisma.IdentityWhereInput | null
+  isNot?: Prisma.IdentityWhereInput | null
 }
 
 export type IdentityScalarRelationFilter = {
@@ -607,6 +861,10 @@ export type BoolFieldUpdateOperationsInput = {
 
 export type EnumLoginMethodFieldUpdateOperationsInput = {
   set?: $Enums.LoginMethod
+}
+
+export type EnumRegistrationStepFieldUpdateOperationsInput = {
+  set?: $Enums.RegistrationStep
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -659,6 +917,22 @@ export type IdentityUncheckedUpdateManyWithoutRoleNestedInput = {
   deleteMany?: Prisma.IdentityScalarWhereInput | Prisma.IdentityScalarWhereInput[]
 }
 
+export type IdentityCreateNestedOneWithoutOtpInput = {
+  create?: Prisma.XOR<Prisma.IdentityCreateWithoutOtpInput, Prisma.IdentityUncheckedCreateWithoutOtpInput>
+  connectOrCreate?: Prisma.IdentityCreateOrConnectWithoutOtpInput
+  connect?: Prisma.IdentityWhereUniqueInput
+}
+
+export type IdentityUpdateOneWithoutOtpNestedInput = {
+  create?: Prisma.XOR<Prisma.IdentityCreateWithoutOtpInput, Prisma.IdentityUncheckedCreateWithoutOtpInput>
+  connectOrCreate?: Prisma.IdentityCreateOrConnectWithoutOtpInput
+  upsert?: Prisma.IdentityUpsertWithoutOtpInput
+  disconnect?: Prisma.IdentityWhereInput | boolean
+  delete?: Prisma.IdentityWhereInput | boolean
+  connect?: Prisma.IdentityWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.IdentityUpdateToOneWithWhereWithoutOtpInput, Prisma.IdentityUpdateWithoutOtpInput>, Prisma.IdentityUncheckedUpdateWithoutOtpInput>
+}
+
 export type IdentityCreateNestedOneWithoutSessionsInput = {
   create?: Prisma.XOR<Prisma.IdentityCreateWithoutSessionsInput, Prisma.IdentityUncheckedCreateWithoutSessionsInput>
   connectOrCreate?: Prisma.IdentityCreateOrConnectWithoutSessionsInput
@@ -676,41 +950,65 @@ export type IdentityUpdateOneRequiredWithoutSessionsNestedInput = {
 export type IdentityCreateWithoutRoleInput = {
   id?: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status?: $Enums.UserStatus
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   sessions?: Prisma.SessionCreateNestedManyWithoutIdentityInput
+  otp?: Prisma.OtpCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityUncheckedCreateWithoutRoleInput = {
   id?: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status?: $Enums.UserStatus
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutIdentityInput
+  otp?: Prisma.OtpUncheckedCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityCreateOrConnectWithoutRoleInput = {
@@ -745,16 +1043,27 @@ export type IdentityScalarWhereInput = {
   NOT?: Prisma.IdentityScalarWhereInput | Prisma.IdentityScalarWhereInput[]
   id?: Prisma.StringFilter<"Identity"> | string
   loginId?: Prisma.StringFilter<"Identity"> | string
-  firstName?: Prisma.StringFilter<"Identity"> | string
-  lastName?: Prisma.StringFilter<"Identity"> | string
+  fullName?: Prisma.StringFilter<"Identity"> | string
   username?: Prisma.StringFilter<"Identity"> | string
   email?: Prisma.StringFilter<"Identity"> | string
   phoneNumber?: Prisma.StringFilter<"Identity"> | string
   password?: Prisma.StringFilter<"Identity"> | string
+  mpin?: Prisma.StringFilter<"Identity"> | string
+  aadhaarNumber?: Prisma.StringFilter<"Identity"> | string
+  panNumber?: Prisma.StringFilter<"Identity"> | string
+  shopName?: Prisma.StringFilter<"Identity"> | string
+  shopAddress?: Prisma.StringFilter<"Identity"> | string
+  shopCity?: Prisma.StringFilter<"Identity"> | string
+  shopState?: Prisma.StringFilter<"Identity"> | string
+  city?: Prisma.StringFilter<"Identity"> | string
+  state?: Prisma.StringFilter<"Identity"> | string
+  pincode?: Prisma.StringFilter<"Identity"> | string
   status?: Prisma.EnumUserStatusFilter<"Identity"> | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFilter<"Identity"> | boolean
   isPhoneVerified?: Prisma.BoolFilter<"Identity"> | boolean
+  isPanVerified?: Prisma.BoolFilter<"Identity"> | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFilter<"Identity"> | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFilter<"Identity"> | $Enums.RegistrationStep
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   roleId?: Prisma.StringFilter<"Identity"> | string
@@ -762,44 +1071,212 @@ export type IdentityScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Identity"> | Date | string
 }
 
-export type IdentityCreateWithoutSessionsInput = {
+export type IdentityCreateWithoutOtpInput = {
   id?: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status?: $Enums.UserStatus
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutIdentitiesInput
+  sessions?: Prisma.SessionCreateNestedManyWithoutIdentityInput
 }
 
-export type IdentityUncheckedCreateWithoutSessionsInput = {
+export type IdentityUncheckedCreateWithoutOtpInput = {
   id?: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status?: $Enums.UserStatus
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   roleId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutIdentityInput
+}
+
+export type IdentityCreateOrConnectWithoutOtpInput = {
+  where: Prisma.IdentityWhereUniqueInput
+  create: Prisma.XOR<Prisma.IdentityCreateWithoutOtpInput, Prisma.IdentityUncheckedCreateWithoutOtpInput>
+}
+
+export type IdentityUpsertWithoutOtpInput = {
+  update: Prisma.XOR<Prisma.IdentityUpdateWithoutOtpInput, Prisma.IdentityUncheckedUpdateWithoutOtpInput>
+  create: Prisma.XOR<Prisma.IdentityCreateWithoutOtpInput, Prisma.IdentityUncheckedCreateWithoutOtpInput>
+  where?: Prisma.IdentityWhereInput
+}
+
+export type IdentityUpdateToOneWithWhereWithoutOtpInput = {
+  where?: Prisma.IdentityWhereInput
+  data: Prisma.XOR<Prisma.IdentityUpdateWithoutOtpInput, Prisma.IdentityUncheckedUpdateWithoutOtpInput>
+}
+
+export type IdentityUpdateWithoutOtpInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.RoleUpdateOneRequiredWithoutIdentitiesNestedInput
+  sessions?: Prisma.SessionUpdateManyWithoutIdentityNestedInput
+}
+
+export type IdentityUncheckedUpdateWithoutOtpInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  roleId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutIdentityNestedInput
+}
+
+export type IdentityCreateWithoutSessionsInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber: string
+  password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role: Prisma.RoleCreateNestedOneWithoutIdentitiesInput
+  otp?: Prisma.OtpCreateNestedManyWithoutIdentityInput
+}
+
+export type IdentityUncheckedCreateWithoutSessionsInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber: string
+  password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  roleId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  otp?: Prisma.OtpUncheckedCreateNestedManyWithoutIdentityInput
 }
 
 export type IdentityCreateOrConnectWithoutSessionsInput = {
@@ -821,56 +1298,91 @@ export type IdentityUpdateToOneWithWhereWithoutSessionsInput = {
 export type IdentityUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutIdentitiesNestedInput
+  otp?: Prisma.OtpUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  otp?: Prisma.OtpUncheckedUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityCreateManyRoleInput = {
   id?: string
   loginId: string
-  firstName: string
-  lastName: string
+  fullName: string
   username: string
   email: string
   phoneNumber: string
   password: string
+  mpin: string
+  aadhaarNumber: string
+  panNumber: string
+  shopName: string
+  shopAddress: string
+  shopCity: string
+  shopState: string
+  city: string
+  state: string
+  pincode: string
   status?: $Enums.UserStatus
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: $Enums.LoginMethod
+  registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   createdAt?: Date | string
@@ -880,56 +1392,91 @@ export type IdentityCreateManyRoleInput = {
 export type IdentityUpdateWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUpdateManyWithoutIdentityNestedInput
+  otp?: Prisma.OtpUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutIdentityNestedInput
+  otp?: Prisma.OtpUncheckedUpdateManyWithoutIdentityNestedInput
 }
 
 export type IdentityUncheckedUpdateManyWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   loginId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
   phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
   password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  panNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  shopName?: Prisma.StringFieldUpdateOperationsInput | string
+  shopAddress?: Prisma.StringFieldUpdateOperationsInput | string
+  shopCity?: Prisma.StringFieldUpdateOperationsInput | string
+  shopState?: Prisma.StringFieldUpdateOperationsInput | string
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
   preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -943,10 +1490,12 @@ export type IdentityUncheckedUpdateManyWithoutRoleInput = {
 
 export type IdentityCountOutputType = {
   sessions: number
+  otp: number
 }
 
 export type IdentityCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sessions?: boolean | IdentityCountOutputTypeCountSessionsArgs
+  otp?: boolean | IdentityCountOutputTypeCountOtpArgs
 }
 
 /**
@@ -966,20 +1515,38 @@ export type IdentityCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Typ
   where?: Prisma.SessionWhereInput
 }
 
+/**
+ * IdentityCountOutputType without action
+ */
+export type IdentityCountOutputTypeCountOtpArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OtpWhereInput
+}
+
 
 export type IdentitySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   loginId?: boolean
-  firstName?: boolean
-  lastName?: boolean
+  fullName?: boolean
   username?: boolean
   email?: boolean
   phoneNumber?: boolean
   password?: boolean
+  mpin?: boolean
+  aadhaarNumber?: boolean
+  panNumber?: boolean
+  shopName?: boolean
+  shopAddress?: boolean
+  shopCity?: boolean
+  shopState?: boolean
+  city?: boolean
+  state?: boolean
+  pincode?: boolean
   status?: boolean
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: boolean
+  registrationStep?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
   roleId?: boolean
@@ -987,22 +1554,34 @@ export type IdentitySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   updatedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   sessions?: boolean | Prisma.Identity$sessionsArgs<ExtArgs>
+  otp?: boolean | Prisma.Identity$otpArgs<ExtArgs>
   _count?: boolean | Prisma.IdentityCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["identity"]>
 
 export type IdentitySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   loginId?: boolean
-  firstName?: boolean
-  lastName?: boolean
+  fullName?: boolean
   username?: boolean
   email?: boolean
   phoneNumber?: boolean
   password?: boolean
+  mpin?: boolean
+  aadhaarNumber?: boolean
+  panNumber?: boolean
+  shopName?: boolean
+  shopAddress?: boolean
+  shopCity?: boolean
+  shopState?: boolean
+  city?: boolean
+  state?: boolean
+  pincode?: boolean
   status?: boolean
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: boolean
+  registrationStep?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
   roleId?: boolean
@@ -1014,16 +1593,27 @@ export type IdentitySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type IdentitySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   loginId?: boolean
-  firstName?: boolean
-  lastName?: boolean
+  fullName?: boolean
   username?: boolean
   email?: boolean
   phoneNumber?: boolean
   password?: boolean
+  mpin?: boolean
+  aadhaarNumber?: boolean
+  panNumber?: boolean
+  shopName?: boolean
+  shopAddress?: boolean
+  shopCity?: boolean
+  shopState?: boolean
+  city?: boolean
+  state?: boolean
+  pincode?: boolean
   status?: boolean
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: boolean
+  registrationStep?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
   roleId?: boolean
@@ -1035,16 +1625,27 @@ export type IdentitySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type IdentitySelectScalar = {
   id?: boolean
   loginId?: boolean
-  firstName?: boolean
-  lastName?: boolean
+  fullName?: boolean
   username?: boolean
   email?: boolean
   phoneNumber?: boolean
   password?: boolean
+  mpin?: boolean
+  aadhaarNumber?: boolean
+  panNumber?: boolean
+  shopName?: boolean
+  shopAddress?: boolean
+  shopCity?: boolean
+  shopState?: boolean
+  city?: boolean
+  state?: boolean
+  pincode?: boolean
   status?: boolean
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  isPanVerified?: boolean
   preferredLoginMethod?: boolean
+  registrationStep?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
   roleId?: boolean
@@ -1052,10 +1653,11 @@ export type IdentitySelectScalar = {
   updatedAt?: boolean
 }
 
-export type IdentityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginId" | "firstName" | "lastName" | "username" | "email" | "phoneNumber" | "password" | "status" | "isEmailVerified" | "isPhoneVerified" | "preferredLoginMethod" | "lastLoginAt" | "passwordChangedAt" | "roleId" | "createdAt" | "updatedAt", ExtArgs["result"]["identity"]>
+export type IdentityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginId" | "fullName" | "username" | "email" | "phoneNumber" | "password" | "mpin" | "aadhaarNumber" | "panNumber" | "shopName" | "shopAddress" | "shopCity" | "shopState" | "city" | "state" | "pincode" | "status" | "isEmailVerified" | "isPhoneVerified" | "isPanVerified" | "preferredLoginMethod" | "registrationStep" | "lastLoginAt" | "passwordChangedAt" | "roleId" | "createdAt" | "updatedAt", ExtArgs["result"]["identity"]>
 export type IdentityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   sessions?: boolean | Prisma.Identity$sessionsArgs<ExtArgs>
+  otp?: boolean | Prisma.Identity$otpArgs<ExtArgs>
   _count?: boolean | Prisma.IdentityCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type IdentityIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1070,20 +1672,32 @@ export type $IdentityPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     role: Prisma.$RolePayload<ExtArgs>
     sessions: Prisma.$SessionPayload<ExtArgs>[]
+    otp: Prisma.$OtpPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     loginId: string
-    firstName: string
-    lastName: string
+    fullName: string
     username: string
     email: string
     phoneNumber: string
     password: string
+    mpin: string
+    aadhaarNumber: string
+    panNumber: string
+    shopName: string
+    shopAddress: string
+    shopCity: string
+    shopState: string
+    city: string
+    state: string
+    pincode: string
     status: $Enums.UserStatus
     isEmailVerified: boolean
     isPhoneVerified: boolean
+    isPanVerified: boolean
     preferredLoginMethod: $Enums.LoginMethod
+    registrationStep: $Enums.RegistrationStep
     lastLoginAt: Date | null
     passwordChangedAt: Date | null
     roleId: string
@@ -1485,6 +2099,7 @@ export interface Prisma__IdentityClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   sessions<T extends Prisma.Identity$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Identity$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  otp<T extends Prisma.Identity$otpArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Identity$otpArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OtpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1516,16 +2131,27 @@ export interface Prisma__IdentityClient<T, Null = never, ExtArgs extends runtime
 export interface IdentityFieldRefs {
   readonly id: Prisma.FieldRef<"Identity", 'String'>
   readonly loginId: Prisma.FieldRef<"Identity", 'String'>
-  readonly firstName: Prisma.FieldRef<"Identity", 'String'>
-  readonly lastName: Prisma.FieldRef<"Identity", 'String'>
+  readonly fullName: Prisma.FieldRef<"Identity", 'String'>
   readonly username: Prisma.FieldRef<"Identity", 'String'>
   readonly email: Prisma.FieldRef<"Identity", 'String'>
   readonly phoneNumber: Prisma.FieldRef<"Identity", 'String'>
   readonly password: Prisma.FieldRef<"Identity", 'String'>
+  readonly mpin: Prisma.FieldRef<"Identity", 'String'>
+  readonly aadhaarNumber: Prisma.FieldRef<"Identity", 'String'>
+  readonly panNumber: Prisma.FieldRef<"Identity", 'String'>
+  readonly shopName: Prisma.FieldRef<"Identity", 'String'>
+  readonly shopAddress: Prisma.FieldRef<"Identity", 'String'>
+  readonly shopCity: Prisma.FieldRef<"Identity", 'String'>
+  readonly shopState: Prisma.FieldRef<"Identity", 'String'>
+  readonly city: Prisma.FieldRef<"Identity", 'String'>
+  readonly state: Prisma.FieldRef<"Identity", 'String'>
+  readonly pincode: Prisma.FieldRef<"Identity", 'String'>
   readonly status: Prisma.FieldRef<"Identity", 'UserStatus'>
   readonly isEmailVerified: Prisma.FieldRef<"Identity", 'Boolean'>
   readonly isPhoneVerified: Prisma.FieldRef<"Identity", 'Boolean'>
+  readonly isPanVerified: Prisma.FieldRef<"Identity", 'Boolean'>
   readonly preferredLoginMethod: Prisma.FieldRef<"Identity", 'LoginMethod'>
+  readonly registrationStep: Prisma.FieldRef<"Identity", 'RegistrationStep'>
   readonly lastLoginAt: Prisma.FieldRef<"Identity", 'DateTime'>
   readonly passwordChangedAt: Prisma.FieldRef<"Identity", 'DateTime'>
   readonly roleId: Prisma.FieldRef<"Identity", 'String'>
@@ -1953,6 +2579,30 @@ export type Identity$sessionsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.SessionScalarFieldEnum | Prisma.SessionScalarFieldEnum[]
+}
+
+/**
+ * Identity.otp
+ */
+export type Identity$otpArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Otp
+   */
+  select?: Prisma.OtpSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Otp
+   */
+  omit?: Prisma.OtpOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OtpInclude<ExtArgs> | null
+  where?: Prisma.OtpWhereInput
+  orderBy?: Prisma.OtpOrderByWithRelationInput | Prisma.OtpOrderByWithRelationInput[]
+  cursor?: Prisma.OtpWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OtpScalarFieldEnum | Prisma.OtpScalarFieldEnum[]
 }
 
 /**
