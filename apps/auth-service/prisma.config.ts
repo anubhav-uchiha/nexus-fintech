@@ -12,6 +12,6 @@ export default defineConfig({
   datasource: {
     url:
       process.env.DATABASE_URL ??
-      'postgresql://postgres:admin@localhost:5432/auth_db',
+      'postgresql://postgres:aryan@localhost:5432/auth_db',
   },
 });
