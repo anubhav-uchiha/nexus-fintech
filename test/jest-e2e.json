@@ -1,0 +1,21 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^@app/constants(|/.*)$": "<rootDir>/../libs/constants/src/$1",
+    "^@nexus/common(|/.*)$": "<rootDir>/../libs/common/src/$1",
+    "^@nexus/config(|/.*)$": "<rootDir>/../libs/config/src/$1",
+    "^@nexus/database(|/.*)$": "<rootDir>/../libs/database/src/$1",
+    "^@nexus/logger(|/.*)$": "<rootDir>/../libs/logger/src/$1",
+    "^@nexus/messaging(|/.*)$": "<rootDir>/../libs/messaging/src/$1"
+  }
+}
