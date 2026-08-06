@@ -7,11 +7,11 @@ export default defineConfig({
 
   migrations: {
     path: path.join(__dirname, 'prisma/migrations'),
-    seed: 'tsx prisma/seed.ts',
+    seed: 'tsx apps/auth-service/prisma/seed.ts',
   },
   datasource: {
     url:
       process.env.DATABASE_URL ??
-      'postgresql://postgres:aryan@localhost:5432/auth_db',
+      'postgresql://postgres:admin@localhost:5432/auth_db',
   },
 });
