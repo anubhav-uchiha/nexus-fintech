@@ -4,7 +4,10 @@
 /node_modules
 
 # Prisma generated client
-/generated
+/docker/*
+/apps/auth-service/prisma.config.ts
+/apps/kyc-service/prisma.config.ts
+
 
 # Logs
 logs
@@ -64,3 +67,4 @@ pids
 report.*.*.*.*.json
 
 uploads
+
