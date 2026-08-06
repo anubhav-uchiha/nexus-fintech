@@ -1,15 +1,15 @@
-# compiled output
+# ==========================
+# Build Output
+# ==========================
 /dist
 /build
 /node_modules
 
 # Prisma generated client
-/docker/*
-/apps/auth-service/prisma.config.ts
-/apps/kyc-service/prisma.config.ts
-
+/generated
 
 # Logs
+# ==========================
 logs
 *.log
 npm-debug.log*
@@ -18,31 +18,15 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Tests
+# ==========================
+# Coverage
+# ==========================
 /coverage
 /.nyc_output
 
-# IDEs and editors
-/.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# VS Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# Environment files
+# ==========================
+# Environment Files
+# ==========================
 .env
 .env.development
 .env.production
@@ -53,18 +37,17 @@ Thumbs.db
 .env.production.local
 .env.test.local
 
-# Temporary
+# ==========================
+# Runtime
+# ==========================
 .temp
 .tmp
 
-# Runtime data
 pids
 *.pid
 *.seed
 *.pid.lock
 
-# Diagnostic reports
 report.*.*.*.*.json
 
 uploads
-
