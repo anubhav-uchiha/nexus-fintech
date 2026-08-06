@@ -5,9 +5,37 @@
 /build
 /node_modules
 
-# Prisma generated client
+# ==========================
+# Prisma Generated Clients
+# ==========================
 /generated
+**/generated/
 
+# Ignore all generated Prisma clients
+apps/**/generated/
+libs/**/generated/
+
+# Ignore prisma config files
+**/prisma.config.ts
+
+# ==========================
+# Docker
+# ==========================
+docker/
+Docker/
+docker-compose.yml
+docker-compose.yaml
+docker-compose.override.yml
+Dockerfile
+Dockerfile.*
+
+# ==========================
+# Uploads
+# ==========================
+uploads/
+**/uploads/
+
+# ==========================
 # Logs
 # ==========================
 logs
@@ -50,4 +78,28 @@ pids
 
 report.*.*.*.*.json
 
-uploads
+# ==========================
+# OS Files
+# ==========================
+.DS_Store
+Thumbs.db
+
+# ==========================
+# IDEs
+# ==========================
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# ==========================
+# VS Code
+# ==========================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
