@@ -1,12 +1,24 @@
 import { Module } from '@nestjs/common';
-import { KycServiceController } from './kyc-service.controller';
-import { KycServiceService } from './kyc-service.service';
-import { AppConfigModule } from '@nexus/config';
-import { KafkaModule } from 'libs/kafka/src';
+import { PrismaModule } from './database/prisma.module';
+import { KycRepository } from './kyc/repository/kyc.repository';
+import { ConfigModule } from '@nestjs/config';
+import appConfig from '@nexus/config/configs/app.config';
+import kafkaConfig from '@nexus/config/configs/kafka.config';
+import { KycModule } from './kyc/kyc.module';
 
 @Module({
-  imports: [AppConfigModule, KafkaModule],
-  controllers: [KycServiceController],
-  providers: [KycServiceService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [
+        `apps/kyc-service/.env.${process.env.NODE_ENV ?? 'developmenet'}`,
+        'apps/kyc-service/.env',
+      ],
+      load: [appConfig, kafkaConfig],
+    }),
+    PrismaModule,
+    KycModule,
+  ],
+  providers: [KycRepository],
 })
 export class KycServiceModule {}

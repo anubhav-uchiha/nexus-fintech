@@ -1,102 +1,100 @@
 generator client {
-    provider = "prisma-client"
-    output = "../generated/kyc-prisma"
+  provider = "prisma-client"
+  output   = "../generated/kyc-prisma"
 }
 
 datasource db {
-    provider =  "postgresql"
+  provider = "postgresql"
 }
 
 enum KycStatus {
-    PENDING
-    UNDER_REVIEW
-    APPROVED
-    REJECTED
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
 }
 
 enum DocumentStatus {
-    PENDING
-    APPROVED
-    REJECTED
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum VerificationStatus {
-    PENDING
-    APPROVED
-    REJECTED
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum DocumentType {
-    SIGNATURE
-    PAN_CARD
-    AADHAAR_FRONT
-    AADHAAR_BACK
-    SHOP_FRONT
-    BUSINESS_PROOF
-    VIDEO_VERIFICATION
+  SIGNATURE
+  PAN_CARD
+  AADHAAR_FRONT
+  AADHAAR_BACK
+  SHOP_FRONT
+  BUSINESS_PROOF
+  VIDEO_VERIFICATION
 }
 
 model Kyc {
-    id String @id @default(uuid())
-    identityId String @unique
-    status KycStatus @default(PENDING)
-    submittedAt DateTime?
-    reviewedAt DateTime?
-    reviewedBy String?
-    remarks String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    documents KycDocument[]
-    video KycVideoVerification?
+  id          String                @id @default(uuid())
+  identityId  String                @unique
+  status      KycStatus             @default(PENDING)
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  reviewedBy  String?
+  remarks     String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  documents   KycDocument[]
+  video       KycVideoVerification?
 
-    @@index([identityId])
-    @@map("kyc")
+  @@index([identityId])
+  @@map("kyc")
 }
 
 model KycDocument {
-    id String @id @default(uuid())
-    kycId String
-    kyc Kyc @relation(fields: [kycId],references: [id],onDelete: Cascade)
-    documentType DocumentType
-    documentNumber String?
-    originalFileName String
-    storedFileName String
-    fileUrl String
-    mimeType String
-    fileSize Int
-    status DocumentStatus @default(PENDING)
-    rejectionReason String?
-    reviewedBy String?
-    uploadedAt DateTime @default(now())
-    reviewedAt DateTime?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id               String         @id @default(uuid())
+  kycId            String
+  kyc              Kyc            @relation(fields: [kycId], references: [id], onDelete: Cascade)
+  documentType     DocumentType
+  documentNumber   String?
+  originalFileName String
+  storedFileName   String
+  fileUrl          String
+  mimeType         String
+  fileSize         Int
+  status           DocumentStatus @default(PENDING)
+  rejectionReason  String?
+  reviewedBy       String?
+  uploadedAt       DateTime       @default(now())
+  reviewedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-    @@index([kycId])
-    @@index([documentType])
-    @@unique([kycId,documentType])
-    @@map("kyc_documents")
+  @@unique([kycId, documentType])
+  @@index([kycId])
+  @@index([documentType])
+  @@map("kyc_documents")
 }
 
 model KycVideoVerification {
-    id String @id @default(uuid())
-    kycId String @unique
-    kyc Kyc @relation(fields: [kycId], references: [id],onDelete: Cascade)
-    originalFileName String
-    storedFileName String
-    fileUrl String
-    mimeType String
-    fileSize Int
-    durationSeconds Int?
-    status DocumentStatus @default(PENDING)
-    rejectionReason String?
-    reviewedBy String?
-    uploadedAt DateTime @default(now())
-    reviewedAt DateTime?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id               String         @id @default(uuid())
+  kycId            String         @unique
+  kyc              Kyc            @relation(fields: [kycId], references: [id], onDelete: Cascade)
+  originalFileName String
+  storedFileName   String
+  fileUrl          String
+  mimeType         String
+  fileSize         Int
+  durationSeconds  Int?
+  status           DocumentStatus @default(PENDING)
+  rejectionReason  String?
+  reviewedBy       String?
+  uploadedAt       DateTime       @default(now())
+  reviewedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-    @@map("kyc_video_verifications")
-
-
+  @@map("kyc_video_verifications")
 }

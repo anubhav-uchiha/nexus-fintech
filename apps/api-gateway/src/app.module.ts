@@ -7,6 +7,7 @@ import appConfig from '@nexus/config/configs/app.config';
 
 import { AuthModule } from './auth/auth.module';
 import { KafkaModule } from 'libs/kafka/src';
+import { KycModule } from './kyc/kyc.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { KafkaModule } from 'libs/kafka/src';
     LoggerModule,
     // KafkaModule,
     AuthModule,
+    KycModule,
   ],
 })
 export class AppModule {}
