@@ -29,6 +29,7 @@ export class AuthKafkaController {
   constructor(private readonly authService: AuthService) {}
 
   @MessagePattern(AUTH_PATTERNS.REGISTER_ROLE)
+  
   registerRole(@Payload() dto: RegisterRoleDto) {
     console.log('KAFKA received:', dto);
     return this.authService.registerRole(dto);
