@@ -10,6 +10,15 @@
     "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
   },
   "projects": {
+    "aeps-service": {
+      "type": "application",
+      "root": "apps/aeps-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/aeps-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/aeps-service/tsconfig.app.json"
+      }
+    },
     "api-gateway": {
       "type": "application",
       "root": "apps/api-gateway",

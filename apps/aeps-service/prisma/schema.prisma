@@ -1,0 +1,55 @@
+generator client {
+    provider = "prisma-client"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+enum AepsProvider {
+    EKO
+    PAYSPRINT
+}
+
+enum AepsMerchantStatus {
+    NOT_STARTED
+    ONBOARDING
+    KYC_PENDING
+    UNDER_REVIEW
+    ACTIVE
+    REJECTED
+    SUSPENDED
+    BLOCKED
+}
+
+model AepsMerchantProfile {
+    id String @id @default(uuid(7)) @db.Uuid
+
+    identityId String @db.Uuid
+
+    provider AepsProvider
+
+    providerMerchantId String?
+    providerUserCode   String?
+
+    status AepsMerchantStatus @default(NOT_STARTED)
+
+    onboardingCompleted Boolean @default(false)
+
+    kycCompleted Boolean @default(false)
+
+    serviceActivated Boolean @default(false)
+
+    lastStatusCheckedAt DateTime?
+
+    rejectionReason String?
+
+    onboardedAt DateTime?
+    activatedAt DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([identityId, provider])
+}
