@@ -8,9 +8,15 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor() {
+    const databaseUrl = process.env.KYC_DATABASE_URL;
+
+    if (!databaseUrl) {
+      throw new Error('KYC_DATABASE_URL is not configured for API Gateway');
+    }
+
     super({
       adapter: new PrismaPg({
-        connectionString: process.env.DATABASE_URL!,
+        connectionString: databaseUrl,
       }),
     });
   }
