@@ -1,5 +1,6 @@
-import { DocumentType } from 'apps/kyc-service/generated/kyc-prisma/enums';
+
 import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { DocumentType } from '../enums/document-type.enum';
 
 export class UploadDocumentDto {
   @IsUUID()

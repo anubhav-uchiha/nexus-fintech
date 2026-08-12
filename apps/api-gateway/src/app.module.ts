@@ -8,6 +8,8 @@ import appConfig from '@nexus/config/configs/app.config';
 import { AuthModule } from './auth/auth.module';
 import { KafkaModule } from 'libs/kafka/src';
 import { KycModule } from './kyc/kyc.module';
+import { IdentityBankAccountModule } from './identity-bank-account/identity-bank-account.module';
+import { EkoModule } from './aeps-service/providers/eko/eko.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { KycModule } from './kyc/kyc.module';
     // KafkaModule,
     AuthModule,
     KycModule,
+    IdentityBankAccountModule,
+    EkoModule
   ],
 })
 export class AppModule {}
