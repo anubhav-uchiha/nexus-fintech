@@ -1,0 +1,106 @@
+generator client {
+    provider = "prisma-client"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+enum BankAccountPurpose {
+    PAYOUT
+    DMT
+}
+
+enum BankAccountStatus {
+    PENDING
+    ACTIVE
+    INACTIVE
+    BLOCKED
+}
+
+enum BankAccountVerificationStatus {
+    PENDING
+    UNDER_REVIEW
+    VERIFIED
+    REJECTED
+    FAILED
+}
+
+enum BankAccountOwnershipStatus {
+    PENDING
+    VERIFIED
+    FAILED
+}
+
+enum BankAccountType {
+    SAVINGS
+    CURRENT
+    SALARY
+}
+
+model UserBankAccount {
+    id String @id @default(uuid(7)) @db.Uuid
+
+    // ID from auth-service
+    identityId String @map("identity_id")
+
+    bankName          String  @map("bank_name") @db.VarChar(150)
+    bankCode          String? @map("bank_code") @db.VarChar(50)
+    ifsc              String  @db.VarChar(20)
+    branchName        String? @map("branch_name") @db.VarChar(150)
+    accountHolderName String  @map("account_holder_name") @db.VarChar(150)
+
+    accountNumberEncrypted String @map("account_number_encrypted")
+    accountNumberHash      String @map("account_number_hash")
+    accountNumberLast4     String @map("account_number_last4") @db.VarChar(4)
+
+    accountType BankAccountType @map("account_type")
+
+    ownershipStatus BankAccountOwnershipStatus @default(PENDING) @map("ownership_status")
+
+    purposes BankAccountPurpose[]
+
+    status BankAccountStatus @default(PENDING)
+
+    verificationStatus BankAccountVerificationStatus @default(PENDING) @map("verification_status")
+
+    verifiedAt DateTime? @map("verified_at")
+
+    isDefault Boolean @default(false) @map("is_default")
+
+    isDeleted Boolean   @default(false) @map("is_deleted")
+    deletedAt DateTime? @map("deleted_at")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    userBankStatusAudits UserBankStatusAudit[]
+
+    @@unique([accountNumberHash, ifsc])
+    @@index([identityId, status])
+    @@index([identityId, isDeleted])
+    @@index([id, identityId])
+    @@map("user_bank_accounts")
+}
+
+model UserBankStatusAudit {
+    id String @id @default(uuid(7)) @db.Uuid
+
+    bankAccountId String @map("bank_account_id") @db.Uuid
+
+    // ID of identity/admin/user from auth-service
+    statusChangedById String @map("status_changed_by_id")
+
+    oldStatus BankAccountStatus @map("old_status")
+    newStatus BankAccountStatus @map("new_status")
+
+    changedAt DateTime @default(now()) @map("changed_at")
+
+    bankAccount UserBankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+
+    @@index([bankAccountId])
+    @@index([statusChangedById])
+    @@index([changedAt])
+    @@map("user_bank_status_audits")
+}

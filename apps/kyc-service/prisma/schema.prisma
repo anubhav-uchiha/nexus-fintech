@@ -36,6 +36,12 @@ enum DocumentType {
   VIDEO_VERIFICATION
 }
 
+enum IdempotencyStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 model Kyc {
   id          String                @id @default(uuid())
   identityId  String                @unique
@@ -79,22 +85,39 @@ model KycDocument {
 }
 
 model KycVideoVerification {
-  id               String         @id @default(uuid())
-  kycId            String         @unique
-  kyc              Kyc            @relation(fields: [kycId], references: [id], onDelete: Cascade)
+  id               String             @id @default(uuid())
+  kycId            String             @unique
+  kyc              Kyc                @relation(fields: [kycId], references: [id], onDelete: Cascade)
   originalFileName String
   storedFileName   String
   fileUrl          String
   mimeType         String
   fileSize         Int
   durationSeconds  Int?
-  status           DocumentStatus @default(PENDING)
+  status           VerificationStatus @default(PENDING)
   rejectionReason  String?
   reviewedBy       String?
-  uploadedAt       DateTime       @default(now())
+  uploadedAt       DateTime           @default(now())
   reviewedAt       DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@map("kyc_video_verifications")
+}
+
+model IdempotencyRecord {
+  idempotencyKey String            @id
+  identityId     String
+  operation      String
+  requestHash    String
+  status         IdempotencyStatus @default(PROCESSING)
+  response       Json?
+  statusCode     Int?
+  createdAt      DateTime          @default(now())
+  expiresAt      DateTime
+
+  @@unique([identityId, operation, idempotencyKey])
+  @@index([identityId])
+  @@index([expiresAt])
+  @@map("kyc_idempotency_records")
 }

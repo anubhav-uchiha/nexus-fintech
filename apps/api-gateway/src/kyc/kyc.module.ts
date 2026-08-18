@@ -4,6 +4,8 @@ import { KycGatewayService } from './kyc.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from '../auth/auth.module';
+import { S3Module } from '../storage/s3/s3.module';
+import { IdempotencyModule } from './idempotency/idempotency.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { AuthModule } from '../auth/auth.module';
       },
     ]),
     AuthModule,
+    S3Module,
+    IdempotencyModule,
   ],
   controllers: [KycGatewayController],
   providers: [KycGatewayService],

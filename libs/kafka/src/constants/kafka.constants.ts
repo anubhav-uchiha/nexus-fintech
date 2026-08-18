@@ -4,6 +4,7 @@ export const KAFKA_CLIENTS = {
   NOTIFICATION: 'NOTIFICATION_SERVICE',
   TRANSACTION: 'TRANSACTION_SERVICE',
   COMMISSION: 'COMMISSION_SERVICE',
+  AEPS: 'AEPS_SERVICE',
 } as const;
 
 export const KAFKA_GROUP = {
@@ -12,6 +13,7 @@ export const KAFKA_GROUP = {
   NOTIFICATION: 'notification-consumer-group',
   TRANSACTION: 'transaction-consumer-group',
   COMMISSION: 'commission-consumer-group',
+  AEPS: 'aeps-consumer-group',
 } as const;
 
 export const KAFKA_RETY = {

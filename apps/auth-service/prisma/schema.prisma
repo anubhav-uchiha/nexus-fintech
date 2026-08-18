@@ -75,8 +75,6 @@ model Identity {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userBankAccounts     UserBankAccount[]
-  userBankStatusAudits UserBankStatusAudit[] @relation("BankAccountStatusChanger")
 
   @@index([email])
   @@index([username])
@@ -223,122 +221,7 @@ model PasswordResetDraft {
   @@map("password_reset_drafts")
 }
 
-enum BankAccountPurpose {
-  PAYOUT
-  DMT
-}
 
-enum BankAccountStatus {
-  PENDING
-  ACTIVE
-  INACTIVE
-  BLOCKED
-}
-
-enum BankAccountVerificationStatus {
-  PENDING
-  UNDER_REVIEW
-  VERIFIED
-  REJECTED
-  FAILED
-}
-
-enum BankAccountOwnershipStatus {
-  PENDING
-  VERIFIED
-  FAILED
-}
-
-enum BankAccountType {
-  SAVINGS
-  CURRENT
-  SALARY
-}
-
-model UserBankAccount {
-  id String @id @default(uuid(7)) @db.Uuid
-
-  // Owner
-  identityId String @map("identity_id")
-
-  // Bank details
-  bankName               String  @map("bank_name") @db.VarChar(150)
-  bankCode               String? @map("bank_code") @db.VarChar(50)
-  ifsc                   String  @db.VarChar(20)
-  branchName             String? @map("branch_name") @db.VarChar(150)
-  accountHolderName      String  @map("account_holder_name") @db.VarChar(150)
-  // IMPORTANT:
-  // Don't store/use the raw account number everywhere.
-  accountNumberEncrypted String  @map("account_number_encrypted")
-  accountNumberHash      String  @map("account_number_hash")
-
-  // Safe value for displaying:
-  accountNumberLast4 String @map("account_number_last4") @db.VarChar(4)
-
-  accountType BankAccountType @map("account_type")
-
-  ownershipStatus BankAccountOwnershipStatus @default(PENDING) @map("ownership_status")
-
-  // Why this account can be used
-  purposes BankAccountPurpose[]
-
-  // Lifecycle
-  status BankAccountStatus @default(PENDING)
-
-  // Bank/account verification
-  verificationStatus BankAccountVerificationStatus @default(PENDING) @map("verification_status")
-
-  verifiedAt DateTime? @map("verified_at")
-
-  // Approval / maker-checker
-  // approvedBy String?   @map("approved_by")
-  // approvedAt DateTime? @map("approved_at")
-
-  // Default account
-  isDefault Boolean @default(false) @map("is_default")
-
-  // Audit
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  identity Identity @relation(fields: [identityId], references: [id])
-
-  // approver Identity? @relation("BankAccountApprover", fields: [approvedBy], references: [id])
-
-  // blocker Identity? @relation("BankAccountBlocker", fields: [blockedBy], references: [id])
-
-  // userBankAccountDocuments UserBankAccountDocument[]
-  isDeleted            Boolean               @default(false) @map("is_deleted")
-  deletedAt            DateTime?             @map("deleted_at")
-  userBankStatusAudits UserBankStatusAudit[]
-
-  @@unique([accountNumberHash, ifsc])
-  @@index([identityId, status])
-  @@index([id, identityId])
-  @@map("user_bank_accounts")
-}
-
-model UserBankStatusAudit {
-  id String @id @default(uuid(7)) @db.Uuid
-
-  bankAccountId String @map("bank_account_id") @db.Uuid
-
-  statusChangedById String @map("status_changed_by_id")
-
-  oldStatus BankAccountStatus @map("old_status")
-  newStatus BankAccountStatus @map("new_status")
-
-  changedAt DateTime @default(now()) @map("changed_at")
-
-  bankAccount UserBankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
-
-  statusChangedBy Identity @relation("BankAccountStatusChanger", fields: [statusChangedById], references: [id])
-
-  @@index([bankAccountId])
-  @@index([statusChangedById])
-  @@index([changedAt])
-  @@map("user_bank_status_audits")
-}
 
 // enum BankAccountDocumentType {
 //   BANK_STATEMENT

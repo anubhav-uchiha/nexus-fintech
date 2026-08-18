@@ -28,6 +28,6 @@ import { JwtService } from '@nestjs/jwt';
     ]),
   ],
   controllers: [IdentityBankAccountController],
-  providers: [IdentityBankAccountService,JwtService],
+  providers: [IdentityBankAccountService, JwtService],
 })
 export class IdentityBankAccountModule {}

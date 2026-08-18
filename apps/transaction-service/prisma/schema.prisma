@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum WalletType {
+  MAIN
+  AEPS
+  PROFIT
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REVERSED
+  REFUNDED
+}
+
+model Transaction {
+  id String @id @default(uuid())
+  referenceId String @unique
+  userId String
+  walletType WalletType
+  serviceType String
+  type TransactionType
+  amount Decimal @db.Decimal(18, 2)
+  openingBalance Decimal @db.Decimal(18, 2)
+  closingBalance Decimal @db.Decimal(18, 2)
+  status TransactionStatus @default(PENDING)
+  description String?
+  externalReference String?
+  idempotencyKey String
+  metadata Json?
+  sequence BigInt @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([walletType])
+  @@index([serviceType])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId, walletType, createdAt])
+  @@unique([userId,idempotencyKey])
+  @@map("transactions")
+}
