@@ -24,6 +24,10 @@ export const AUTH_PATTERNS = {
 
   REFRESH_TOKEN: 'auth.refresh-token',
 
+  RESOLVE_ROLE_PERMISSIONS: 'authorization.resolve-role-permissions',
+
+  RESOLVE_IDENTITY_PERMISSIONS: 'authorization.resolve-identity-permissions',
+
   LOGOUT: 'auth.logout',
 
   CACHE_TEST: 'auth.cache-test',

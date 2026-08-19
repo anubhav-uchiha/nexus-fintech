@@ -10,6 +10,7 @@ import { firstValueFrom } from 'rxjs';
 import { AddMoneyDto } from '@nexus/common/transaction/dto/add-money.dto';
 import { TransferMoneyDto } from '@nexus/common/transaction/dto/transfer-money.dto';
 import { WALLET_PATTERNS } from '@nexus/common/wallet/wallet.patterns';
+import { CalculateCommissionDto } from '@nexus/common/commission/dto/calculate-commission.dto';
 
 @Injectable()
 export class WalletGatewayService implements OnModuleInit {
@@ -25,13 +26,20 @@ export class WalletGatewayService implements OnModuleInit {
 
     this.walletClient.subscribeToResponseOf(WALLET_PATTERNS.TRANSFER);
 
+    this.walletClient.subscribeToResponseOf(
+      WALLET_PATTERNS.CALCULATE_COMMISSION,
+    );
+
     await this.walletClient.connect();
   }
 
   async addMoney(dto: AddMoneyDto) {
     try {
       return await firstValueFrom(
-        this.walletClient.send(WALLET_PATTERNS.ADD_MONEY, dto),
+        this.walletClient.send(WALLET_PATTERNS.ADD_MONEY, {
+          dto,
+          role: 'RETAILER',
+        }),
       );
     } catch (error: any) {
       throw this.handleRpcError(error, 'Unable to add money');
@@ -99,5 +107,14 @@ export class WalletGatewayService implements OnModuleInit {
     const message = rpcError?.message || error?.message || fallbackMessage;
 
     return new HttpException(message, statusCode);
+  }
+  async calculateCommission(dto: CalculateCommissionDto) {
+    try {
+      return firstValueFrom(
+        this.walletClient.send(WALLET_PATTERNS.CALCULATE_COMMISSION, dto),
+      );
+    } catch (error: any) {
+      throw this.handleRpcError(error, 'Unable to calculate commission');
+    }
   }
 }

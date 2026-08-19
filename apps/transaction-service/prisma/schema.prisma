@@ -30,6 +30,7 @@ enum TransactionStatus {
 model Transaction {
   id String @id @default(uuid())
   referenceId String @unique
+  transactionGroupId String?
   userId String
   walletType WalletType
   serviceType String
@@ -51,6 +52,7 @@ model Transaction {
   @@index([serviceType])
   @@index([status])
   @@index([createdAt])
+  @@index([transactionGroupId])
   @@index([userId, walletType, createdAt])
   @@unique([userId,idempotencyKey])
   @@map("transactions")

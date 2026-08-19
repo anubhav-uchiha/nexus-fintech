@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CommissionType {
+  FIXED
+  PERCENTAGE
+}
+
+enum CommissionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REVERSED
+}
+
+model CommissionRule {
+  id              String                   @id @default(uuid())
+  serviceType     String
+  operator        String?
+  role            String
+  commissionType  CommissionType
+  commissionValue Decimal                  @db.Decimal(18, 4)
+  minAmount       Decimal?                 @db.Decimal(18, 2)
+  maxAmount       Decimal?                 @db.Decimal(18, 2)
+  priority        Int                      @default(0)
+  isActive        Boolean                  @default(true)
+  commissions     Commission[]
+  distributions   CommissionDistribution[]
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@index([serviceType])
+  @@index([operator])
+  @@index([role])
+  @@index([isActive])
+  @@index([priority])
+  @@map("commission_rules")
+}
+
+model Commission {
+  id                       String                              @id @default(uuid())
+  referenceId              String                              @unique
+  transactionId            String
+  transactionReference     String?
+  userId                   String
+  role                     String
+  serviceType              String
+  operator                 String?
+  transactionAmount        Decimal                             @db.Decimal(18, 2)
+  commissionAmount         Decimal                             @db.Decimal(18, 2)
+  commissionType           CommissionType
+  ruleId                   String?
+  rule                     CommissionRule?                     @relation(fields: [ruleId], references: [id])
+  distributionTransactions CommissionDistributionTransaction[]
+  status                   CommissionStatus                    @default(PENDING)
+  idempotencyKey           String                              @unique
+  metadata                 Json?
+  createdAt                DateTime                            @default(now())
+  updatedAt                DateTime                            @updatedAt
+
+  @@index([transactionId])
+  @@index([userId])
+  @@index([role])
+  @@index([transactionReference])
+  @@index([serviceType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("commission")
+}
+
+model CommissionDistribution {
+  id String @id @default(uuid())
+
+  commissionRuleId         String
+  commissionRule           CommissionRule                      @relation(fields: [commissionRuleId], references: [id], onDelete: Cascade)
+  recipientRole            String
+  distributionType         CommissionType
+  distributionValue        Decimal                             @db.Decimal(18, 4)
+  distributionTransactions CommissionDistributionTransaction[]
+  priority                 Int                                 @default(0)
+  isActive                 Boolean                             @default(true)
+  createdAt                DateTime                            @default(now())
+  updatedAt                DateTime                            @updatedAt
+
+  @@index([commissionRuleId])
+  @@index([recipientRole])
+  @@index([isActive])
+  @@index([priority])
+  @@map("commission_distributions")
+}
+
+model CommissionDistributionTransaction {
+  id String @id @default(uuid())
+
+  commissionId String
+  commission   Commission @relation(fields: [commissionId], references: [id])
+
+  distributionId String?
+
+  distribution CommissionDistribution? @relation(fields: [distributionId], references: [id], onDelete: SetNull)
+
+  sourceUserId String
+
+  recipientUserId String
+  recipientRole   String
+
+  amount Decimal @db.Decimal(18, 2)
+
+  walletType String @default("PROFIT")
+
+  status CommissionStatus @default(PENDING)
+
+  transactionId  String?
+  idempotencyKey String  @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([commissionId])
+  @@index([distributionId])
+  @@index([sourceUserId])
+  @@index([transactionId])
+  @@index([recipientUserId])
+  @@index([recipientRole])
+  @@index([status])
+  @@map("commission_distribution_transactions")
+}
+
+model CommissionHierarchy {
+  id           String   @id @default(uuid())
+  parentUserId String
+  parentRole   String
+  childUserId  String
+  childRole    String
+  serviceType  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([parentUserId, childUserId, serviceType])
+  @@index([parentUserId])
+  @@index([parentRole])
+  @@index([childUserId])
+  @@index([childRole])
+  @@index([serviceType])
+  @@index([isActive])
+  @@map("commission_hierarchies")
+}

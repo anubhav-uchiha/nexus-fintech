@@ -46,6 +46,15 @@
         "tsConfigPath": "apps/bank-service/tsconfig.app.json"
       }
     },
+    "commission-service": {
+      "type": "application",
+      "root": "apps/commission-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/commission-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/commission-service/tsconfig.app.json"
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",

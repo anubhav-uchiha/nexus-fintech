@@ -13,6 +13,12 @@ import { S3Module } from './storage/s3/s3.module';
 import { PrismaModule } from 'apps/kyc-service/src/database/prisma.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { WalletModule } from './wallet/wallet.module';
+import { CommisisonRuleModule } from './commission-rule/commission-rule.module';
+import { CommisisonDistributionModule } from './commission-distribution/commission-distribution.module';
+import { CommisisonHierarchyModule } from './commission-hierarchy/commission-hierarchy.module';
+import { RoleModule } from './role/role.module';
+import { PermissionModule } from './permission/permission.module';
+import { PackageModule } from './package/package.module';
 
 @Module({
   imports: [
@@ -41,7 +47,12 @@ import { WalletModule } from './wallet/wallet.module';
     WalletModule,
     S3Module,
     PrismaModule,
-
+    CommisisonRuleModule,
+    CommisisonDistributionModule,
+    CommisisonHierarchyModule,
+    RoleModule,
+    PermissionModule,
+    PackageModule,
   ],
 })
 export class AppModule {}

@@ -88,14 +88,115 @@ model Role {
   id          String  @id @default(uuid())
   name        String  @unique
   description String?
+  isActive Boolean @default(true)
+
+  prefix String @unique @db.VarChar(10)
+  lastLoginIdNumber Int @default(0)
 
   identities         Identity[]
   registrationDrafts RegistrationDraft[]
 
+  // rolePermissions RolePermission[]
+  rolePackages RolePackage[]
+
+  registrationPermissionsGranted RoleRegisterPermission[] @relation("RegistrarRole")
+  registrationPermissionsReceived RoleRegisterPermission[] @relation("TargetRole")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("roles")
+}
+
+model Permission {
+  id String @id @default(uuid())
+  code String @unique
+  name String
+  description String?
+
+  // isPackageControlled Boolean @default(false)
+  isActive Boolean @default(true)
+
+  // rolePermissions RolePermission[]
+  packagePermissions PackagePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("permissions")
+}
+
+model Package {
+  id String @id @default(uuid())
+  code String @unique
+  name String
+  description String?
+
+  price Decimal @default(0) @db.Decimal(18, 2)
+  isActive Boolean @default(true)
+
+  rolePackages RolePackage[]
+  packagePermissions PackagePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("packages")
+}
+
+// model RolePermission {
+//   roleId String
+//   permissionId String
+//   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+//   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+//   createdAt DateTime @default(now())
+
+//   @@id([roleId, permissionId])
+//   @@index([permissionId])
+//   @@map("role_permissions")
+// }
+
+model RolePackage {
+  roleId String
+  packageId String
+  role Role @relation(fields: [roleId], references: [id],onDelete: Cascade)
+  package Package @relation(fields: [packageId],references: [id],onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([roleId,packageId])
+  @@index([packageId])
+  @@map("role_packages")
+}
+
+model PackagePermission {
+  packageId String
+  permissionId String
+  package Package @relation(fields: [packageId], references: [id],onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([packageId,permissionId])
+  @@index([permissionId])
+  @@map("package_permissions")
+}
+
+model RoleRegisterPermission {
+  id String @id @default(uuid())
+  registrarRoleId String
+  targetRoleId String
+  registrarRole Role @relation("RegistrarRole",fields: [registrarRoleId],references: [id],onDelete: Cascade)
+
+  targetRole Role @relation("TargetRole", fields: [targetRoleId],references: [id],onDelete: Cascade)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([registrarRoleId,targetRoleId])
+  @@index([targetRoleId])
+  @@map("role_register_permissions")
 }
 
 enum OtpType {

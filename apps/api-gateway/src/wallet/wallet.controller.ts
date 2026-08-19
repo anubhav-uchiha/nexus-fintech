@@ -3,6 +3,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { WalletGatewayService } from './wallet.service';
 import { AddMoneyDto } from '@nexus/common/transaction/dto/add-money.dto';
 import { TransferMoneyDto } from '@nexus/common/transaction/dto/transfer-money.dto';
+import { CalculateCommissionDto } from '@nexus/common/commission/dto/calculate-commission.dto';
 
 @Controller('wallet')
 export class WalletGatewayController {
@@ -20,5 +21,10 @@ export class WalletGatewayController {
   @Post('transfer')
   async transferMoney(@Body() dto: TransferMoneyDto) {
     return this.walletService.transferMoney(dto);
+  }
+
+  @Post('calculate-commission')
+  async calculateCommission(@Body() dto: CalculateCommissionDto) {
+    return this.walletService.calculateCommission(dto);
   }
 }

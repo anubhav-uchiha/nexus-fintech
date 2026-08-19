@@ -5,6 +5,7 @@ import { TransactionService } from './transaction.service';
 import { TRANSACTION_PATTERNS } from '@nexus/common/transaction/transaction.patterns';
 import { CreateTransactionDto } from '@nexus/common/transaction/dto/create-transaction.dto';
 import { TransferMoneyDto } from '@nexus/common/transaction/dto/transfer-money.dto';
+import { CreateCommissionTransactionDto } from '@nexus/common/transaction/dto/create-commission-transaction.dto';
 
 @Controller()
 export class TransactionKafkaController {
@@ -44,5 +45,12 @@ export class TransactionKafkaController {
   @MessagePattern(TRANSACTION_PATTERNS.TRANSFER)
   async transferMoney(@Payload() dto: TransferMoneyDto) {
     return this.transactionService.transferMoney(dto);
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.CREATE_COMMISSION)
+  async createCommissionTransaction(
+    @Payload() dto: CreateCommissionTransactionDto,
+  ) {
+    return this.transactionService.createCommissionTransaction(dto);
   }
 }

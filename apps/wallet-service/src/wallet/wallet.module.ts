@@ -25,6 +25,23 @@ import { WalletKafkaController } from './wallet.kafka.controller';
           },
         }),
       },
+      {
+        name: 'COMMISSION_SERVICE',
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'wallet-service-commission-client',
+              brokers: [config.get<string>('KAFKA_BROKER') ?? 'localhost:9092'],
+            },
+            consumer: {
+              groupId: 'wallet-service-commission-client',
+            },
+          },
+        }),
+      },
     ]),
   ],
   controllers: [WalletKafkaController],

@@ -220,6 +220,15 @@ export class AuthController {
     };
   }
 
+  @Get('me/permissions')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Get effective permissions for the logged-in identity',
+  })
+  getMyPermissions(@CurrentUser() user: JwtPayload) {
+    return this.authGatewayService.resolveIdentityPermissions(user.sub);
+  }
+
   @Get('cache-test')
   cacheTest() {
     return this.authGatewayService.cacheTest();
