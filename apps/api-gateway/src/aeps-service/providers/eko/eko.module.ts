@@ -49,5 +49,5 @@ import { JwtModule } from '@nestjs/jwt';
   ],
   providers: [EkoService],
   controllers: [EkoController],
-})
+
 export class EkoModule {}

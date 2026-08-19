@@ -17,6 +17,8 @@ async function bootstrap() {
       client: {
         clientId: config.get<string>('KAFKA_CLIENT_ID') ?? 'aeps-service',
         brokers,
+        clientId: 'aeps-service',
+        brokers: [config.get<string>('KAFKA_BROKER') ?? 'localhost:9092'],
       },
       consumer: {
         groupId: 'aeps-service-group',
@@ -27,6 +29,7 @@ async function bootstrap() {
   await app.startAllMicroservices();
 
   const port = config.get<number>('APP_PORT') ?? 6003;
+  const port = config.get<number>('KYC_SERVICE_PORT') ?? 6003;
 
   await app.listen(port);
 

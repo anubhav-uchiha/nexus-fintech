@@ -41,6 +41,7 @@ import { WalletModule } from './wallet/wallet.module';
     WalletModule,
     S3Module,
     PrismaModule,
+
   ],
 })
 export class AppModule {}
