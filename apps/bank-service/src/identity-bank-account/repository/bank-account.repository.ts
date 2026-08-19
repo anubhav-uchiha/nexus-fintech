@@ -1,26 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
-import {
-  BankAccountStatus,
-  Prisma,
-  UserBankAccount,
-} from 'apps/auth-service/generated/prisma/client';
-import {
-  UserBankAccountGetPayload,
-  UserBankStatusAuditCreateInput,
-} from 'apps/auth-service/generated/prisma/models';
+
 import {
   IdentityBankAccountDto,
   IdentityDto,
 } from 'libs/common/dto/IdentityDto';
-import crypto from 'crypto';
-import { decryptData } from '../cryptoUtils/cryptography';
-import { Id7Dto } from 'libs/common/dto/Id7Dto';
-import {
-  BankAccountStatusUpdate,
-  UpdateBankAccountStatusDto,
-} from '@nexus/common/identity-bank-account/dto/update-bank-account-status.dto';
-import { RpcException } from '@nestjs/microservices';
+import { PrismaService } from '../../database/prisma.service';
+import { Prisma } from 'apps/bank-service/generated/prisma/client';
+import { UserBankStatusAuditCreateInput } from 'apps/bank-service/generated/prisma/models';
 
 @Injectable()
 export class BankAccountRepository {
@@ -49,15 +35,15 @@ export class BankAccountRepository {
     });
   }
 
-  getIdentityBankAccountsCount(identity: IdentityDto) {
+  getIdentityBankAccountsCount(identity: string) {
     return this.prisma.userBankAccount.count({
-      where: { identityId: identity.identityId },
+      where: { identityId: identity, isDeleted: false },
     });
   }
 
-  async getIdentityBankAccounts(identity: IdentityDto) {
+  async getIdentityBankAccounts(identity: string) {
     return this.prisma.userBankAccount.findMany({
-      where: { identityId: identity.identityId },
+      where: { identityId: identity, isDeleted: false },
       select: {
         id: true,
         bankName: true,

@@ -6,11 +6,17 @@ import { Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const app = await NestFactory.create(AepsServiceModule);
   const config = app.get(ConfigService);
+  const brokers = (config.get<string>('KAFKA_BROKERS') ?? 'localhost:9092')
+    .split(',')
+    .map((broker) => broker.trim())
+    .filter(Boolean);
 
   app.connectMicroservice({
     transport: Transport.KAFKA,
     options: {
       client: {
+        clientId: config.get<string>('KAFKA_CLIENT_ID') ?? 'aeps-service',
+        brokers,
         clientId: 'aeps-service',
         brokers: [config.get<string>('KAFKA_BROKER') ?? 'localhost:9092'],
       },
@@ -22,6 +28,7 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
+  const port = config.get<number>('APP_PORT') ?? 6003;
   const port = config.get<number>('KYC_SERVICE_PORT') ?? 6003;
 
   await app.listen(port);

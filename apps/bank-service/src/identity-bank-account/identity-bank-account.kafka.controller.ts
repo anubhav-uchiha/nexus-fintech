@@ -2,14 +2,12 @@ import { Controller, OnModuleInit } from '@nestjs/common';
 import { IdentityBankAccountService } from './identity-bank-account.service';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { BANK_ACCOUNT_PATTERNS } from '@nexus/common/identity-bank-account/identity-bank-account.patterns';
-import { CreateBankAccountDto } from '@nexus/common/identity-bank-account/dto/create-bank-account.dto';
 import { CreateIdentityBankAccountDto } from './dto/CreateIdentityBankAccountDto';
 import { identity } from 'rxjs';
 import {
   IdentityBankAccountDto,
   IdentityDto,
 } from 'libs/common/dto/IdentityDto';
-import { Id7Dto } from 'libs/common/dto/Id7Dto';
 
 import { UpdateBankAccountDto } from '@nexus/common/identity-bank-account/dto/update-bank-account.dto';
 import { UpdateBankAccountStatusDto } from '@nexus/common/identity-bank-account/dto/update-bank-account-status.dto';
@@ -27,7 +25,7 @@ export class IdentityBankAccountKafkaController {
   }
 
   @MessagePattern(BANK_ACCOUNT_PATTERNS.GET_MY_BANK_ACCOUNTS)
-  getMyBankAccounts(@Payload() dto: IdentityDto) {
+  getMyBankAccounts(@Payload() dto: string) {
     console.log('KAFKA received:', dto);
     return this.identityBankAccountService.getMyBankAccounts(dto);
   }

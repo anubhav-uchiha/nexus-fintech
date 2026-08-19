@@ -37,6 +37,15 @@
         "tsConfigPath": "apps/auth-service/tsconfig.app.json"
       }
     },
+    "bank-service": {
+      "type": "application",
+      "root": "apps/bank-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/bank-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/bank-service/tsconfig.app.json"
+      }
+    },
     "common": {
       "type": "library",
       "root": "libs/common",

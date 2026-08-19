@@ -31,7 +31,7 @@ model AepsMerchantProfile {
     provider AepsProvider
 
     providerMerchantId String?
-    providerUserCode   String?
+    providerUserCode   String?  
 
     status AepsMerchantStatus @default(NOT_STARTED)
 

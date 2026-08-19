@@ -10,11 +10,9 @@ import { authValidationSchema } from '@nexus/config/validation/auth.vaidation';
 import { CacheModule } from 'libs/cache/src';
 import { KafkaModule } from 'libs/kafka/src';
 import { SessionModule } from './session/session.module';
-import { IdentityBankAccountKafkaController } from './identity-bank-account/identity-bank-account.kafka.controller';
 import authConfig from '@nexus/config/configs/auth.config';
 import kafkaConfig from '@nexus/config/configs/kafka.config';
 import redisConfig from '@nexus/config/configs/redis.config';
-import { IdentityBankAccountModule } from './identity-bank-account/identity-bank-account.module';
 
 @Module({
   imports: [
@@ -35,7 +33,6 @@ import { IdentityBankAccountModule } from './identity-bank-account/identity-bank
     OtpModule,
     KafkaModule,
     SessionModule,
-    IdentityBankAccountModule
   ],
   providers: [],
   controllers: [],

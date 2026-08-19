@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { PrismaClient } from '../../generated/prisma/client';
+
 import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from 'apps/bank-service/generated/prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
@@ -14,9 +15,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
   async onModuleInit() {
     await this.$connect();
-    console.log('✅ Aeps-service Database Connected');
+    console.log('✅ Bank-service Database Connected');
   }
-
-  
-
 }

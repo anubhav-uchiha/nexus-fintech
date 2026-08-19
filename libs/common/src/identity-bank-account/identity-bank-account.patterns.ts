@@ -9,4 +9,5 @@ export const BANK_ACCOUNT_PATTERNS = {
   // GET_DOCUMENTS: 'bank.get-documents',
   // UPLOAD_DOCUMENT: 'bank.upload-document',
   DELETE_MY_BANK_ACCOUNT: 'bank.delete',
+  GET_BANK_LIST: 'bank.get-list',
 } as const;

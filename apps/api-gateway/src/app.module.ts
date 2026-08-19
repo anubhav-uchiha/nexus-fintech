@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { KycModule } from './kyc/kyc.module';
 import { IdentityBankAccountModule } from './identity-bank-account/identity-bank-account.module';
 import { EkoModule } from './aeps-service/providers/eko/eko.module';
+
 import { S3Module } from './storage/s3/s3.module';
 import { PrismaModule } from 'apps/kyc-service/src/database/prisma.module';
 import { TransactionModule } from './transaction/transaction.module';
@@ -35,7 +36,7 @@ import { WalletModule } from './wallet/wallet.module';
     AuthModule,
     KycModule,
     IdentityBankAccountModule,
-    EkoModule
+    EkoModule,
     TransactionModule,
     WalletModule,
     S3Module,

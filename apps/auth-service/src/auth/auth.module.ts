@@ -8,7 +8,6 @@ import { JwtModule } from './jwt/jwt.module';
 import { OtpModule } from '../otp/otp.module';
 import { AuthKafkaController } from './auth.kafka.controller';
 import { SessionModule } from '../session/session.module';
-import { IdentityBankAccountModule } from '../identity-bank-account/identity-bank-account.module';
 
 @Module({
   imports: [
@@ -19,7 +18,6 @@ import { IdentityBankAccountModule } from '../identity-bank-account/identity-ban
     JwtModule,
     OtpModule,
     SessionModule,
-    IdentityBankAccountModule
   ],
   controllers: [AuthKafkaController],
   providers: [AuthService],

@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IdentityService } from '../identity/identity.service';
-import { RoleService } from '../role/role.service';
-import { JwtService } from '../auth/jwt/jwt.service';
 import { CacheService } from 'libs/cache/src';
-import { SessionService } from '../session/session.service';
 import { BankAccountRepository } from './repository/bank-account.repository';
 
 import crypto from 'crypto';
@@ -15,23 +11,22 @@ import {
 } from 'libs/common/dto/IdentityDto';
 import { encryptData } from './cryptoUtils/cryptography';
 import { UpdateBankAccountDto } from '@nexus/common/identity-bank-account/dto/update-bank-account.dto';
-import {
-  UserBankAccountCreateInput,
-  UserBankAccountUpdateInput,
-} from 'apps/auth-service/generated/prisma/models';
+
 import {
   BankAccountStatusUpdate,
   UpdateBankAccountStatusDto,
 } from '@nexus/common/identity-bank-account/dto/update-bank-account-status.dto';
 import { RpcException } from '@nestjs/microservices';
 import { BadRequestError, NotFoundError } from 'libs/errors/ApiError';
-import { BankAccountStatus } from 'apps/auth-service/generated/prisma/enums';
+import { BankAccountStatus } from 'apps/bank-service/generated/prisma/enums';
+import {
+  UserBankAccountCreateInput,
+  UserBankAccountUpdateInput,
+} from 'apps/bank-service/generated/prisma/models';
 
 @Injectable()
 export class IdentityBankAccountService {
   constructor(
-    private readonly identityService: IdentityService,
-    private readonly sessionService: SessionService,
     private readonly cache: CacheService,
     private readonly bankRepositoryService: BankAccountRepository,
   ) {}
@@ -59,7 +54,7 @@ export class IdentityBankAccountService {
 
     const accountNumberLast4 = dto.accountNumber.slice(-4);
     const dataobj: UserBankAccountCreateInput = {
-      identity: { connect: { id: dto.identityId } },
+      identityId: dto.identityId,
       bankName: dto.bankName,
       bankCode: dto.bankCode,
       ifsc: dto.ifsc,
@@ -75,16 +70,16 @@ export class IdentityBankAccountService {
     // if bank api returns invalid then return error from here otherwise add bank account
 
     const identityBanksCount =
-      await this.bankRepositoryService.getIdentityBankAccountsCount({
-        identityId: dto.identityId,
-      });
+      await this.bankRepositoryService.getIdentityBankAccountsCount(
+        dto.identityId,
+      );
     if (identityBanksCount === 0) {
       dataobj.isDefault = true;
     }
     return this.bankRepositoryService.create(dataobj);
   }
 
-  getMyBankAccounts(identity: IdentityDto) {
+  getMyBankAccounts(identity: string) {
     return this.bankRepositoryService.getIdentityBankAccounts(identity);
   }
 
@@ -211,7 +206,7 @@ export class IdentityBankAccountService {
         oldStatus: account.status,
         newStatus: status as BankAccountStatus,
         bankAccount: { connect: { id: dto.bankId } },
-        statusChangedBy: { connect: { id: dto.identityId } },
+        statusChangedById: dto.identityId,
         changedAt: new Date(),
       },
     );
