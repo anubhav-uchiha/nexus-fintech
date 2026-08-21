@@ -3,6 +3,7 @@ import { ClientKafka } from '@nestjs/microservices';
 import {
   ChangeMpinDto,
   ChangePasswordDto,
+  LoginDto,
   LogoutDto,
   RefreshTokenDto,
 } from '@nexus/common';
@@ -43,6 +44,7 @@ import {
   UpdateRoleRegisterPermissionStatusDto,
 } from '@nexus/common/role-register-permission';
 import { firstValueFrom } from 'rxjs';
+import { RequestMetadata } from './utils/request-metadata.util';
 
 @Injectable()
 export class AuthGatewayService implements OnModuleInit {
@@ -117,6 +119,18 @@ export class AuthGatewayService implements OnModuleInit {
       AUTH_PATTERNS.RESOLVE_IDENTITY_PERMISSIONS,
     );
 
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.GET_SESSIONS);
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.GET_SESSION);
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.REVOKE_SESSION);
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.REVOKE_OTHER_SESSIONS);
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.REVOKE_ALL_SESSIONS);
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.VALIDATE_SESSION);
+
     await this.client.connect();
   }
 
@@ -156,8 +170,17 @@ export class AuthGatewayService implements OnModuleInit {
     );
   }
 
-  login(dto: any) {
-    return firstValueFrom(this.client.send(AUTH_PATTERNS.LOGIN, dto));
+  login(dto: LoginDto, metadata: RequestMetadata) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.LOGIN, {
+        ...dto,
+        ipAddress: metadata.ipAddress,
+
+        userAgent: metadata.userAgent,
+
+        device: metadata.device,
+      }),
+    );
   }
 
   sendPhoneOtp(dto: any) {
@@ -426,6 +449,84 @@ export class AuthGatewayService implements OnModuleInit {
       this.client.send(AUTH_PATTERNS.RESOLVE_IDENTITY_PERMISSIONS, {
         identityId,
       }),
+    );
+  }
+
+  getSessions(identityId: string, currentSessionId: string) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.GET_SESSIONS, {
+        identityId,
+
+        currentSessionId,
+      }),
+    );
+  }
+
+  getSession(identityId: string, sessionId: string, currentSessionId: string) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.GET_SESSION, {
+        identityId,
+
+        sessionId,
+
+        currentSessionId,
+      }),
+    );
+  }
+
+  revokeSession(
+    identityId: string,
+    sessionId: string,
+    currentSessionId: string,
+  ) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.REVOKE_SESSION, {
+        identityId,
+
+        sessionId,
+
+        currentSessionId,
+      }),
+    );
+  }
+
+  revokeOtherSessions(identityId: string, currentSessionId: string) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.REVOKE_OTHER_SESSIONS, {
+        identityId,
+
+        currentSessionId,
+      }),
+    );
+  }
+
+  revokeAllSessions(identityId: string) {
+    return firstValueFrom(
+      this.client.send(AUTH_PATTERNS.REVOKE_ALL_SESSIONS, {
+        identityId,
+      }),
+    );
+  }
+
+  validateSession(
+    identityId: string,
+
+    sessionId: string,
+  ): Promise<{
+    valid: boolean;
+  }> {
+    return firstValueFrom(
+      this.client.send<{
+        valid: boolean;
+      }>(
+        AUTH_PATTERNS.VALIDATE_SESSION,
+
+        {
+          identityId,
+
+          sessionId,
+        },
+      ),
     );
   }
 

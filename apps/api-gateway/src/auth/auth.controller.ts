@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
   Post,
   Req,
   Res,
@@ -38,6 +41,7 @@ import { CurrentUser } from './decorator/current-user.decorator';
 import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-password/verify-user.dto';
 import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
 import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
+import { extractRequestMetadata } from './utils/request-metadata.util';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -96,14 +100,17 @@ export class AuthController {
   })
   async login(
     @Body() dto: LoginDto,
+    @Req()
+    req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authGatewayService.login(dto);
+    const metadata = extractRequestMetadata(req);
+    const result = await this.authGatewayService.login(dto, metadata);
 
     res.cookie(AUTH_COOKIE.REFRESH_TOKEN, result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
       expires: result.refreshExpiresAt,
     });
@@ -218,6 +225,92 @@ export class AuthController {
     return {
       message: 'Logout Successfully',
     };
+  }
+
+  @Get('sessions')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Get current user active sessions',
+  })
+  getSessions(@CurrentUser() user: JwtPayload) {
+    return this.authGatewayService.getSessions(user.sub, user.sid);
+  }
+
+  @Get('sessions/:sessionId')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Get session details',
+  })
+  getSession(
+    @CurrentUser() user: JwtPayload,
+    @Param('sessionId', ParseUUIDPipe)
+    sessionId: string,
+  ) {
+    return this.authGatewayService.getSession(user.sub, sessionId, user.sid);
+  }
+
+  @Delete('sessions/others')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Revoke all sessions except current session',
+  })
+  revokeOtherSessions(@CurrentUser() user: JwtPayload) {
+    return this.authGatewayService.revokeOtherSessions(user.sub, user.sid);
+  }
+
+  @Delete('sessions/:sessionId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Revoke a particular session',
+  })
+  async revokeSession(
+    @CurrentUser() user: JwtPayload,
+    @Param('sessionId', ParseUUIDPipe)
+    sessionId: string,
+    @Res({ passthrough: true })
+    res: Response,
+  ) {
+    const result = await this.authGatewayService.revokeSession(
+      user.sub,
+      sessionId,
+      user.sid,
+    );
+
+    if (result.isCurrent) {
+      res.clearCookie(AUTH_COOKIE.REFRESH_TOKEN, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+      });
+    }
+
+    return result;
+  }
+
+  @Delete('sessions')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Revoke every user session',
+  })
+  async revokeAllSessions(
+    @CurrentUser() user: JwtPayload,
+    @Res({ passthrough: true })
+    res: Response,
+  ) {
+    const result = await this.authGatewayService.revokeAllSessions(user.sub);
+
+    res.clearCookie(AUTH_COOKIE.REFRESH_TOKEN, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
+    });
+
+    return result;
   }
 
   @Get('me/permissions')

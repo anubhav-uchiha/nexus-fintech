@@ -6,17 +6,6 @@
 /node_modules
 
 # ==========================
-# Prisma Generated Clients
-# ==========================
-/generated
-**/generated/
-
-# Ignore all generated Prisma clients
-apps/**/generated/
-libs/**/generated/
-
-
-# ==========================
 # Uploads
 # ==========================
 uploads/

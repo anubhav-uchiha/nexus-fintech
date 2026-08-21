@@ -68,6 +68,10 @@ model Identity {
 
   roleId              String
   role                Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  
+  lastLoginLatitude  Decimal? @db.Decimal(8, 6)
+  lastLoginLongitude Decimal? @db.Decimal(9, 6)
+
   sessions            Session[]
   otp                 Otp[]
   passwordResetDrafts PasswordResetDraft[]
@@ -143,18 +147,6 @@ model Package {
   @@map("packages")
 }
 
-// model RolePermission {
-//   roleId String
-//   permissionId String
-//   role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-//   permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-//   createdAt DateTime @default(now())
-
-//   @@id([roleId, permissionId])
-//   @@index([permissionId])
-//   @@map("role_permissions")
-// }
 
 model RolePackage {
   roleId String
@@ -243,6 +235,11 @@ model Session {
   identityId String
 
   refreshToken String
+
+  latitude           Decimal?  @db.Decimal(8, 6)
+  longitude          Decimal?  @db.Decimal(9, 6)
+  locationAccuracy   Float?
+  locationCapturedAt DateTime?
 
   device    String?
   ipAddress String?

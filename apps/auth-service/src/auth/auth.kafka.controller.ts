@@ -5,7 +5,6 @@ import { AuthService } from './auth.service';
 
 import {
   ChangeMpinDto,
-  LoginDto,
   LogoutDto,
   RefreshTokenDto,
   SendEmailOtpDto,
@@ -23,13 +22,13 @@ import { LoginMethod } from 'apps/auth-service/generated/prisma/enums';
 import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-password/verify-user.dto';
 import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
 import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
+import { LoginKafkaDto } from '@nexus/common/auth/dto/login-kafka.dto';
 
 @Controller()
 export class AuthKafkaController {
   constructor(private readonly authService: AuthService) {}
 
   @MessagePattern(AUTH_PATTERNS.REGISTER_ROLE)
-  
   registerRole(@Payload() dto: RegisterRoleDto) {
     console.log('KAFKA received:', dto);
     return this.authService.registerRole(dto);
@@ -63,7 +62,7 @@ export class AuthKafkaController {
   }
 
   @MessagePattern(AUTH_PATTERNS.LOGIN)
-  login(@Payload() dto: LoginDto) {
+  login(@Payload() dto: LoginKafkaDto) {
     return this.authService.login(dto);
   }
 

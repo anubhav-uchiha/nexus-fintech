@@ -30,5 +30,12 @@ export const AUTH_PATTERNS = {
 
   LOGOUT: 'auth.logout',
 
+  GET_SESSIONS: 'auth.sessions.list',
+  GET_SESSION: 'auth.sessions.get',
+  REVOKE_SESSION: 'auth.sessions.revoke',
+  REVOKE_OTHER_SESSIONS: 'auth.sessions.revoke-others',
+  REVOKE_ALL_SESSIONS: 'auth.sessions.revoke-all',
+  VALIDATE_SESSION: 'auth.sessions.validate',
+
   CACHE_TEST: 'auth.cache-test',
 } as const;

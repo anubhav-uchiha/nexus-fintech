@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './guards/jwt-auth-guard';
 import { PermissionGuard } from './guards/permission.guard';
 
+@Global()
 @Module({
   imports: [
     PassportModule,

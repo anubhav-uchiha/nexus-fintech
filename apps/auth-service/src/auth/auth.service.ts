@@ -43,6 +43,9 @@ import { generatePassword } from './utils/password-generator';
 import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-password/verify-user.dto';
 import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
 import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
+import { randomUUID } from 'crypto';
+import { JwtPayload } from './jwt/interfaces/jwt-payload.interface';
+import { LoginKafkaDto } from '@nexus/common/auth/dto/login-kafka.dto';
 
 @Injectable()
 export class AuthService {
@@ -336,7 +339,27 @@ Please change your password after first login.
     };
   }
 
-  async login(dto: LoginDto): Promise<LoginKafkaResponseDto> {
+  async login(dto: LoginKafkaDto): Promise<LoginKafkaResponseDto> {
+    const hasLatitude = dto.latitude !== undefined;
+
+    const hasLongitude = dto.longitude !== undefined;
+
+    if (hasLatitude !== hasLongitude) {
+      throw new BadRequestException(
+        'Latitude and longitude must be provided together',
+      );
+    }
+
+    if (
+      !hasLatitude &&
+      (dto.locationAccuracy !== undefined ||
+        dto.locationCapturedAt !== undefined)
+    ) {
+      throw new BadRequestException(
+        'Location accuracy and capture time require latitude and longitude',
+      );
+    }
+
     const identity = await this.identityService.findByIdentifier(
       dto.identifier,
     );
@@ -368,8 +391,24 @@ Please change your password after first login.
       throw new UnauthorizedException('Invalid Credentials');
     }
 
+    const location =
+      hasLatitude && hasLongitude
+        ? {
+            latitude: Number(dto.latitude!.toFixed(6)),
+            longitude: Number(dto.longitude!.toFixed(6)),
+            ...(dto.locationAccuracy !== undefined && {
+              locationAccuracy: dto.locationAccuracy,
+            }),
+
+            locationCapturedAt: dto.locationCapturedAt
+              ? new Date(dto.locationCapturedAt)
+              : new Date(),
+          }
+        : undefined;
+    const sessionId = randomUUID();
     const payload = {
       sub: identity.id,
+      sid: sessionId,
       username: identity.username,
       email: identity.email,
       role: identity.role.name,
@@ -377,15 +416,33 @@ Please change your password after first login.
 
     const tokens = await this.jwtService.generateTokens(payload);
 
-    await this.identityService.updateLastLogin(identity.id);
+    await this.identityService.updateLastLogin(
+      identity.id,
+      location
+        ? {
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }
+        : undefined,
+    );
 
     const refreshExpiry = new Date();
     refreshExpiry.setDate(refreshExpiry.getDate() + 7);
 
     await this.sessionService.create({
+      id: sessionId,
       identityId: identity.id,
       refreshToken: tokens.refreshToken,
       expiresAt: refreshExpiry,
+      ipAddress: dto.ipAddress,
+      userAgent: dto.userAgent,
+      device: dto.device,
+      ...(location && {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        locationAccuracy: location.locationAccuracy,
+        locationCapturedAt: location.locationCapturedAt,
+      }),
     });
 
     return {
@@ -448,8 +505,9 @@ Please change your password after first login.
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const payload = {
+    const payload: JwtPayload = {
       sub: session.identity.id,
+      sid: session.id,
       username: session.identity.username,
       email: session.identity.email,
       role: session.identity.role.name,

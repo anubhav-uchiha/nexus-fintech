@@ -215,13 +215,23 @@ export class IdentityService {
     return role;
   }
 
-  async updateLastLogin(identityId: string) {
+  async updateLastLogin(
+    identityId: string,
+    location?: {
+      latitude: number;
+      longitude: number;
+    },
+  ) {
     const identity = await this.prisma.identity.update({
       where: {
         id: identityId,
       },
       data: {
         lastLoginAt: new Date(),
+
+        lastLoginLatitude: location?.latitude ?? null,
+
+        lastLoginLongitude: location?.longitude ?? null,
       },
     });
     await this.clearIdentityCache(identity);

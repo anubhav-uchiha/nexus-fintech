@@ -8,6 +8,49 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
+  const config = app.get(ConfigService);
+
+  const allowedOrigins = (
+    config.get<string>('CORS_ORIGINS') ??
+    'http://localhost:3000,http://localhost:5173,http://localhost:4200,http://192.168.1.11:8081,https://hoppscotch.io'
+  )
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+
+  app.enableCors({
+    origin: (
+      origin: string | undefined,
+
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+
+      if (allowedOrigins.includes(normalizedOrigin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(null, false);
+    },
+    credentials: true,
+
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Idempotency-Key',
+      'X-Idempotency-Key',
+      'X-Request-Id',
+    ],
+
+    maxAge: 86400,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,10 +63,9 @@ async function bootstrap() {
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
-  const config = app.get(ConfigService);
-  const port = config.get<number>('app.gateway.port') ?? 6000;
+  const port = config.get<number>('app.gateway.port') ?? 8000;
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 
   console.log(`🚀 API Gateway running on http://localhost:${port}`);
 }
