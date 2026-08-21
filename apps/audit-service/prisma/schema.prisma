@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AuditStatus {
+  SUCCESS
+  FAILED
+}
+
+model AuditLog {
+  id String @id @default(uuid()) @db.Uuid
+
+  eventId String @unique @db.Uuid
+
+  identityId String? @db.Uuid
+
+  sessionId String? @db.Uuid
+
+  loginId String? @db.VarChar(50)
+
+  role String? @db.VarChar(50)
+
+  service String @db.VarChar(100)
+
+  action String @db.VarChar(100)
+
+  status AuditStatus @default(SUCCESS)
+
+  httpMethod String? @db.VarChar(10)
+
+  endpoint String? @db.VarChar(500)
+
+  statusCode Int?
+
+  ipAddress String? @db.VarChar(45)
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([identityId, createdAt])
+  @@index([service, createdAt])
+  @@index([action, createdAt])
+
+  @@map("audit_logs")
+}

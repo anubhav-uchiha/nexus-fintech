@@ -16,6 +16,8 @@
     "prisma:reset": "prisma migrate reset",
     "prisma:format": "prisma format",
     "prisma:validate": "prisma validate",
+    "db:generate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/service-generate.ps1",
+    "db:migration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/service-migrate.ps1",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
