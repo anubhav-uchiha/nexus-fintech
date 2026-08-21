@@ -3,7 +3,7 @@ import {
   Prisma,
   RegistrationStep,
 } from '../../generated/prisma/client';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CacheService } from 'libs/cache/src';
 import { CompleteRegistrationData } from '../auth/types/register.type';
@@ -215,29 +215,6 @@ export class IdentityService {
     return role;
   }
 
-  async generateLoginId(): Promise<string> {
-    const lastIdentity = await this.prisma.identity.findFirst({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      select: {
-        loginId: true,
-      },
-    });
-
-    let nextNumber = 1;
-
-    if (lastIdentity?.loginId) {
-      const numericPart = Number(lastIdentity.loginId.replace(/^KRT/, ''));
-
-      if (!Number.isNaN(numericPart)) {
-        nextNumber = numericPart + 1;
-      }
-    }
-
-    return `KRT${nextNumber.toString().padStart(4, '0')}`;
-  }
-
   async updateLastLogin(identityId: string) {
     const identity = await this.prisma.identity.update({
       where: {
@@ -376,8 +353,54 @@ export class IdentityService {
 
   async completeRegistration(data: CompleteRegistrationData) {
     const identity = await this.prisma.$transaction(async (tx) => {
+      const draft = await tx.registrationDraft.findUnique({
+        where: {
+          id: data.draftId,
+        },
+        include: {
+          role: true,
+        },
+      });
+
+      if (!draft) {
+        throw new BadRequestException('Registration draft not found');
+      }
+
+      if (!draft.role.isActive) {
+        throw new BadRequestException('Selected role is inactive');
+      }
+
+      const updateRole = await tx.role.update({
+        where: {
+          id: draft.roleId,
+        },
+        data: {
+          lastLoginIdNumber: {
+            increment: 1,
+          },
+        },
+        select: {
+          id: true,
+          prefix: true,
+          lastLoginIdNumber: true,
+        },
+      });
+
+      const numberPort = updateRole.lastLoginIdNumber
+        .toString()
+        .padStart(4, '0');
+      const loginId = `${updateRole.prefix}${numberPort}`;
+
       const createdIdentity = await tx.identity.create({
-        data: data.identity,
+        data: {
+          ...data.identity,
+          loginId,
+          role: {
+            connect: {
+              id: updateRole.id,
+            },
+          },
+        },
         include: {
           role: true,
         },

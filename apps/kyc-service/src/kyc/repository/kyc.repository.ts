@@ -189,6 +189,8 @@ export class KycRepository {
       },
       select: {
         documentType: true,
+        source: true,
+        verificationStatus: true,
       },
     });
   }

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsMobilePhone, IsString, Length } from 'class-validator';
+import { IsMobilePhone, IsString, Length, Matches } from 'class-validator';
 
 export class VerifyRegistrationOtpDto {
   @ApiProperty()
@@ -11,5 +11,9 @@ export class VerifyRegistrationOtpDto {
   phoneNumber!: string;
 
   @ApiProperty()
+  @IsString()
+  @Matches(/^\d{6}$/, {
+    message: 'OTP must contain exactly 6 digits',
+  })
   otp!: string;
 }

@@ -17,7 +17,7 @@ async function bootstrap() {
     },
   });
   await app.startAllMicroservices();
-  await app.listen(6005);
+  await app.listen(6008);
 
   console.log('✅ Notification Service Running');
   console.log('✅ Kafka Consumer Started');

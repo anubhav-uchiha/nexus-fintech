@@ -32,6 +32,7 @@ model AepsMerchantProfile {
 
     providerMerchantId String?
     providerUserCode   String?  
+    onboardingClientRefId String? @unique @db.VarChar(64)
 
     status AepsMerchantStatus @default(NOT_STARTED)
 

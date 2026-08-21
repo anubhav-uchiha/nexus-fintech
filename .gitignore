@@ -15,19 +15,6 @@
 apps/**/generated/
 libs/**/generated/
 
-# Ignore prisma config files
-**/prisma.config.ts
-
-# ==========================
-# Docker
-# ==========================
-docker/
-Docker/
-docker-compose.yml
-docker-compose.yaml
-docker-compose.override.yml
-Dockerfile
-Dockerfile.*
 
 # ==========================
 # Uploads

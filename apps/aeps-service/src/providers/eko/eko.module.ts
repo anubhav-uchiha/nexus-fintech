@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
-import { EkoController } from './eko.kafka.controller';
 import { EkoService } from './eko.service';
-import { ConfigService } from '@nestjs/config';
+import { EkoKafkaController } from './eko.kafka.controller';
+import { EkoClientService } from './eko-client.service';
+import { HttpToRpcExceptionInterceptor } from '../../common/interceptors/http-to-rpc-exception.interceptor';
+import { AepsMerchantProfileModule } from '../../merchant-profile/aeps-merchant-profile.module';
 
 @Module({
-  controllers: [EkoController],
-  providers: [EkoService],
+  imports: [AepsMerchantProfileModule],
+  controllers: [EkoKafkaController],
+  providers: [EkoClientService, EkoService, HttpToRpcExceptionInterceptor],
+  exports: [EkoService],
 })
 export class EkoServiceModule {}

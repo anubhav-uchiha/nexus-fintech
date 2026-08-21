@@ -57,7 +57,7 @@ export class OtpService {
 
     await this.cacheService.set(
       key,
-      { otpHash, attempt: 0, expiresAt: expiresAt.toISOString() },
+      { otpHash, attempts: 0, expiresAt: expiresAt.toISOString() },
       ttl,
     );
   }

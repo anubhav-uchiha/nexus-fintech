@@ -2,8 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { KycRepository } from './repository/kyc.repository';
 import { CreateKycDto } from '@nexus/common/kyc/dto/create-kyc.dto';
 import {
+  DocumentSource,
   DocumentStatus,
   DocumentType,
+  DocumentVerificationStatus,
   VerificationStatus,
 } from 'apps/kyc-service/generated/kyc-prisma/enums';
 import { ensureKycEditable } from './helpers/kyc-status.helper';
@@ -122,6 +124,22 @@ export class KycService {
     const kyc = await this.getKycOrThrow(payload.identityId);
 
     ensureKycEditable(kyc.status);
+
+    const digilockerAadhaar = await this.kycRepository.findDocument(
+      kyc.id,
+      DocumentType.AADHAAR,
+    );
+
+    if (
+      digilockerAadhaar?.source === DocumentSource.DIGILOCKER &&
+      digilockerAadhaar.verificationStatus ===
+        DocumentVerificationStatus.VERIFIED
+    ) {
+      throw new RpcException({
+        statusCode: 409,
+        message: 'Aadhaar is already verified through DigiLocker',
+      });
+    }
 
     if (!payload.documentNumber) {
       throw new RpcException({
@@ -268,6 +286,13 @@ export class KycService {
       throw new RpcException({
         statusCode: 404,
         message: `${payload.documentType} not uploaded`,
+      });
+    }
+
+    if (existing.source === DocumentSource.DIGILOCKER) {
+      throw new RpcException({
+        statusCode: 409,
+        message: 'DigiLocker documents cannot be manually updated',
       });
     }
 
@@ -677,6 +702,14 @@ export class KycService {
 
     const s3Key = document.storedFileName;
 
+    if (document.source === DocumentSource.DIGILOCKER) {
+      throw new RpcException({
+        statusCode: 409,
+        message:
+          'DigiLocker documents cannot be deleted through the manual document API',
+      });
+    }
+
     await this.kycRepository.deleteDocument(documentId);
 
     if (s3Key) {
@@ -700,22 +733,41 @@ export class KycService {
 
     const documents = await this.kycRepository.getDocumentsByKycId(kyc.id);
 
-    const uploadedDocumentTypes = new Set(
-      documents.map((document) => document.documentType),
+    const documentByType = new Map(
+      documents.map((document) => [document.documentType, document]),
     );
 
-    const requiredDocuments = [
+    const panDocument = documentByType.get(DocumentType.PAN_CARD);
+    const aadhaarFront = documentByType.get(DocumentType.AADHAAR_FRONT);
+    const aadhaarBack = documentByType.get(DocumentType.AADHAAR_BACK);
+
+    const digilockerAadhaar = documentByType.get(DocumentType.AADHAAR);
+
+    const hasVerifiedDigiLockerAadhaar =
+      digilockerAadhaar?.source === DocumentSource.DIGILOCKER &&
+      digilockerAadhaar.verificationStatus ===
+        DocumentVerificationStatus.VERIFIED;
+
+    const requiredDocuments: DocumentType[] = [
       DocumentType.PAN_CARD,
-      DocumentType.AADHAAR_FRONT,
-      DocumentType.AADHAAR_BACK,
       DocumentType.SIGNATURE,
       DocumentType.SHOP_FRONT,
       DocumentType.BUSINESS_PROOF,
     ];
 
     const missingDocuments = requiredDocuments.filter(
-      (documentType) => !uploadedDocumentTypes.has(documentType),
+      (documentType) => !documentByType.has(documentType),
     );
+
+    if (!hasVerifiedDigiLockerAadhaar) {
+      if (!aadhaarFront) {
+        missingDocuments.push(DocumentType.AADHAAR_FRONT);
+      }
+
+      if (!aadhaarBack) {
+        missingDocuments.push(DocumentType.AADHAAR_BACK);
+      }
+    }
 
     if (missingDocuments.length > 0) {
       throw new RpcException({
@@ -723,10 +775,21 @@ export class KycService {
         message: {
           message: 'Missing required documents',
           missingDocuments,
+          aadhaarRequirement:
+            'Provide Aadhaar front and back or verify Aadhaar through DigiLocker',
         },
       });
     }
 
+    if (
+      panDocument?.source === DocumentSource.DIGILOCKER &&
+      panDocument.verificationStatus !== DocumentVerificationStatus.VERIFIED
+    ) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'DigiLocker PAN document has not been verified',
+      });
+    }
     const video = await this.kycRepository.getVideoByKycId(kyc.id);
 
     if (!video) {

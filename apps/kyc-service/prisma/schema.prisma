@@ -31,9 +31,31 @@ enum DocumentType {
   PAN_CARD
   AADHAAR_FRONT
   AADHAAR_BACK
+  AADHAAR
   SHOP_FRONT
   BUSINESS_PROOF
   VIDEO_VERIFICATION
+}
+
+enum DocumentSource {
+  MANUAL_UPLOAD
+  DIGILOCKER
+}
+
+enum DocumentVerificationStatus {
+  NOT_VERIFIED
+  PENDING
+  VERIFIED
+  FAILED
+}
+
+enum DigiLockerSessionStatus {
+  INITIATED
+  AUTHORIZED
+  COMPLETED
+  FAILED
+  EXPIRED
+  CANCELLED
 }
 
 enum IdempotencyStatus {
@@ -43,26 +65,27 @@ enum IdempotencyStatus {
 }
 
 model Kyc {
-  id          String                @id @default(uuid())
-  identityId  String                @unique
-  status      KycStatus             @default(PENDING)
-  submittedAt DateTime?
-  reviewedAt  DateTime?
-  reviewedBy  String?
-  remarks     String?
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
-  documents   KycDocument[]
-  video       KycVideoVerification?
+  id                 String                          @id @default(uuid())
+  identityId         String                          @unique
+  status             KycStatus                       @default(PENDING)
+  submittedAt        DateTime?
+  reviewedAt         DateTime?
+  reviewedBy         String?
+  remarks            String?
+  createdAt          DateTime                        @default(now())
+  updatedAt          DateTime                        @updatedAt
+  documents          KycDocument[]
+  video              KycVideoVerification?
+  digilockerSessions DigiLockerVerificationSession[]
 
   @@index([identityId])
   @@map("kyc")
 }
 
 model KycDocument {
-  id               String         @id @default(uuid())
+  id               String       @id @default(uuid())
   kycId            String
-  kyc              Kyc            @relation(fields: [kycId], references: [id], onDelete: Cascade)
+  kyc              Kyc          @relation(fields: [kycId], references: [id], onDelete: Cascade)
   documentType     DocumentType
   documentNumber   String?
   originalFileName String
@@ -70,17 +93,33 @@ model KycDocument {
   fileUrl          String
   mimeType         String
   fileSize         Int
-  status           DocumentStatus @default(PENDING)
-  rejectionReason  String?
-  reviewedBy       String?
-  uploadedAt       DateTime       @default(now())
-  reviewedAt       DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+
+  source             DocumentSource             @default(MANUAL_UPLOAD)
+  verificationStatus DocumentVerificationStatus @default(NOT_VERIFIED)
+  verifiedAt         DateTime?
+
+  providerDocumentUri  String?
+  providerIssuerId     String?
+  providerIssuerName   String?
+  providerDocumentType String?
+  providerIssuedAt     DateTime?
+
+  digilockerSessionId String?
+  digilockerSession   DigiLockerVerificationSession? @relation(fields: [digilockerSessionId], references: [id], onDelete: SetNull)
+
+  status          DocumentStatus @default(PENDING)
+  rejectionReason String?
+  reviewedBy      String?
+  uploadedAt      DateTime       @default(now())
+  reviewedAt      DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   @@unique([kycId, documentType])
   @@index([kycId])
   @@index([documentType])
+  @@index([source, verificationStatus])
+  @@index([digilockerSessionId])
   @@map("kyc_documents")
 }
 
@@ -120,4 +159,36 @@ model IdempotencyRecord {
   @@index([identityId])
   @@index([expiresAt])
   @@map("kyc_idempotency_records")
+}
+
+model DigiLockerVerificationSession {
+  id        String @id @default(uuid())
+  kycId     String
+  kyc       Kyc    @relation(fields: [kycId], references: [id], onDelete: Cascade)
+  stateHash String @unique
+
+  pkceVerifierEncrypted String?
+
+  status DigiLockerSessionStatus @default(INITIATED)
+
+  requestedDocumentTypes DocumentType[]
+  requestedScopes        String[]       @default([])
+  grantedScopes          String[]       @default([])
+
+  consentGrantedAt   DateTime?
+  callbackReceivedAt DateTime?
+  completedAt        DateTime?
+  expiresAt          DateTime
+
+  errorCode    String?
+  errorMessage String?
+
+  documents KycDocument[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([kycId, status])
+  @@index([expiresAt])
+  @@map("digilocker_verification_sessions")
 }

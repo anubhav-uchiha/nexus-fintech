@@ -1,25 +1,53 @@
+import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  IsArray,
   IsDateString,
   IsEmail,
   IsNotEmpty,
   IsObject,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
 
-export class OnboardEkoUserDto {
-  /**
-   * Unique retailer/agent code.
-   * EKO: registered mobile number of the agent/retailer.
-   */
-  // @IsString()
-  // @IsNotEmpty()
-  // @Matches(/^[6-9]\d{9}$/, {
-  //   message: 'user_code must be a valid 10-digit Indian mobile number',
-  // })
-  // user_code!: string;
+export class EkoResidenceAddressDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  line!: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  city!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  state!: string;
+
+  @IsString()
+  @Matches(/^[1-9][0-9]{5}$/, {
+    message: 'pincode must be a valid 6-digit Indian pincode',
+  })
+  pincode!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  area?: string;
+}
+
+export class OnboardEkoUserDto {
   @IsString()
   @IsNotEmpty()
   @Matches(/^[A-Z]{5}[0-9]{4}[A-Z]$/, {
@@ -27,9 +55,6 @@ export class OnboardEkoUserDto {
   })
   pan_number!: string;
 
-  /**
-   * Verified mobile number of the agent.
-   */
   @IsString()
   @IsNotEmpty()
   @Matches(/^[6-9]\d{9}$/, {
@@ -47,31 +72,32 @@ export class OnboardEkoUserDto {
   @MaxLength(100)
   last_name!: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(100)
-  residence_address!: string;
+  /**
+   * Eko expects residence_address as JSON.
+   */
+  @IsObject()
+  @ValidateNested()
+  @Type(() => EkoResidenceAddressDto)
+  residence_address!: EkoResidenceAddressDto;
 
   @IsEmail()
   @IsNotEmpty()
   @MaxLength(255)
   email!: string;
 
-  /**
-   * Required for AePS onboarding.
-   */
   @IsString()
   @IsNotEmpty()
   @MaxLength(200)
   shop_name!: string;
 
-  /**
-   * YYYY-MM-DD
-   */
+  @IsString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'dob must use YYYY-MM-DD format',
+  })
   @IsDateString(
     {},
     {
-      message: 'dob must be a valid date in YYYY-MM-DD format',
+      message: 'dob must be a valid date',
     },
   )
   dob!: string;

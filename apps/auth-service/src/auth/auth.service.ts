@@ -262,8 +262,6 @@ export class AuthService {
     if (aadhaarExists) {
       throw new ConflictException('Aadhaar already registered.');
     }
-
-    const loginId = await this.identityService.generateLoginId();
     const password = generatePassword();
     const mpin = generateMpin();
 
@@ -273,7 +271,6 @@ export class AuthService {
     const identity = await this.identityService.completeRegistration({
       draftId: draft.id,
       identity: {
-        loginId,
         fullName: dto.fullName,
         username: dto.username,
         email: dto.email,
@@ -295,11 +292,6 @@ export class AuthService {
         isPanVerified: false,
         registrationStep: RegistrationStep.COMPLETED,
         preferredLoginMethod: LoginMethod.LOGIN_ID,
-        role: {
-          connect: {
-            id: draft.roleId,
-          },
-        },
       },
     });
 

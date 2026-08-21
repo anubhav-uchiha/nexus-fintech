@@ -1,21 +1,22 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseInterceptors } from '@nestjs/common';
 import { EkoService } from './eko.service';
-import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AEPS_PATTERNS } from '@nexus/common/aeps/aeps.patterns';
 import { OnboardEkoUserDto } from '@nexus/common/aeps/dto/OnboardEkoUserDto';
-import { IdentityDto } from 'libs/common/dto/IdentityDto';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { HttpToRpcExceptionInterceptor } from '../../common/interceptors/http-to-rpc-exception.interceptor';
+import { OnboardEkoMerchantCommandDto } from '@nexus/common/aeps/dto/onboard-eko-merchant-command.dto';
 
 @Controller()
-export class EkoController {
+@UseInterceptors(HttpToRpcExceptionInterceptor)
+export class EkoKafkaController {
   constructor(private readonly ekoService: EkoService) {}
 
   @MessagePattern(AEPS_PATTERNS.GET_ALL_SERVICES)
-  async getAllServices(@Payload() dto: IdentityDto) {
-    return this.ekoService.getAllServices();
+  async getAllServices() {
+    return await this.ekoService.getAllServices();
   }
   @MessagePattern(AEPS_PATTERNS.ONBOARD_USER)
-  async onboardUser(@Payload() dto: OnboardEkoUserDto) {
-    console.log('KAFKA_RECEIVED:', dto);
+  onboardUser(@Payload() dto: OnboardEkoMerchantCommandDto) {
     return this.ekoService.onboardUser(dto);
   }
 }
