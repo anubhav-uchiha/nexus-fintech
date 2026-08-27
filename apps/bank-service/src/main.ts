@@ -1,15 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { BankServiceModule } from './bank-service.module';
 import { ConfigService } from '@nestjs/config';
-import { Transport } from '@nestjs/microservices';
+import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
 
 async function bootstrap() {
   const app = await NestFactory.create(BankServiceModule);
   const config = app.get(ConfigService);
 
   app.connectMicroservice({
-    transport: Transport.KAFKA,
-    options: {
+    strategy: new AutoCreateTopicsServerKafka({
       client: {
         clientId: 'bank-service',
         brokers: [config.get<string>('KAFKA_BROKER') ?? 'localhost:9092'],
@@ -17,7 +16,7 @@ async function bootstrap() {
       consumer: {
         groupId: 'bank-service-group',
       },
-    },
+    }),
   });
 
   await app.startAllMicroservices();

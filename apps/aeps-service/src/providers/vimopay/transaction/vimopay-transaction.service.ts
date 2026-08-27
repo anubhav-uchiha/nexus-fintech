@@ -1,0 +1,1476 @@
+import { BadRequestException, Injectable } from '@nestjs/common';
+
+import { ConfigService } from '@nestjs/config';
+import { randomInt } from 'crypto';
+
+import { PrismaService } from '../../../database/prisma.service';
+
+import { VimopayService } from '../vimopay.service';
+
+import { VimopayTransactionAccessService } from './vimopay-transaction-access.service';
+import {
+  AepsFinancialTransactionType,
+  VimopayTxnAuthStatus,
+  VimopayTxnAuthType,
+} from '../../../../generated/prisma/enums';
+import { VimopayIdempotencyService } from './vimopay-idempotency.service';
+
+import { VimopayBalanceEnquiryRequestDto } from './dto/vimopay-balance-enquiry-request.dto';
+
+import { VimopayBalanceEnquiryDto } from '../dto/balance-enquiry.dto';
+import { VimopayMiniStatementRequestDto } from './dto/vimopay-mini-statement-request.dto';
+
+import { VimopayMiniStatementDto } from '../dto/mini-statement.dto';
+
+import { VimopayCashWithdrawalRequestDto } from './dto/vimopay-cash-withdrawal-request.dto';
+
+import { VimopayCashWithdrawalDto } from '../dto/cash-withdrawal.dto';
+import { VimopayCashWithdrawalOtpRequestDto } from './dto/vimopay-cw-otp-request.dto';
+
+import { VimopayAepsTransactionOtpDto } from '../dto/aeps-transaction-otp.dto';
+
+import { VimopayAadhaarPayDto } from '../dto/aadhaar-pay.dto';
+
+import { VimopayAadhaarPayRequestDto } from './dto/vimopay-aadhaar-pay-request.dto';
+
+import { VimopayAadhaarPayOtpRequestDto } from './dto/vimopay-ap-otp-request.dto';
+
+import { VimopayCashDepositDto } from '../dto/cash-deposit.dto';
+
+import { VimopayCashDepositRequestDto } from './dto/vimopay-cash-deposit-request.dto';
+
+export interface VimopayTransactionContext {
+  identityId: string;
+
+  ipAddress: string;
+}
+
+@Injectable()
+export class VimopayTransactionService {
+  constructor(
+    private readonly accessService: VimopayTransactionAccessService,
+    private readonly vimopayService: VimopayService,
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly idempotencyService: VimopayIdempotencyService,
+  ) {}
+
+  /*
+   * =====================================================
+   * BALANCE ENQUIRY
+   * =====================================================
+   */
+
+  async balanceEnquiry(
+    context: VimopayTransactionContext,
+
+    dto: VimopayBalanceEnquiryRequestDto,
+  ) {
+    /*
+     * -----------------------------------------
+     * 1. Merchant access verification
+     * -----------------------------------------
+     *
+     * Checks:
+     *
+     * - VimoPay onboarding exists
+     * - merchant ACTIVE
+     * - serviceActivated = true
+     * - provider merchantId exists
+     * - today's 2FA complete
+     */
+    const merchant = await this.accessService.getActiveMerchant(
+      context.identityId,
+    );
+
+    /*
+     * -----------------------------------------
+     * 2. Fresh backend transaction reference
+     * -----------------------------------------
+     */
+    const merchantRefId = this.generateMerchantRefId('BE');
+
+    /*
+     * -----------------------------------------
+     * 3. Trusted provider payload
+     * -----------------------------------------
+     *
+     * merchantId:
+     * DB se.
+     *
+     * merchantRefId:
+     * backend generated.
+     *
+     * ipAddress:
+     * request context se.
+     *
+     * amount:
+     * low-level service khud 0 set karegi.
+     *
+     * transactionType:
+     * low-level service khud BE set karegi.
+     */
+    const providerDto: VimopayBalanceEnquiryDto = {
+      merchantRefId,
+
+      merchantId: merchant.merchantId,
+
+      aadhaarNumber: dto.aadhaarNumber,
+
+      mobileNumber: dto.mobileNumber,
+
+      bankIIN: dto.bankIIN,
+
+      ipAddress: context.ipAddress,
+
+      lat: dto.lat,
+
+      long: dto.long,
+
+      deviceType: dto.deviceType,
+
+      pidData: dto.pidData,
+
+      /*
+       * Balance Enquiry mein transaction
+       * OTP required nahi hai.
+       */
+      cwAuthTxnId: '',
+
+      udf1: dto.udf1 ?? '',
+
+      udf2: dto.udf2 ?? '',
+
+      udf3: dto.udf3 ?? '',
+    };
+
+    /*
+     * -----------------------------------------
+     * 4. Existing tested provider API
+     * -----------------------------------------
+     */
+    const result = await this.vimopayService.balanceEnquiry(providerDto);
+
+    /*
+     * PID/Aadhaar ko response mein
+     * repeat nahi karenge.
+     */
+    return {
+      provider: 'VIMOPAY',
+
+      transactionType: 'BE',
+
+      profileId: merchant.profileId,
+
+      merchantRefId,
+
+      providerMerchantId: merchant.merchantId,
+
+      result,
+    };
+  }
+
+  /*
+   * =====================================================
+   * MINI STATEMENT
+   * =====================================================
+   */
+
+  async miniStatement(
+    context: VimopayTransactionContext,
+    dto: VimopayMiniStatementRequestDto,
+  ) {
+    /*
+     * Merchant + daily 2FA verification.
+     */
+    const merchant = await this.accessService.getActiveMerchant(
+      context.identityId,
+    );
+
+    /*
+     * Fresh reference generated by backend.
+     */
+    const merchantRefId = this.generateMerchantRefId('MS');
+
+    const providerDto: VimopayMiniStatementDto = {
+      merchantRefId,
+
+      /*
+       * DB se.
+       */
+      merchantId: merchant.merchantId,
+
+      aadhaarNumber: dto.aadhaarNumber,
+
+      mobileNumber: dto.mobileNumber,
+
+      bankIIN: dto.bankIIN,
+
+      /*
+       * Trusted request context se.
+       */
+      ipAddress: context.ipAddress,
+
+      lat: dto.lat,
+
+      long: dto.long,
+
+      deviceType: dto.deviceType,
+
+      pidData: dto.pidData,
+
+      /*
+       * Mini Statement ko transaction OTP
+       * required nahi hai.
+       */
+      cwAuthTxnId: '',
+
+      udf1: dto.udf1 ?? '',
+
+      udf2: dto.udf2 ?? '',
+
+      udf3: dto.udf3 ?? '',
+    };
+
+    /*
+     * Existing tested low-level provider API.
+     *
+     * Low-level service:
+     * transactionType = MS
+     * amount = 0
+     * automatically set karti hai.
+     */
+    const result = await this.vimopayService.miniStatement(providerDto);
+
+    return {
+      provider: 'VIMOPAY',
+
+      transactionType: 'MS',
+
+      profileId: merchant.profileId,
+
+      merchantRefId,
+
+      providerMerchantId: merchant.merchantId,
+
+      result,
+    };
+  }
+
+  /*
+   * =====================================================
+   * CASH WITHDRAWAL
+   * =====================================================
+   */
+
+  async cashWithdrawal(
+    context: VimopayTransactionContext,
+    dto: VimopayCashWithdrawalRequestDto,
+    idempotencyKey: string,
+  ) {
+    /*
+     * =====================================================
+     * 1. ACTIVE MERCHANT + DAILY 2FA
+     * =====================================================
+     */
+
+    const merchant = await this.accessService.getActiveMerchant(
+      context.identityId,
+    );
+
+    const amount = Number(dto.amount);
+
+    /*
+     * =====================================================
+     * 2. BASIC AMOUNT VALIDATION
+     * =====================================================
+     */
+
+    if (!Number.isFinite(amount) || amount < 100 || amount > 10000) {
+      throw new BadRequestException(
+        'Cash Withdrawal amount must be between 100 and 10000',
+      );
+    }
+
+    /*
+     * <= 5000:
+     * transaction OTP authorization nahi chahiye.
+     */
+    if (amount <= 5000 && dto.authRequestId) {
+      throw new BadRequestException(
+        'authRequestId must not be provided for Cash Withdrawal up to 5000',
+      );
+    }
+
+    /*
+     * > 5000:
+     * CWTFA authorization mandatory.
+     */
+    if (amount > 5000 && !dto.authRequestId) {
+      throw new BadRequestException({
+        message:
+          'Cash Withdrawal above 5000 requires transaction authorization',
+
+        code: 'VIMOPAY_CW_TRANSACTION_OTP_REQUIRED',
+      });
+    }
+
+    /*
+     * =====================================================
+     * 3. IDEMPOTENCY
+     * =====================================================
+     */
+
+    const requestHash = this.idempotencyService.createRequestHash({
+      transactionType: 'CW',
+
+      amount: amount.toFixed(2),
+
+      bankIIN: dto.bankIIN,
+
+      aadhaarNumber: dto.aadhaarNumber,
+
+      mobileNumber: dto.mobileNumber,
+
+      authRequestId: dto.authRequestId ?? '',
+    });
+
+    const idempotency = await this.idempotencyService.begin({
+      identityId: context.identityId,
+
+      profileId: merchant.profileId,
+
+      transactionType: AepsFinancialTransactionType.CASH_WITHDRAWAL,
+
+      idempotencyKey,
+
+      requestHash,
+    });
+
+    /*
+     * Same Idempotency-Key + same request
+     * already process ho chuki hai.
+     *
+     * Provider dobara hit nahi hoga.
+     */
+    if (!idempotency.shouldExecute) {
+      return idempotency.response;
+    }
+
+    /*
+     * Provider call start hui ya nahi,
+     * ye catch block ke liye important hai.
+     */
+    let providerCallStarted = false;
+
+    /*
+     * >5000 mein provider transaction
+     * authorization yahan store hogi.
+     */
+    let cwAuthTxnId = '';
+
+    /*
+     * Agar auth atomic claim ho gayi but
+     * provider call start nahi hui,
+     * to safely ISSUED par wapas kar sakte hain.
+     */
+    let claimedAuthorizationId: string | null = null;
+
+    try {
+      /*
+       * ===================================================
+       * 4. >5000 CWTFA AUTHORIZATION
+       * ===================================================
+       */
+
+      if (amount > 5000) {
+        const authorization =
+          await this.prisma.vimopayTxnAuthorization.findFirst({
+            where: {
+              id: dto.authRequestId!,
+
+              profileId: merchant.profileId,
+
+              type: VimopayTxnAuthType.CASH_WITHDRAWAL,
+            },
+          });
+
+        if (!authorization) {
+          throw new BadRequestException(
+            'Cash Withdrawal authorization is invalid',
+          );
+        }
+
+        /*
+         * Only ISSUED authorization usable hai.
+         */
+        if (authorization.status !== VimopayTxnAuthStatus.ISSUED) {
+          throw new BadRequestException(
+            `Cash Withdrawal authorization is ${authorization.status.toLowerCase()}`,
+          );
+        }
+
+        /*
+         * Application-level TTL.
+         */
+        if (authorization.expiresAt <= new Date()) {
+          await this.prisma.vimopayTxnAuthorization.update({
+            where: {
+              id: authorization.id,
+            },
+
+            data: {
+              status: VimopayTxnAuthStatus.EXPIRED,
+            },
+          });
+
+          throw new BadRequestException(
+            'Cash Withdrawal authorization has expired',
+          );
+        }
+
+        /*
+         * Authorization exactly isi amount
+         * ke liye honi chahiye.
+         */
+        if (Number(authorization.amount) !== amount) {
+          throw new BadRequestException(
+            'Cash Withdrawal amount does not match the transaction authorization',
+          );
+        }
+
+        /*
+         * Authorization bank match.
+         */
+        if (authorization.bankIIN !== dto.bankIIN) {
+          throw new BadRequestException(
+            'Bank IIN does not match the transaction authorization',
+          );
+        }
+
+        /*
+         * Raw Aadhaar DB mein save nahi hai.
+         * Last 4 se transaction intent match.
+         */
+        if (authorization.aadhaarLast4 !== dto.aadhaarNumber.slice(-4)) {
+          throw new BadRequestException(
+            'Aadhaar does not match the transaction authorization',
+          );
+        }
+
+        if (!authorization.providerTxnRefId) {
+          throw new BadRequestException(
+            'Provider transaction authorization is missing',
+          );
+        }
+
+        /*
+         * =================================================
+         * ATOMIC CLAIM
+         * =================================================
+         *
+         * Do concurrent requests same authRequestId
+         * use karke financial transaction nahi kar sakti.
+         */
+        const claimed = await this.prisma.vimopayTxnAuthorization.updateMany({
+          where: {
+            id: authorization.id,
+
+            status: VimopayTxnAuthStatus.ISSUED,
+          },
+
+          data: {
+            status: VimopayTxnAuthStatus.CONSUMING,
+
+            consumingAt: new Date(),
+          },
+        });
+
+        if (claimed.count !== 1) {
+          throw new BadRequestException(
+            'Cash Withdrawal authorization has already been used',
+          );
+        }
+
+        claimedAuthorizationId = authorization.id;
+
+        /*
+         * Provider Txn OTP response txnRefId
+         * final CW mein cwAuthTxnId banta hai.
+         */
+        cwAuthTxnId = authorization.providerTxnRefId;
+      }
+
+      /*
+       * ===================================================
+       * 5. BACKEND TRANSACTION REFERENCE
+       * ===================================================
+       */
+
+      const merchantRefId = this.generateMerchantRefId('CW');
+
+      /*
+       * ===================================================
+       * 6. TRUSTED PROVIDER DTO
+       * ===================================================
+       */
+
+      const providerDto: VimopayCashWithdrawalDto = {
+        /*
+         * Backend generated.
+         */
+        merchantRefId,
+
+        /*
+         * DB se.
+         */
+        merchantId: merchant.merchantId,
+
+        aadhaarNumber: dto.aadhaarNumber,
+
+        mobileNumber: dto.mobileNumber,
+
+        amount: dto.amount,
+
+        bankIIN: dto.bankIIN,
+
+        /*
+         * Request/server context se.
+         */
+        ipAddress: context.ipAddress,
+
+        lat: dto.lat,
+
+        long: dto.long,
+
+        deviceType: dto.deviceType,
+
+        /*
+         * <=5000 = ''
+         *
+         * >5000 = internally resolved
+         * provider Txn OTP txnRefId
+         */
+        cwAuthTxnId,
+
+        udf1: dto.udf1 ?? '',
+
+        udf2: dto.udf2 ?? '',
+
+        udf3: dto.udf3 ?? '',
+
+        pidData: dto.pidData,
+      };
+
+      /*
+       * ===================================================
+       * 7. PROVIDER CALL
+       * ===================================================
+       *
+       * Is line ke baad error aaye to
+       * transaction provider tak gayi ho sakti hai.
+       */
+      providerCallStarted = true;
+
+      const result = await this.vimopayService.cashWithdrawal(providerDto);
+
+      /*
+       * ===================================================
+       * 8. CONSUME >5000 AUTHORIZATION
+       * ===================================================
+       *
+       * Provider ne definitive response de diya.
+       *
+       * Success/failure/pending jo bhi ho,
+       * same authorization dobara financial
+       * transaction ke liye reuse nahi hogi.
+       */
+      if (amount > 5000 && claimedAuthorizationId) {
+        await this.prisma.vimopayTxnAuthorization.update({
+          where: {
+            id: claimedAuthorizationId,
+          },
+
+          data: {
+            status: VimopayTxnAuthStatus.CONSUMED,
+
+            consumedAt: new Date(),
+
+            providerStatusCode: result.status,
+
+            providerStatusMessage: result.statusDescription,
+          },
+        });
+      }
+
+      /*
+       * ===================================================
+       * 9. FINAL RESPONSE
+       * ===================================================
+       */
+
+      const response = {
+        provider: 'VIMOPAY',
+
+        transactionType: 'CW',
+
+        profileId: merchant.profileId,
+
+        merchantRefId,
+
+        providerMerchantId: merchant.merchantId,
+
+        amount: dto.amount,
+
+        result,
+      };
+
+      /*
+       * ===================================================
+       * 10. IDEMPOTENCY COMPLETE
+       * ===================================================
+       */
+
+      await this.idempotencyService.complete({
+        recordId: idempotency.recordId,
+
+        lockToken: idempotency.lockToken,
+
+        response,
+
+        providerStatusCode: result.status,
+
+        providerMerchantRefId: merchantRefId,
+
+        providerTxnRefId: result.txnRefId,
+      });
+
+      return response;
+    } catch (error) {
+      /*
+       * ===================================================
+       * PROVIDER CALL START NAHI HUI
+       * ===================================================
+       *
+       * Example:
+       *
+       * invalid authRequestId
+       * expired auth
+       * amount mismatch
+       * bank mismatch
+       *
+       * Provider ko financial request gayi hi nahi.
+       */
+      if (!providerCallStarted) {
+        /*
+         * Authorization atomic claim ho gayi thi,
+         * but provider call start nahi hui.
+         *
+         * Safely ISSUED par release.
+         */
+        if (claimedAuthorizationId) {
+          await this.prisma.vimopayTxnAuthorization.updateMany({
+            where: {
+              id: claimedAuthorizationId,
+
+              status: VimopayTxnAuthStatus.CONSUMING,
+            },
+
+            data: {
+              status: VimopayTxnAuthStatus.ISSUED,
+
+              consumingAt: null,
+            },
+          });
+        }
+
+        /*
+         * Idempotency reservation bhi release.
+         *
+         * User corrected request ke saath
+         * retry kar sakta hai.
+         */
+        await this.idempotencyService.abandonBeforeProvider(
+          idempotency.recordId,
+
+          idempotency.lockToken,
+        );
+
+        throw error;
+      }
+
+      /*
+       * ===================================================
+       * PROVIDER CALL START HO CHUKI
+       * ===================================================
+       *
+       * Timeout/network issue mein ye confirm
+       * nahi kar sakte ki financial transaction
+       * execute hui ya nahi.
+       *
+       * Automatic retry dangerous hai.
+       */
+
+      await this.idempotencyService.markUnknown(
+        idempotency.recordId,
+
+        idempotency.lockToken,
+      );
+
+      /*
+       * >5000 authorization ko bhi UNKNOWN.
+       *
+       * Isko automatically ISSUED par
+       * wapas nahi karenge.
+       */
+      if (claimedAuthorizationId) {
+        await this.prisma.vimopayTxnAuthorization.updateMany({
+          where: {
+            id: claimedAuthorizationId,
+
+            status: VimopayTxnAuthStatus.CONSUMING,
+          },
+
+          data: {
+            status: VimopayTxnAuthStatus.UNKNOWN,
+          },
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  /*
+   * =====================================================
+   * REFERENCE GENERATOR
+   * =====================================================
+   */
+
+  private generateMerchantRefId(transactionType: string): string {
+    return `VMP${transactionType}${Date.now()}${randomInt(100000, 1000000)}`;
+  }
+
+  async sendCashWithdrawalOtp(
+    context: VimopayTransactionContext,
+    dto: VimopayCashWithdrawalOtpRequestDto,
+  ) {
+    const merchant = await this.accessService.getActiveMerchant(
+      context.identityId,
+    );
+
+    const amount = Number(dto.amount);
+
+    if (!Number.isFinite(amount) || amount <= 5000 || amount > 10000) {
+      throw new BadRequestException(
+        'Cash Withdrawal transaction OTP is required only for amount above 5000 and up to 10000',
+      );
+    }
+
+    const merchantRefId = this.generateMerchantRefId('CWO');
+
+    const providerDto: VimopayAepsTransactionOtpDto = {
+      merchantRefId,
+
+      merchantId: merchant.merchantId,
+
+      bankIIN: dto.bankIIN,
+
+      aadhaarNumber: dto.aadhaarNumber,
+
+      transactionType: 'CWTFA',
+
+      amount: dto.amount,
+
+      mobileNumber: dto.mobileNumber,
+
+      custMobileNumber: dto.custMobileNumber ?? '',
+
+      lat: dto.lat,
+
+      long: dto.long,
+
+      ipAddress: context.ipAddress,
+
+      appPlatform: dto.appPlatform,
+
+      appVersion: dto.appVersion,
+    };
+
+    const result =
+      await this.vimopayService.sendAepsTransactionOtp(providerDto);
+
+    if (result.status !== '000' || !result.txnRefId) {
+      throw new BadRequestException(
+        result.statusDescription ||
+          'Unable to generate Cash Withdrawal transaction authorization',
+      );
+    }
+
+    const ttlMinutes = Number(
+      this.configService.get('AEPS_VIMO_TXN_AUTH_TTL_MINUTES') ?? 10,
+    );
+
+    const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+
+    const authorization = await this.prisma.vimopayTxnAuthorization.create({
+      data: {
+        profileId: merchant.profileId,
+
+        type: VimopayTxnAuthType.CASH_WITHDRAWAL,
+
+        status: VimopayTxnAuthStatus.ISSUED,
+
+        clientRefId: merchantRefId,
+
+        providerTxnRefId: result.txnRefId,
+
+        amount: dto.amount,
+
+        bankIIN: dto.bankIIN,
+
+        aadhaarLast4: dto.aadhaarNumber.slice(-4),
+
+        providerStatusCode: result.status,
+
+        providerStatusMessage: result.statusDescription,
+
+        expiresAt,
+      },
+    });
+
+    return {
+      provider: 'VIMOPAY',
+
+      transactionType: 'CWTFA',
+
+      authRequestId: authorization.id,
+
+      amount: dto.amount,
+
+      bankIIN: dto.bankIIN,
+
+      expiresAt,
+
+      message: result.npciMessage || result.statusDescription,
+
+      nextAction: 'CAPTURE_BIOMETRIC_WITH_OTP',
+    };
+  }
+
+  async sendAadhaarPayOtp(
+    context: VimopayTransactionContext,
+    dto: VimopayAadhaarPayOtpRequestDto,
+  ) {
+    const merchant = await this.accessService.getActiveMerchant(
+      context.identityId,
+    );
+
+    const amount = Number(dto.amount);
+
+    if (!Number.isFinite(amount) || amount <= 5000 || amount > 10000) {
+      throw new BadRequestException(
+        'Aadhaar Pay transaction OTP is required only for amount above 5000 and up to 10000',
+      );
+    }
+
+    const merchantRefId = this.generateMerchantRefId('APO');
+
+    const result = await this.vimopayService.sendAepsTransactionOtp({
+      merchantRefId,
+
+      merchantId: merchant.merchantId,
+
+      bankIIN: dto.bankIIN,
+
+      aadhaarNumber: dto.aadhaarNumber,
+
+      transactionType: 'APTFA',
+
+      amount: dto.amount,
+
+      mobileNumber: dto.mobileNumber,
+
+      custMobileNumber: dto.custMobileNumber ?? '',
+
+      lat: dto.lat,
+
+      long: dto.long,
+
+      ipAddress: context.ipAddress,
+
+      appPlatform: dto.appPlatform,
+
+      appVersion: dto.appVersion,
+    });
+
+    if (result.status !== '000' || !result.txnRefId) {
+      throw new BadRequestException(
+        result.statusDescription ||
+          'Unable to create Aadhaar Pay transaction authorization',
+      );
+    }
+
+    const ttlMinutes = Number(
+      this.configService.get('AEPS_VIMO_TXN_AUTH_TTL_MINUTES') ?? 10,
+    );
+
+    const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+
+    const authorization = await this.prisma.vimopayTxnAuthorization.create({
+      data: {
+        profileId: merchant.profileId,
+
+        type: VimopayTxnAuthType.AADHAAR_PAY,
+
+        status: VimopayTxnAuthStatus.ISSUED,
+
+        clientRefId: merchantRefId,
+
+        providerTxnRefId: result.txnRefId,
+
+        amount: dto.amount,
+
+        bankIIN: dto.bankIIN,
+
+        aadhaarLast4: dto.aadhaarNumber.slice(-4),
+
+        providerStatusCode: result.status,
+
+        providerStatusMessage: result.statusDescription,
+
+        expiresAt,
+      },
+    });
+
+    return {
+      provider: 'VIMOPAY',
+
+      transactionType: 'APTFA',
+
+      authRequestId: authorization.id,
+
+      amount: dto.amount,
+
+      bankIIN: dto.bankIIN,
+
+      expiresAt,
+
+      message: result.npciMessage || result.statusDescription,
+
+      nextAction: 'CAPTURE_BIOMETRIC_WITH_OTP',
+    };
+  }
+
+  async aadhaarPay(
+    context: VimopayTransactionContext,
+
+    dto: VimopayAadhaarPayRequestDto,
+
+    idempotencyKey: string,
+  ) {
+    const merchant = await this.accessService.getActiveMerchant(
+      context.identityId,
+    );
+
+    const amount = Number(dto.amount);
+
+    if (!Number.isFinite(amount) || amount < 100 || amount > 10000) {
+      throw new BadRequestException(
+        'Aadhaar Pay amount must be between 100 and 10000',
+      );
+    }
+
+    if (amount <= 5000 && dto.authRequestId) {
+      throw new BadRequestException(
+        'authRequestId must not be provided for Aadhaar Pay up to 5000',
+      );
+    }
+
+    if (amount > 5000 && !dto.authRequestId) {
+      throw new BadRequestException({
+        message: 'Aadhaar Pay above 5000 requires transaction authorization',
+
+        code: 'VIMOPAY_AP_TRANSACTION_OTP_REQUIRED',
+      });
+    }
+
+    /*
+     * ==================================================
+     * IDEMPOTENCY
+     * ==================================================
+     *
+     * PID data hash mein deliberately nahi hai.
+     *
+     * Financial intent:
+     * Aadhaar + mobile + bank + amount + auth
+     */
+    const requestHash = this.idempotencyService.createRequestHash({
+      transactionType: 'AP',
+
+      amount: amount.toFixed(2),
+
+      bankIIN: dto.bankIIN,
+
+      aadhaarNumber: dto.aadhaarNumber,
+
+      mobileNumber: dto.mobileNumber,
+
+      authRequestId: dto.authRequestId ?? '',
+    });
+
+    const idempotency = await this.idempotencyService.begin({
+      identityId: context.identityId,
+
+      profileId: merchant.profileId,
+
+      transactionType: AepsFinancialTransactionType.AADHAAR_PAY,
+
+      idempotencyKey,
+
+      requestHash,
+    });
+
+    /*
+     * Same request pehle process ho chuki.
+     *
+     * Provider ko dobara hit nahi karenge.
+     */
+    if (!idempotency.shouldExecute) {
+      return idempotency.response;
+    }
+
+    let providerCallStarted = false;
+
+    let cwAuthTxnId = '';
+
+    try {
+      /*
+       * ================================================
+       * > 5000 TRANSACTION AUTHORIZATION
+       * ================================================
+       */
+      if (amount > 5000) {
+        const authorization =
+          await this.prisma.vimopayTxnAuthorization.findFirst({
+            where: {
+              id: dto.authRequestId!,
+
+              profileId: merchant.profileId,
+
+              type: VimopayTxnAuthType.AADHAAR_PAY,
+            },
+          });
+
+        if (!authorization) {
+          throw new BadRequestException('Aadhaar Pay authorization is invalid');
+        }
+
+        if (authorization.status !== VimopayTxnAuthStatus.ISSUED) {
+          throw new BadRequestException(
+            `Aadhaar Pay authorization is ${authorization.status.toLowerCase()}`,
+          );
+        }
+
+        if (authorization.expiresAt <= new Date()) {
+          await this.prisma.vimopayTxnAuthorization.update({
+            where: {
+              id: authorization.id,
+            },
+
+            data: {
+              status: VimopayTxnAuthStatus.EXPIRED,
+            },
+          });
+
+          throw new BadRequestException(
+            'Aadhaar Pay authorization has expired',
+          );
+        }
+
+        if (Number(authorization.amount) !== amount) {
+          throw new BadRequestException(
+            'Aadhaar Pay amount does not match authorization',
+          );
+        }
+
+        if (authorization.bankIIN !== dto.bankIIN) {
+          throw new BadRequestException(
+            'Bank IIN does not match authorization',
+          );
+        }
+
+        if (authorization.aadhaarLast4 !== dto.aadhaarNumber.slice(-4)) {
+          throw new BadRequestException('Aadhaar does not match authorization');
+        }
+
+        if (!authorization.providerTxnRefId) {
+          throw new BadRequestException(
+            'Provider transaction authorization is missing',
+          );
+        }
+
+        /*
+         * Atomic one-time claim.
+         */
+        const claimed = await this.prisma.vimopayTxnAuthorization.updateMany({
+          where: {
+            id: authorization.id,
+
+            status: VimopayTxnAuthStatus.ISSUED,
+          },
+
+          data: {
+            status: VimopayTxnAuthStatus.CONSUMING,
+
+            consumingAt: new Date(),
+          },
+        });
+
+        if (claimed.count !== 1) {
+          throw new BadRequestException(
+            'Aadhaar Pay authorization has already been used',
+          );
+        }
+
+        cwAuthTxnId = authorization.providerTxnRefId;
+      }
+
+      /*
+       * ================================================
+       * PROVIDER REQUEST
+       * ================================================
+       */
+      const merchantRefId = this.generateMerchantRefId('AP');
+
+      const providerDto: VimopayAadhaarPayDto = {
+        merchantRefId,
+
+        merchantId: merchant.merchantId,
+
+        aadhaarNumber: dto.aadhaarNumber,
+
+        mobileNumber: dto.mobileNumber,
+
+        amount: dto.amount,
+
+        bankIIN: dto.bankIIN,
+
+        ipAddress: context.ipAddress,
+
+        lat: dto.lat,
+
+        long: dto.long,
+
+        deviceType: dto.deviceType,
+
+        cwAuthTxnId,
+
+        udf1: dto.udf1 ?? '',
+
+        udf2: dto.udf2 ?? '',
+
+        udf3: dto.udf3 ?? '',
+
+        pidData: dto.pidData,
+      };
+
+      /*
+       * Is point ke baad error aaye to hum
+       * sure nahi honge provider transaction
+       * execute hui ya nahi.
+       */
+      providerCallStarted = true;
+
+      const result = await this.vimopayService.aadhaarPay(providerDto);
+
+      /*
+       * >5000 auth one-time use ho chuki hai.
+       *
+       * Provider ne definitive response diya,
+       * so authorization consumed.
+       */
+      if (amount > 5000 && dto.authRequestId) {
+        await this.prisma.vimopayTxnAuthorization.update({
+          where: {
+            id: dto.authRequestId,
+          },
+
+          data: {
+            status: VimopayTxnAuthStatus.CONSUMED,
+
+            consumedAt: new Date(),
+
+            providerStatusCode: result.status,
+
+            providerStatusMessage: result.statusDescription,
+          },
+        });
+      }
+
+      const response = {
+        provider: 'VIMOPAY',
+
+        transactionType: 'AP',
+
+        profileId: merchant.profileId,
+
+        merchantRefId,
+
+        providerMerchantId: merchant.merchantId,
+
+        amount: dto.amount,
+
+        result,
+      };
+
+      /*
+       * Provider response safely cache.
+       */
+      await this.idempotencyService.complete({
+        recordId: idempotency.recordId,
+
+        lockToken: idempotency.lockToken,
+
+        response,
+
+        providerStatusCode: result.status,
+
+        providerMerchantRefId: merchantRefId,
+
+        providerTxnRefId: result.txnRefId,
+      });
+
+      return response;
+    } catch (error) {
+      /*
+       * Provider call start nahi hui:
+       *
+       * local validation/auth failure.
+       *
+       * Idempotency reservation release.
+       */
+      if (!providerCallStarted) {
+        await this.idempotencyService.abandonBeforeProvider(
+          idempotency.recordId,
+
+          idempotency.lockToken,
+        );
+
+        throw error;
+      }
+
+      /*
+       * Provider call start ho chuki.
+       *
+       * Timeout/network error mein transaction
+       * execute hui ya nahi, sure nahi.
+       *
+       * Automatic retry block.
+       */
+      await this.idempotencyService.markUnknown(
+        idempotency.recordId,
+
+        idempotency.lockToken,
+      );
+
+      if (amount > 5000 && dto.authRequestId) {
+        await this.prisma.vimopayTxnAuthorization.updateMany({
+          where: {
+            id: dto.authRequestId,
+
+            status: VimopayTxnAuthStatus.CONSUMING,
+          },
+
+          data: {
+            status: VimopayTxnAuthStatus.UNKNOWN,
+          },
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  /*
+   * =====================================================
+   * CASH DEPOSIT
+   * =====================================================
+   */
+
+  async cashDeposit(
+    context: VimopayTransactionContext,
+    dto: VimopayCashDepositRequestDto,
+    idempotencyKey: string,
+  ) {
+    /*
+     * ACTIVE merchant + today's 2FA.
+     */
+    const merchant = await this.accessService.getActiveMerchant(
+      context.identityId,
+    );
+
+    const amount = Number(dto.amount);
+
+    if (!Number.isFinite(amount) || amount < 100 || amount > 10000) {
+      throw new BadRequestException(
+        'Cash Deposit amount must be between 100 and 10000',
+      );
+    }
+
+    /*
+     * ===================================================
+     * IDEMPOTENCY
+     * ===================================================
+     */
+
+    const requestHash = this.idempotencyService.createRequestHash({
+      transactionType: 'CD',
+
+      amount: amount.toFixed(2),
+
+      bankIIN: dto.bankIIN,
+
+      aadhaarNumber: dto.aadhaarNumber,
+
+      mobileNumber: dto.mobileNumber,
+    });
+
+    const idempotency = await this.idempotencyService.begin({
+      identityId: context.identityId,
+
+      profileId: merchant.profileId,
+
+      transactionType: AepsFinancialTransactionType.CASH_DEPOSIT,
+
+      idempotencyKey,
+
+      requestHash,
+    });
+
+    /*
+     * Same request already completed.
+     * Provider dobara hit nahi hoga.
+     */
+    if (!idempotency.shouldExecute) {
+      return idempotency.response;
+    }
+
+    let providerCallStarted = false;
+
+    try {
+      /*
+       * Fresh backend-generated transaction ref.
+       */
+      const merchantRefId = this.generateMerchantRefId('CD');
+
+      const providerDto: VimopayCashDepositDto = {
+        merchantRefId,
+
+        /*
+         * DB se.
+         */
+        merchantId: merchant.merchantId,
+
+        aadhaarNumber: dto.aadhaarNumber,
+
+        mobileNumber: dto.mobileNumber,
+
+        amount: dto.amount,
+
+        bankIIN: dto.bankIIN,
+
+        /*
+         * Trusted server/request context.
+         */
+        ipAddress: context.ipAddress,
+
+        lat: dto.lat,
+
+        long: dto.long,
+
+        deviceType: dto.deviceType,
+
+        udf1: dto.udf1 ?? '',
+
+        udf2: dto.udf2 ?? '',
+
+        udf3: dto.udf3 ?? '',
+
+        pidData: dto.pidData,
+      };
+
+      /*
+       * Is point ke baad transaction provider
+       * tak pahunch sakti hai.
+       */
+      providerCallStarted = true;
+
+      const result = await this.vimopayService.cashDeposit(providerDto);
+
+      const response = {
+        provider: 'VIMOPAY',
+
+        transactionType: 'CD',
+
+        profileId: merchant.profileId,
+
+        merchantRefId,
+
+        providerMerchantId: merchant.merchantId,
+
+        amount: dto.amount,
+
+        result,
+      };
+
+      /*
+       * status:
+       *
+       * 000 → SUCCESS
+       * 001/003 → FAILED
+       * 002 → PENDING
+       */
+      await this.idempotencyService.complete({
+        recordId: idempotency.recordId,
+
+        lockToken: idempotency.lockToken,
+
+        response,
+
+        providerStatusCode: result.status,
+
+        providerMerchantRefId: merchantRefId,
+
+        providerTxnRefId: result.txnRefId,
+      });
+
+      return response;
+    } catch (error) {
+      /*
+       * Provider call start nahi hui:
+       * reservation safely remove.
+       */
+      if (!providerCallStarted) {
+        await this.idempotencyService.abandonBeforeProvider(
+          idempotency.recordId,
+          idempotency.lockToken,
+        );
+
+        throw error;
+      }
+
+      /*
+       * Provider call start ho gayi:
+       * timeout/network failure mein
+       * automatic retry dangerous hai.
+       */
+      await this.idempotencyService.markUnknown(
+        idempotency.recordId,
+        idempotency.lockToken,
+      );
+
+      throw error;
+    }
+  }
+}

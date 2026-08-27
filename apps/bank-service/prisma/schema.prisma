@@ -21,7 +21,7 @@ enum BankAccountStatus {
 
 enum BankAccountVerificationStatus {
     PENDING
-    UNDER_REVIEW
+    PROCESSING
     VERIFIED
     REJECTED
     FAILED
@@ -37,6 +37,11 @@ enum BankAccountType {
     SAVINGS
     CURRENT
     SALARY
+}
+
+enum BankProvider {
+    EKO
+    PAYSPRINT
 }
 
 model UserBankAccount {
@@ -75,7 +80,8 @@ model UserBankAccount {
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
 
-    userBankStatusAudits UserBankStatusAudit[]
+    userBankStatusAudits     UserBankStatusAudit[]
+    bankAccountVerifications BankAccountVerification[]
 
     @@unique([accountNumberHash, ifsc])
     @@index([identityId, status])
@@ -103,4 +109,31 @@ model UserBankStatusAudit {
     @@index([statusChangedById])
     @@index([changedAt])
     @@map("user_bank_status_audits")
+}
+
+model BankAccountVerification {
+    id            String  @id @default(cuid())
+    bankAccountId String? @map("bank_account_id") @db.Uuid
+
+    provider    BankProvider
+    clientRefId String       @unique @map("client_ref_id")
+
+    status BankAccountVerificationStatus
+
+    accountHolderName String? @map("account_holder_name")
+
+    requestPayload  Json? @map("request_payload")
+    responsePayload Json? @map("response_payload")
+
+    verifiedAt DateTime? @map("verified_at")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    bankAccount UserBankAccount? @relation(fields: [bankAccountId], references: [id])
+
+    @@index([bankAccountId])
+    @@index([provider])
+    @@index([status])
+    @@map("bank_account_verifications")
 }

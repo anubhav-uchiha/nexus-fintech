@@ -397,7 +397,10 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
-  AepsMerchantProfile: 'AepsMerchantProfile'
+  AepsMerchantProfile: 'AepsMerchantProfile',
+  VimopayMerchantDetail: 'VimopayMerchantDetail',
+  VimopayTxnAuthorization: 'VimopayTxnAuthorization',
+  AepsTransactionIdempotency: 'AepsTransactionIdempotency'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -413,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "aepsMerchantProfile"
+    modelProps: "aepsMerchantProfile" | "vimopayMerchantDetail" | "vimopayTxnAuthorization" | "aepsTransactionIdempotency"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -491,6 +494,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    VimopayMerchantDetail: {
+      payload: Prisma.$VimopayMerchantDetailPayload<ExtArgs>
+      fields: Prisma.VimopayMerchantDetailFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.VimopayMerchantDetailFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.VimopayMerchantDetailFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>
+        }
+        findFirst: {
+          args: Prisma.VimopayMerchantDetailFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.VimopayMerchantDetailFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>
+        }
+        findMany: {
+          args: Prisma.VimopayMerchantDetailFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>[]
+        }
+        create: {
+          args: Prisma.VimopayMerchantDetailCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>
+        }
+        createMany: {
+          args: Prisma.VimopayMerchantDetailCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.VimopayMerchantDetailCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>[]
+        }
+        delete: {
+          args: Prisma.VimopayMerchantDetailDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>
+        }
+        update: {
+          args: Prisma.VimopayMerchantDetailUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>
+        }
+        deleteMany: {
+          args: Prisma.VimopayMerchantDetailDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.VimopayMerchantDetailUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.VimopayMerchantDetailUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>[]
+        }
+        upsert: {
+          args: Prisma.VimopayMerchantDetailUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayMerchantDetailPayload>
+        }
+        aggregate: {
+          args: Prisma.VimopayMerchantDetailAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateVimopayMerchantDetail>
+        }
+        groupBy: {
+          args: Prisma.VimopayMerchantDetailGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VimopayMerchantDetailGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.VimopayMerchantDetailCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VimopayMerchantDetailCountAggregateOutputType> | number
+        }
+      }
+    }
+    VimopayTxnAuthorization: {
+      payload: Prisma.$VimopayTxnAuthorizationPayload<ExtArgs>
+      fields: Prisma.VimopayTxnAuthorizationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.VimopayTxnAuthorizationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.VimopayTxnAuthorizationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>
+        }
+        findFirst: {
+          args: Prisma.VimopayTxnAuthorizationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.VimopayTxnAuthorizationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>
+        }
+        findMany: {
+          args: Prisma.VimopayTxnAuthorizationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>[]
+        }
+        create: {
+          args: Prisma.VimopayTxnAuthorizationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>
+        }
+        createMany: {
+          args: Prisma.VimopayTxnAuthorizationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.VimopayTxnAuthorizationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>[]
+        }
+        delete: {
+          args: Prisma.VimopayTxnAuthorizationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>
+        }
+        update: {
+          args: Prisma.VimopayTxnAuthorizationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>
+        }
+        deleteMany: {
+          args: Prisma.VimopayTxnAuthorizationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.VimopayTxnAuthorizationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.VimopayTxnAuthorizationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>[]
+        }
+        upsert: {
+          args: Prisma.VimopayTxnAuthorizationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$VimopayTxnAuthorizationPayload>
+        }
+        aggregate: {
+          args: Prisma.VimopayTxnAuthorizationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateVimopayTxnAuthorization>
+        }
+        groupBy: {
+          args: Prisma.VimopayTxnAuthorizationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VimopayTxnAuthorizationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.VimopayTxnAuthorizationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.VimopayTxnAuthorizationCountAggregateOutputType> | number
+        }
+      }
+    }
+    AepsTransactionIdempotency: {
+      payload: Prisma.$AepsTransactionIdempotencyPayload<ExtArgs>
+      fields: Prisma.AepsTransactionIdempotencyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AepsTransactionIdempotencyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AepsTransactionIdempotencyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>
+        }
+        findFirst: {
+          args: Prisma.AepsTransactionIdempotencyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AepsTransactionIdempotencyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>
+        }
+        findMany: {
+          args: Prisma.AepsTransactionIdempotencyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>[]
+        }
+        create: {
+          args: Prisma.AepsTransactionIdempotencyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>
+        }
+        createMany: {
+          args: Prisma.AepsTransactionIdempotencyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AepsTransactionIdempotencyCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>[]
+        }
+        delete: {
+          args: Prisma.AepsTransactionIdempotencyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>
+        }
+        update: {
+          args: Prisma.AepsTransactionIdempotencyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>
+        }
+        deleteMany: {
+          args: Prisma.AepsTransactionIdempotencyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AepsTransactionIdempotencyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AepsTransactionIdempotencyUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>[]
+        }
+        upsert: {
+          args: Prisma.AepsTransactionIdempotencyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AepsTransactionIdempotencyPayload>
+        }
+        aggregate: {
+          args: Prisma.AepsTransactionIdempotencyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAepsTransactionIdempotency>
+        }
+        groupBy: {
+          args: Prisma.AepsTransactionIdempotencyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AepsTransactionIdempotencyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AepsTransactionIdempotencyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AepsTransactionIdempotencyCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -534,15 +759,17 @@ export const AepsMerchantProfileScalarFieldEnum = {
   id: 'id',
   identityId: 'identityId',
   provider: 'provider',
+  bankAccountId: 'bankAccountId',
+  kycProfileId: 'kycProfileId',
   providerMerchantId: 'providerMerchantId',
   providerUserCode: 'providerUserCode',
-  onboardingClientRefId: 'onboardingClientRefId',
   status: 'status',
+  providerRegistrationCompleted: 'providerRegistrationCompleted',
   onboardingCompleted: 'onboardingCompleted',
-  kycCompleted: 'kycCompleted',
   serviceActivated: 'serviceActivated',
   lastStatusCheckedAt: 'lastStatusCheckedAt',
-  rejectionReason: 'rejectionReason',
+  statusReason: 'statusReason',
+  providerRegisteredAt: 'providerRegisteredAt',
   onboardedAt: 'onboardedAt',
   activatedAt: 'activatedAt',
   createdAt: 'createdAt',
@@ -552,12 +779,92 @@ export const AepsMerchantProfileScalarFieldEnum = {
 export type AepsMerchantProfileScalarFieldEnum = (typeof AepsMerchantProfileScalarFieldEnum)[keyof typeof AepsMerchantProfileScalarFieldEnum]
 
 
+export const VimopayMerchantDetailScalarFieldEnum = {
+  id: 'id',
+  profileId: 'profileId',
+  pipe: 'pipe',
+  onboardingStep: 'onboardingStep',
+  registrationClientRefId: 'registrationClientRefId',
+  registrationTxnRefId: 'registrationTxnRefId',
+  lastOtpClientRefId: 'lastOtpClientRefId',
+  lastOtpTxnRefId: 'lastOtpTxnRefId',
+  lastOtpSentAt: 'lastOtpSentAt',
+  otpVerifyClientRefId: 'otpVerifyClientRefId',
+  otpVerifyTxnRefId: 'otpVerifyTxnRefId',
+  otpVerifiedAt: 'otpVerifiedAt',
+  ekycClientRefId: 'ekycClientRefId',
+  ekycTxnRefId: 'ekycTxnRefId',
+  ekycCompletedAt: 'ekycCompletedAt',
+  lastTwoFactorClientRefId: 'lastTwoFactorClientRefId',
+  lastTwoFactorTxnRefId: 'lastTwoFactorTxnRefId',
+  lastTwoFactorAuthAt: 'lastTwoFactorAuthAt',
+  lastProviderStatusCode: 'lastProviderStatusCode',
+  lastProviderStatusMessage: 'lastProviderStatusMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VimopayMerchantDetailScalarFieldEnum = (typeof VimopayMerchantDetailScalarFieldEnum)[keyof typeof VimopayMerchantDetailScalarFieldEnum]
+
+
+export const VimopayTxnAuthorizationScalarFieldEnum = {
+  id: 'id',
+  profileId: 'profileId',
+  type: 'type',
+  status: 'status',
+  clientRefId: 'clientRefId',
+  providerTxnRefId: 'providerTxnRefId',
+  amount: 'amount',
+  bankIIN: 'bankIIN',
+  aadhaarLast4: 'aadhaarLast4',
+  providerStatusCode: 'providerStatusCode',
+  providerStatusMessage: 'providerStatusMessage',
+  expiresAt: 'expiresAt',
+  consumingAt: 'consumingAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VimopayTxnAuthorizationScalarFieldEnum = (typeof VimopayTxnAuthorizationScalarFieldEnum)[keyof typeof VimopayTxnAuthorizationScalarFieldEnum]
+
+
+export const AepsTransactionIdempotencyScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  profileId: 'profileId',
+  provider: 'provider',
+  transactionType: 'transactionType',
+  idempotencyKey: 'idempotencyKey',
+  requestHash: 'requestHash',
+  lockToken: 'lockToken',
+  status: 'status',
+  providerMerchantRefId: 'providerMerchantRefId',
+  providerTxnRefId: 'providerTxnRefId',
+  providerStatusCode: 'providerStatusCode',
+  response: 'response',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AepsTransactionIdempotencyScalarFieldEnum = (typeof AepsTransactionIdempotencyScalarFieldEnum)[keyof typeof AepsTransactionIdempotencyScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -574,6 +881,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -642,6 +958,104 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'VimopayOnboardingStep'
+ */
+export type EnumVimopayOnboardingStepFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VimopayOnboardingStep'>
+    
+
+
+/**
+ * Reference to a field of type 'VimopayOnboardingStep[]'
+ */
+export type ListEnumVimopayOnboardingStepFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VimopayOnboardingStep[]'>
+    
+
+
+/**
+ * Reference to a field of type 'VimopayTxnAuthType'
+ */
+export type EnumVimopayTxnAuthTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VimopayTxnAuthType'>
+    
+
+
+/**
+ * Reference to a field of type 'VimopayTxnAuthType[]'
+ */
+export type ListEnumVimopayTxnAuthTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VimopayTxnAuthType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'VimopayTxnAuthStatus'
+ */
+export type EnumVimopayTxnAuthStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VimopayTxnAuthStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'VimopayTxnAuthStatus[]'
+ */
+export type ListEnumVimopayTxnAuthStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VimopayTxnAuthStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AepsFinancialTransactionType'
+ */
+export type EnumAepsFinancialTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AepsFinancialTransactionType'>
+    
+
+
+/**
+ * Reference to a field of type 'AepsFinancialTransactionType[]'
+ */
+export type ListEnumAepsFinancialTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AepsFinancialTransactionType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AepsIdempotencyStatus'
+ */
+export type EnumAepsIdempotencyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AepsIdempotencyStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AepsIdempotencyStatus[]'
+ */
+export type ListEnumAepsIdempotencyStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AepsIdempotencyStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -810,6 +1224,9 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   aepsMerchantProfile?: Prisma.AepsMerchantProfileOmit
+  vimopayMerchantDetail?: Prisma.VimopayMerchantDetailOmit
+  vimopayTxnAuthorization?: Prisma.VimopayTxnAuthorizationOmit
+  aepsTransactionIdempotency?: Prisma.AepsTransactionIdempotencyOmit
 }
 
 /* Types for Logging */

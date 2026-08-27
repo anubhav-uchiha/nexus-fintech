@@ -4,6 +4,18 @@ import cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { ValidationPipe } from '@nestjs/common';
+import { ensureKafkaReplyTopics } from './kafka-topics';
+
+function getKafkaBrokers(config: ConfigService): string[] {
+  return (
+    config.get<string>('KAFKA_BROKERS') ??
+    config.get<string>('KAFKA_BROKER') ??
+    'localhost:9092'
+  )
+    .split(',')
+    .map((broker) => broker.trim())
+    .filter(Boolean);
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -62,6 +74,15 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+
+  // ClientKafka subscribes to reply topics in onModuleInit. Create every reply
+  // topic before app.listen() triggers those hooks, so a fresh Kafka cluster can
+  // boot without racing Kafka's asynchronous broker-side auto-creation.
+  const replyTopicPartitions = Number.parseInt(
+    config.get<string>('KAFKA_REPLY_TOPIC_PARTITIONS') ?? '1',
+    10,
+  );
+  await ensureKafkaReplyTopics(getKafkaBrokers(config), replyTopicPartitions);
 
   const port = config.get<number>('app.gateway.port') ?? 8000;
 

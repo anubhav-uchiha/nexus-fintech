@@ -9,4 +9,5 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Transaction'
+export type * from './models/ProviderTransaction'
 export type * from './commonInputTypes'

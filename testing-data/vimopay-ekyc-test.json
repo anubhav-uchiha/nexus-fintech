@@ -1,0 +1,3 @@
+{
+    "pidData": "<PidData><Resp errCode=\"0\" errInfo=\"Success\" fCount=\"1\" fType=\"2\" nmPoints=\"40\" qScore=\"80\"/><DeviceInfo dpId=\"TEST\" rdsId=\"TEST\" rdsVer=\"1.0\" dc=\"TEST\" mi=\"TEST\" mc=\"TEST\"/><Skey ci=\"20260901\">TEST</Skey><Hmac>TEST</Hmac><Data type=\"X\">TEST</Data></PidData>"
+}

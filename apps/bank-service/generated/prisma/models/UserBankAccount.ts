@@ -307,6 +307,7 @@ export type UserBankAccountWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"UserBankAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"UserBankAccount"> | Date | string
   userBankStatusAudits?: Prisma.UserBankStatusAuditListRelationFilter
+  bankAccountVerifications?: Prisma.BankAccountVerificationListRelationFilter
 }
 
 export type UserBankAccountOrderByWithRelationInput = {
@@ -332,6 +333,7 @@ export type UserBankAccountOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userBankStatusAudits?: Prisma.UserBankStatusAuditOrderByRelationAggregateInput
+  bankAccountVerifications?: Prisma.BankAccountVerificationOrderByRelationAggregateInput
 }
 
 export type UserBankAccountWhereUniqueInput = Prisma.AtLeast<{
@@ -361,6 +363,7 @@ export type UserBankAccountWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"UserBankAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"UserBankAccount"> | Date | string
   userBankStatusAudits?: Prisma.UserBankStatusAuditListRelationFilter
+  bankAccountVerifications?: Prisma.BankAccountVerificationListRelationFilter
 }, "id" | "accountNumberHash_ifsc">
 
 export type UserBankAccountOrderByWithAggregationInput = {
@@ -440,6 +443,7 @@ export type UserBankAccountCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   userBankStatusAudits?: Prisma.UserBankStatusAuditCreateNestedManyWithoutBankAccountInput
+  bankAccountVerifications?: Prisma.BankAccountVerificationCreateNestedManyWithoutBankAccountInput
 }
 
 export type UserBankAccountUncheckedCreateInput = {
@@ -465,6 +469,7 @@ export type UserBankAccountUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   userBankStatusAudits?: Prisma.UserBankStatusAuditUncheckedCreateNestedManyWithoutBankAccountInput
+  bankAccountVerifications?: Prisma.BankAccountVerificationUncheckedCreateNestedManyWithoutBankAccountInput
 }
 
 export type UserBankAccountUpdateInput = {
@@ -490,6 +495,7 @@ export type UserBankAccountUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userBankStatusAudits?: Prisma.UserBankStatusAuditUpdateManyWithoutBankAccountNestedInput
+  bankAccountVerifications?: Prisma.BankAccountVerificationUpdateManyWithoutBankAccountNestedInput
 }
 
 export type UserBankAccountUncheckedUpdateInput = {
@@ -515,6 +521,7 @@ export type UserBankAccountUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userBankStatusAudits?: Prisma.UserBankStatusAuditUncheckedUpdateManyWithoutBankAccountNestedInput
+  bankAccountVerifications?: Prisma.BankAccountVerificationUncheckedUpdateManyWithoutBankAccountNestedInput
 }
 
 export type UserBankAccountCreateManyInput = {
@@ -677,6 +684,11 @@ export type UserBankAccountScalarRelationFilter = {
   isNot?: Prisma.UserBankAccountWhereInput
 }
 
+export type UserBankAccountNullableScalarRelationFilter = {
+  is?: Prisma.UserBankAccountWhereInput | null
+  isNot?: Prisma.UserBankAccountWhereInput | null
+}
+
 export type UserBankAccountCreatepurposesInput = {
   set: $Enums.BankAccountPurpose[]
 }
@@ -736,6 +748,22 @@ export type UserBankAccountUpdateOneRequiredWithoutUserBankStatusAuditsNestedInp
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserBankAccountUpdateToOneWithWhereWithoutUserBankStatusAuditsInput, Prisma.UserBankAccountUpdateWithoutUserBankStatusAuditsInput>, Prisma.UserBankAccountUncheckedUpdateWithoutUserBankStatusAuditsInput>
 }
 
+export type UserBankAccountCreateNestedOneWithoutBankAccountVerificationsInput = {
+  create?: Prisma.XOR<Prisma.UserBankAccountCreateWithoutBankAccountVerificationsInput, Prisma.UserBankAccountUncheckedCreateWithoutBankAccountVerificationsInput>
+  connectOrCreate?: Prisma.UserBankAccountCreateOrConnectWithoutBankAccountVerificationsInput
+  connect?: Prisma.UserBankAccountWhereUniqueInput
+}
+
+export type UserBankAccountUpdateOneWithoutBankAccountVerificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserBankAccountCreateWithoutBankAccountVerificationsInput, Prisma.UserBankAccountUncheckedCreateWithoutBankAccountVerificationsInput>
+  connectOrCreate?: Prisma.UserBankAccountCreateOrConnectWithoutBankAccountVerificationsInput
+  upsert?: Prisma.UserBankAccountUpsertWithoutBankAccountVerificationsInput
+  disconnect?: Prisma.UserBankAccountWhereInput | boolean
+  delete?: Prisma.UserBankAccountWhereInput | boolean
+  connect?: Prisma.UserBankAccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserBankAccountUpdateToOneWithWhereWithoutBankAccountVerificationsInput, Prisma.UserBankAccountUpdateWithoutBankAccountVerificationsInput>, Prisma.UserBankAccountUncheckedUpdateWithoutBankAccountVerificationsInput>
+}
+
 export type UserBankAccountCreateWithoutUserBankStatusAuditsInput = {
   id?: string
   identityId: string
@@ -758,6 +786,7 @@ export type UserBankAccountCreateWithoutUserBankStatusAuditsInput = {
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  bankAccountVerifications?: Prisma.BankAccountVerificationCreateNestedManyWithoutBankAccountInput
 }
 
 export type UserBankAccountUncheckedCreateWithoutUserBankStatusAuditsInput = {
@@ -782,6 +811,7 @@ export type UserBankAccountUncheckedCreateWithoutUserBankStatusAuditsInput = {
   deletedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  bankAccountVerifications?: Prisma.BankAccountVerificationUncheckedCreateNestedManyWithoutBankAccountInput
 }
 
 export type UserBankAccountCreateOrConnectWithoutUserBankStatusAuditsInput = {
@@ -822,6 +852,7 @@ export type UserBankAccountUpdateWithoutUserBankStatusAuditsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bankAccountVerifications?: Prisma.BankAccountVerificationUpdateManyWithoutBankAccountNestedInput
 }
 
 export type UserBankAccountUncheckedUpdateWithoutUserBankStatusAuditsInput = {
@@ -846,6 +877,123 @@ export type UserBankAccountUncheckedUpdateWithoutUserBankStatusAuditsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  bankAccountVerifications?: Prisma.BankAccountVerificationUncheckedUpdateManyWithoutBankAccountNestedInput
+}
+
+export type UserBankAccountCreateWithoutBankAccountVerificationsInput = {
+  id?: string
+  identityId: string
+  bankName: string
+  bankCode?: string | null
+  ifsc: string
+  branchName?: string | null
+  accountHolderName: string
+  accountNumberEncrypted: string
+  accountNumberHash: string
+  accountNumberLast4: string
+  accountType: $Enums.BankAccountType
+  ownershipStatus?: $Enums.BankAccountOwnershipStatus
+  purposes?: Prisma.UserBankAccountCreatepurposesInput | $Enums.BankAccountPurpose[]
+  status?: $Enums.BankAccountStatus
+  verificationStatus?: $Enums.BankAccountVerificationStatus
+  verifiedAt?: Date | string | null
+  isDefault?: boolean
+  isDeleted?: boolean
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  userBankStatusAudits?: Prisma.UserBankStatusAuditCreateNestedManyWithoutBankAccountInput
+}
+
+export type UserBankAccountUncheckedCreateWithoutBankAccountVerificationsInput = {
+  id?: string
+  identityId: string
+  bankName: string
+  bankCode?: string | null
+  ifsc: string
+  branchName?: string | null
+  accountHolderName: string
+  accountNumberEncrypted: string
+  accountNumberHash: string
+  accountNumberLast4: string
+  accountType: $Enums.BankAccountType
+  ownershipStatus?: $Enums.BankAccountOwnershipStatus
+  purposes?: Prisma.UserBankAccountCreatepurposesInput | $Enums.BankAccountPurpose[]
+  status?: $Enums.BankAccountStatus
+  verificationStatus?: $Enums.BankAccountVerificationStatus
+  verifiedAt?: Date | string | null
+  isDefault?: boolean
+  isDeleted?: boolean
+  deletedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  userBankStatusAudits?: Prisma.UserBankStatusAuditUncheckedCreateNestedManyWithoutBankAccountInput
+}
+
+export type UserBankAccountCreateOrConnectWithoutBankAccountVerificationsInput = {
+  where: Prisma.UserBankAccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserBankAccountCreateWithoutBankAccountVerificationsInput, Prisma.UserBankAccountUncheckedCreateWithoutBankAccountVerificationsInput>
+}
+
+export type UserBankAccountUpsertWithoutBankAccountVerificationsInput = {
+  update: Prisma.XOR<Prisma.UserBankAccountUpdateWithoutBankAccountVerificationsInput, Prisma.UserBankAccountUncheckedUpdateWithoutBankAccountVerificationsInput>
+  create: Prisma.XOR<Prisma.UserBankAccountCreateWithoutBankAccountVerificationsInput, Prisma.UserBankAccountUncheckedCreateWithoutBankAccountVerificationsInput>
+  where?: Prisma.UserBankAccountWhereInput
+}
+
+export type UserBankAccountUpdateToOneWithWhereWithoutBankAccountVerificationsInput = {
+  where?: Prisma.UserBankAccountWhereInput
+  data: Prisma.XOR<Prisma.UserBankAccountUpdateWithoutBankAccountVerificationsInput, Prisma.UserBankAccountUncheckedUpdateWithoutBankAccountVerificationsInput>
+}
+
+export type UserBankAccountUpdateWithoutBankAccountVerificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.StringFieldUpdateOperationsInput | string
+  bankName?: Prisma.StringFieldUpdateOperationsInput | string
+  bankCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ifsc?: Prisma.StringFieldUpdateOperationsInput | string
+  branchName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountHolderName?: Prisma.StringFieldUpdateOperationsInput | string
+  accountNumberEncrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  accountNumberHash?: Prisma.StringFieldUpdateOperationsInput | string
+  accountNumberLast4?: Prisma.StringFieldUpdateOperationsInput | string
+  accountType?: Prisma.EnumBankAccountTypeFieldUpdateOperationsInput | $Enums.BankAccountType
+  ownershipStatus?: Prisma.EnumBankAccountOwnershipStatusFieldUpdateOperationsInput | $Enums.BankAccountOwnershipStatus
+  purposes?: Prisma.UserBankAccountUpdatepurposesInput | $Enums.BankAccountPurpose[]
+  status?: Prisma.EnumBankAccountStatusFieldUpdateOperationsInput | $Enums.BankAccountStatus
+  verificationStatus?: Prisma.EnumBankAccountVerificationStatusFieldUpdateOperationsInput | $Enums.BankAccountVerificationStatus
+  verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userBankStatusAudits?: Prisma.UserBankStatusAuditUpdateManyWithoutBankAccountNestedInput
+}
+
+export type UserBankAccountUncheckedUpdateWithoutBankAccountVerificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.StringFieldUpdateOperationsInput | string
+  bankName?: Prisma.StringFieldUpdateOperationsInput | string
+  bankCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ifsc?: Prisma.StringFieldUpdateOperationsInput | string
+  branchName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accountHolderName?: Prisma.StringFieldUpdateOperationsInput | string
+  accountNumberEncrypted?: Prisma.StringFieldUpdateOperationsInput | string
+  accountNumberHash?: Prisma.StringFieldUpdateOperationsInput | string
+  accountNumberLast4?: Prisma.StringFieldUpdateOperationsInput | string
+  accountType?: Prisma.EnumBankAccountTypeFieldUpdateOperationsInput | $Enums.BankAccountType
+  ownershipStatus?: Prisma.EnumBankAccountOwnershipStatusFieldUpdateOperationsInput | $Enums.BankAccountOwnershipStatus
+  purposes?: Prisma.UserBankAccountUpdatepurposesInput | $Enums.BankAccountPurpose[]
+  status?: Prisma.EnumBankAccountStatusFieldUpdateOperationsInput | $Enums.BankAccountStatus
+  verificationStatus?: Prisma.EnumBankAccountVerificationStatusFieldUpdateOperationsInput | $Enums.BankAccountVerificationStatus
+  verifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDeleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userBankStatusAudits?: Prisma.UserBankStatusAuditUncheckedUpdateManyWithoutBankAccountNestedInput
 }
 
 
@@ -855,10 +1003,12 @@ export type UserBankAccountUncheckedUpdateWithoutUserBankStatusAuditsInput = {
 
 export type UserBankAccountCountOutputType = {
   userBankStatusAudits: number
+  bankAccountVerifications: number
 }
 
 export type UserBankAccountCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   userBankStatusAudits?: boolean | UserBankAccountCountOutputTypeCountUserBankStatusAuditsArgs
+  bankAccountVerifications?: boolean | UserBankAccountCountOutputTypeCountBankAccountVerificationsArgs
 }
 
 /**
@@ -876,6 +1026,13 @@ export type UserBankAccountCountOutputTypeDefaultArgs<ExtArgs extends runtime.Ty
  */
 export type UserBankAccountCountOutputTypeCountUserBankStatusAuditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserBankStatusAuditWhereInput
+}
+
+/**
+ * UserBankAccountCountOutputType without action
+ */
+export type UserBankAccountCountOutputTypeCountBankAccountVerificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BankAccountVerificationWhereInput
 }
 
 
@@ -902,6 +1059,7 @@ export type UserBankAccountSelect<ExtArgs extends runtime.Types.Extensions.Inter
   createdAt?: boolean
   updatedAt?: boolean
   userBankStatusAudits?: boolean | Prisma.UserBankAccount$userBankStatusAuditsArgs<ExtArgs>
+  bankAccountVerifications?: boolean | Prisma.UserBankAccount$bankAccountVerificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserBankAccountCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["userBankAccount"]>
 
@@ -980,6 +1138,7 @@ export type UserBankAccountSelectScalar = {
 export type UserBankAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "identityId" | "bankName" | "bankCode" | "ifsc" | "branchName" | "accountHolderName" | "accountNumberEncrypted" | "accountNumberHash" | "accountNumberLast4" | "accountType" | "ownershipStatus" | "purposes" | "status" | "verificationStatus" | "verifiedAt" | "isDefault" | "isDeleted" | "deletedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["userBankAccount"]>
 export type UserBankAccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   userBankStatusAudits?: boolean | Prisma.UserBankAccount$userBankStatusAuditsArgs<ExtArgs>
+  bankAccountVerifications?: boolean | Prisma.UserBankAccount$bankAccountVerificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserBankAccountCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserBankAccountIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -989,6 +1148,7 @@ export type $UserBankAccountPayload<ExtArgs extends runtime.Types.Extensions.Int
   name: "UserBankAccount"
   objects: {
     userBankStatusAudits: Prisma.$UserBankStatusAuditPayload<ExtArgs>[]
+    bankAccountVerifications: Prisma.$BankAccountVerificationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1407,6 +1567,7 @@ readonly fields: UserBankAccountFieldRefs;
 export interface Prisma__UserBankAccountClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   userBankStatusAudits<T extends Prisma.UserBankAccount$userBankStatusAuditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserBankAccount$userBankStatusAuditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserBankStatusAuditPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  bankAccountVerifications<T extends Prisma.UserBankAccount$bankAccountVerificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserBankAccount$bankAccountVerificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BankAccountVerificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1871,6 +2032,30 @@ export type UserBankAccount$userBankStatusAuditsArgs<ExtArgs extends runtime.Typ
   take?: number
   skip?: number
   distinct?: Prisma.UserBankStatusAuditScalarFieldEnum | Prisma.UserBankStatusAuditScalarFieldEnum[]
+}
+
+/**
+ * UserBankAccount.bankAccountVerifications
+ */
+export type UserBankAccount$bankAccountVerificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BankAccountVerification
+   */
+  select?: Prisma.BankAccountVerificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BankAccountVerification
+   */
+  omit?: Prisma.BankAccountVerificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BankAccountVerificationInclude<ExtArgs> | null
+  where?: Prisma.BankAccountVerificationWhereInput
+  orderBy?: Prisma.BankAccountVerificationOrderByWithRelationInput | Prisma.BankAccountVerificationOrderByWithRelationInput[]
+  cursor?: Prisma.BankAccountVerificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BankAccountVerificationScalarFieldEnum | Prisma.BankAccountVerificationScalarFieldEnum[]
 }
 
 /**

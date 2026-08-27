@@ -7,6 +7,12 @@ import {
 import { PrismaService } from '../../database/prisma.service';
 import { Prisma } from 'apps/bank-service/generated/prisma/client';
 import { UserBankStatusAuditCreateInput } from 'apps/bank-service/generated/prisma/models';
+import { decryptData } from '../cryptoUtils/cryptography';
+import { BadRequestError } from 'libs/errors/ApiError';
+
+interface AccountNumberDecrypted {
+  accountNumber: string;
+}
 
 @Injectable()
 export class BankAccountRepository {
@@ -64,15 +70,89 @@ export class BankAccountRepository {
     });
   }
 
-  getSingleBankAccount(dto: IdentityBankAccountDto) {
-    console.log(dto);
-    return this.prisma.userBankAccount.findFirst({
+  async getSingleBankAccount(dto: IdentityBankAccountDto) {
+    const account = await this.prisma.userBankAccount.findFirst({
       where: {
         id: dto.bankId,
         identityId: dto.identityId,
       },
     });
+    if (!account) {
+      throw new BadRequestError(
+        'Bank Account not found',
+        'account not found.',
+        'BANK_ACCOUNT_NOT_FOUND',
+      );
+    }
+    return account;
   }
+
+  async getBankAccountForInternalUse(dto: IdentityBankAccountDto) {
+    const account = await this.prisma.userBankAccount.findFirst({
+      where: {
+        id: dto.bankId,
+        identityId: dto.identityId,
+        isDeleted: false,
+      },
+
+      select: {
+        id: true,
+        identityId: true,
+
+        bankName: true,
+        bankCode: true,
+
+        ifsc: true,
+
+        accountHolderName: true,
+
+        accountNumberEncrypted: true,
+
+        accountType: true,
+
+        status: true,
+
+        verificationStatus: true,
+
+        ownershipStatus: true,
+
+        isDefault: true,
+      },
+    });
+
+    if (!account) {
+      throw new BadRequestError(
+        'Bank Account not found',
+        'account not found.',
+        'BANK_ACCOUNT_NOT_FOUND',
+      );
+    }
+
+    return {
+      id: account.id,
+      identityId: account.identityId,
+
+      bankName: account.bankName,
+      bankCode: account.bankCode,
+
+      ifsc: account.ifsc,
+
+      accountHolderName: account.accountHolderName,
+
+      accountNumber: decryptData(account.accountNumberEncrypted),
+
+      accountType: account.accountType,
+
+      status: account.status,
+
+      verificationStatus: account.verificationStatus,
+
+      ownershipStatus: account.ownershipStatus,
+
+      isDefault: account.isDefault,
+    };
+  }
+
   getBankAccountByAccNoAndIfsc(dto: {
     accountNumberHash: string;
     ifsc: string;

@@ -8,19 +8,67 @@ datasource db {
 }
 
 enum AepsProvider {
-    EKO
+    VIMOPAY
     PAYSPRINT
+    SPICE_MONEY
 }
 
 enum AepsMerchantStatus {
     NOT_STARTED
     ONBOARDING
-    KYC_PENDING
+    ACTION_REQUIRED
     UNDER_REVIEW
     ACTIVE
     REJECTED
+    FAILED
     SUSPENDED
     BLOCKED
+}
+
+enum VimopayOnboardingStep {
+    NOT_STARTED
+
+    REGISTRATION_PENDING
+    OTP_PENDING
+    OTP_VERIFIED
+
+    EKYC_PENDING
+    EKYC_COMPLETED
+
+    TWO_FA_PENDING
+
+    ACTIVE
+
+    REJECTED
+    FAILED
+}
+
+enum VimopayTxnAuthType {
+    CASH_WITHDRAWAL
+    AADHAAR_PAY
+}
+
+enum VimopayTxnAuthStatus {
+    ISSUED
+    CONSUMING
+    CONSUMED
+    EXPIRED
+    FAILED
+    UNKNOWN
+}
+
+enum AepsFinancialTransactionType {
+    CASH_WITHDRAWAL
+    AADHAAR_PAY
+    CASH_DEPOSIT
+}
+
+enum AepsIdempotencyStatus {
+    PROCESSING
+    SUCCESS
+    FAILED
+    PENDING
+    UNKNOWN
 }
 
 model AepsMerchantProfile {
@@ -30,27 +78,229 @@ model AepsMerchantProfile {
 
     provider AepsProvider
 
-    providerMerchantId String?
-    providerUserCode   String?  
-    onboardingClientRefId String? @unique @db.VarChar(64)
+    /**
+     * External microservice references.
+     * In par direct foreign key nahi lagegi,
+     * kyunki Bank aur KYC separate databases/services hain.
+     */
+    bankAccountId String? @db.Uuid
+    kycProfileId  String? @db.Uuid
 
+    /**
+     * Provider identifiers.
+     * VimoPay:
+     * providerMerchantId = MER1234567
+     * Future providers:
+     * retailerId / agentId / userCode
+     */
+    providerMerchantId String? @db.VarChar(100)
+    providerUserCode   String? @db.VarChar(100)
+
+    /**
+     * Common high-level provider status.
+     * Exact VimoPay step VimopayMerchantDetail mein rahega.
+     */
     status AepsMerchantStatus @default(NOT_STARTED)
 
+    /**
+     * Provider registration complete hone ka matlab
+     * full onboarding complete hona nahi hai.
+     */
+    providerRegistrationCompleted Boolean @default(false)
+
+    /**
+     * Full provider onboarding complete.
+     */
     onboardingCompleted Boolean @default(false)
 
-    kycCompleted Boolean @default(false)
-
+    /**
+     * Merchant provider transactions ke liye active hai.
+     */
     serviceActivated Boolean @default(false)
 
     lastStatusCheckedAt DateTime?
 
-    rejectionReason String?
+    statusReason String? @db.VarChar(500)
 
-    onboardedAt DateTime?
-    activatedAt DateTime?
+    providerRegisteredAt DateTime?
+    onboardedAt          DateTime?
+    activatedAt          DateTime?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
+    /**
+     * Provider-specific details.
+     */
+    vimopayDetail            VimopayMerchantDetail?
+    vimopayTxnAuthorizations VimopayTxnAuthorization[]
+    idempotencyRequests      AepsTransactionIdempotency[]
+
     @@unique([identityId, provider])
+    @@unique([provider, providerMerchantId])
+    @@index([identityId])
+    @@index([provider, status])
+    @@index([bankAccountId])
+    @@index([kycProfileId])
+}
+
+model VimopayMerchantDetail {
+    id String @id @default(uuid(7)) @db.Uuid
+
+    profileId String @unique @db.Uuid
+
+    pipe String @default("1") @db.VarChar(10)
+
+    onboardingStep VimopayOnboardingStep @default(NOT_STARTED)
+
+    /**
+     * Merchant Registration
+     */
+    registrationClientRefId String? @unique @db.VarChar(64)
+    registrationTxnRefId    String? @db.VarChar(150)
+
+    /**
+     * Send/Resend OTP
+     */
+    lastOtpClientRefId String?   @db.VarChar(64)
+    lastOtpTxnRefId    String?   @db.VarChar(150)
+    lastOtpSentAt      DateTime?
+
+    /**
+     * Verify OTP
+     */
+    otpVerifyClientRefId String?   @db.VarChar(64)
+    otpVerifyTxnRefId    String?   @db.VarChar(150)
+    otpVerifiedAt        DateTime?
+
+    /**
+     * E-KYC
+     */
+    ekycClientRefId String?   @db.VarChar(64)
+    ekycTxnRefId    String?   @db.VarChar(150)
+    ekycCompletedAt DateTime?
+
+    /**
+     * Daily 2FA
+     */
+    lastTwoFactorClientRefId String?   @db.VarChar(64)
+    lastTwoFactorTxnRefId    String?   @db.VarChar(150)
+    lastTwoFactorAuthAt      DateTime?
+
+    /**
+     * Last provider business response.
+     */
+    lastProviderStatusCode    String? @db.VarChar(20)
+    lastProviderStatusMessage String? @db.VarChar(500)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    profile AepsMerchantProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+    @@index([onboardingStep])
+    @@index([lastTwoFactorAuthAt])
+}
+
+model VimopayTxnAuthorization {
+    id String @id @default(uuid(7)) @db.Uuid
+
+    profileId String @db.Uuid
+
+    type VimopayTxnAuthType
+
+    status VimopayTxnAuthStatus @default(ISSUED)
+
+    /**
+     * Backend-generated merchantRefId
+     * used while calling AePS Txn OTP.
+     */
+    clientRefId String @unique @db.VarChar(64)
+
+    /**
+     * VimoPay Txn OTP response txnRefId.
+     * Final CW/AP mein cwAuthTxnId banega.
+     * Unique mat lagana because UAT/provider
+     * same values potentially reuse kar sakta hai.
+     */
+    providerTxnRefId String? @db.VarChar(250)
+
+    amount Decimal @db.Decimal(12, 2)
+
+    bankIIN String @db.VarChar(20)
+
+    /**
+     * Raw Aadhaar DB mein store nahi karenge.
+     * Last4 debugging/display ke liye enough hai.
+     */
+    aadhaarLast4 String @db.VarChar(4)
+
+    providerStatusCode    String? @db.VarChar(20)
+    providerStatusMessage String? @db.VarChar(500)
+
+    expiresAt DateTime
+
+    consumingAt DateTime?
+    consumedAt  DateTime?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    profile AepsMerchantProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+    @@index([profileId, status])
+    @@index([expiresAt])
+    @@index([type, status])
+}
+
+model AepsTransactionIdempotency {
+    id String @id @default(uuid(7)) @db.Uuid
+
+    identityId String @db.Uuid
+
+    profileId String @db.Uuid
+
+    provider AepsProvider
+
+    transactionType AepsFinancialTransactionType
+
+    idempotencyKey String @db.VarChar(100)
+
+    /**
+     * Request body ka safe SHA-256 fingerprint.
+     * Raw Aadhaar/PID store nahi hoga.
+     */
+    requestHash String @db.VarChar(64)
+
+    /**
+     * Atomic owner token.
+     * Same key ki concurrent requests provider
+     * ko simultaneously hit nahi karengi.
+     */
+    lockToken String? @db.VarChar(64)
+
+    status AepsIdempotencyStatus @default(PROCESSING)
+
+    providerMerchantRefId String? @db.VarChar(100)
+
+    providerTxnRefId String? @db.VarChar(150)
+
+    providerStatusCode String? @db.VarChar(20)
+
+    /**
+     * Final safe API response cache.
+     */
+    response Json?
+
+    completedAt DateTime?
+
+    createdAt DateTime @default(now())
+
+    updatedAt DateTime @updatedAt
+
+    profile AepsMerchantProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+    @@unique([identityId, provider, transactionType, idempotencyKey])
+    @@index([profileId, status])
+    @@index([identityId, createdAt])
 }

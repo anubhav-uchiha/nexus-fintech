@@ -1,0 +1,5 @@
+{
+    "merchantId": "MER1234567",
+    "merchantRefId": "AEPS-EKYC-20260822-001",
+    "pidData": "<?xml version=\"1.0\"?><PidData><Resp errCode=\"0\" errInfo=\"Success.\" fCount=\"1\" fType=\"2\" nmPoints=\"49\" qScore=\"90\"/><DeviceInfo dpId=\"MANTRA.MSIPL\" rdsId=\"RENESAS.MANTRA.001\" rdsVer=\"1.3.0\" mi=\"MFS110\">...</DeviceInfo><Skey ci=\"20250923\">...</Skey><Hmac>...</Hmac><Data type=\"X\">...</Data></PidData>"
+}

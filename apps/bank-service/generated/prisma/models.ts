@@ -10,4 +10,5 @@
  */
 export type * from './models/UserBankAccount'
 export type * from './models/UserBankStatusAudit'
+export type * from './models/BankAccountVerification'
 export type * from './commonInputTypes'

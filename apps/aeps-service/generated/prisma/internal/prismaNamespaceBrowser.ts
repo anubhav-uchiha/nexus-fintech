@@ -51,7 +51,10 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  AepsMerchantProfile: 'AepsMerchantProfile'
+  AepsMerchantProfile: 'AepsMerchantProfile',
+  VimopayMerchantDetail: 'VimopayMerchantDetail',
+  VimopayTxnAuthorization: 'VimopayTxnAuthorization',
+  AepsTransactionIdempotency: 'AepsTransactionIdempotency'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -74,15 +77,17 @@ export const AepsMerchantProfileScalarFieldEnum = {
   id: 'id',
   identityId: 'identityId',
   provider: 'provider',
+  bankAccountId: 'bankAccountId',
+  kycProfileId: 'kycProfileId',
   providerMerchantId: 'providerMerchantId',
   providerUserCode: 'providerUserCode',
-  onboardingClientRefId: 'onboardingClientRefId',
   status: 'status',
+  providerRegistrationCompleted: 'providerRegistrationCompleted',
   onboardingCompleted: 'onboardingCompleted',
-  kycCompleted: 'kycCompleted',
   serviceActivated: 'serviceActivated',
   lastStatusCheckedAt: 'lastStatusCheckedAt',
-  rejectionReason: 'rejectionReason',
+  statusReason: 'statusReason',
+  providerRegisteredAt: 'providerRegisteredAt',
   onboardedAt: 'onboardedAt',
   activatedAt: 'activatedAt',
   createdAt: 'createdAt',
@@ -92,12 +97,92 @@ export const AepsMerchantProfileScalarFieldEnum = {
 export type AepsMerchantProfileScalarFieldEnum = (typeof AepsMerchantProfileScalarFieldEnum)[keyof typeof AepsMerchantProfileScalarFieldEnum]
 
 
+export const VimopayMerchantDetailScalarFieldEnum = {
+  id: 'id',
+  profileId: 'profileId',
+  pipe: 'pipe',
+  onboardingStep: 'onboardingStep',
+  registrationClientRefId: 'registrationClientRefId',
+  registrationTxnRefId: 'registrationTxnRefId',
+  lastOtpClientRefId: 'lastOtpClientRefId',
+  lastOtpTxnRefId: 'lastOtpTxnRefId',
+  lastOtpSentAt: 'lastOtpSentAt',
+  otpVerifyClientRefId: 'otpVerifyClientRefId',
+  otpVerifyTxnRefId: 'otpVerifyTxnRefId',
+  otpVerifiedAt: 'otpVerifiedAt',
+  ekycClientRefId: 'ekycClientRefId',
+  ekycTxnRefId: 'ekycTxnRefId',
+  ekycCompletedAt: 'ekycCompletedAt',
+  lastTwoFactorClientRefId: 'lastTwoFactorClientRefId',
+  lastTwoFactorTxnRefId: 'lastTwoFactorTxnRefId',
+  lastTwoFactorAuthAt: 'lastTwoFactorAuthAt',
+  lastProviderStatusCode: 'lastProviderStatusCode',
+  lastProviderStatusMessage: 'lastProviderStatusMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VimopayMerchantDetailScalarFieldEnum = (typeof VimopayMerchantDetailScalarFieldEnum)[keyof typeof VimopayMerchantDetailScalarFieldEnum]
+
+
+export const VimopayTxnAuthorizationScalarFieldEnum = {
+  id: 'id',
+  profileId: 'profileId',
+  type: 'type',
+  status: 'status',
+  clientRefId: 'clientRefId',
+  providerTxnRefId: 'providerTxnRefId',
+  amount: 'amount',
+  bankIIN: 'bankIIN',
+  aadhaarLast4: 'aadhaarLast4',
+  providerStatusCode: 'providerStatusCode',
+  providerStatusMessage: 'providerStatusMessage',
+  expiresAt: 'expiresAt',
+  consumingAt: 'consumingAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type VimopayTxnAuthorizationScalarFieldEnum = (typeof VimopayTxnAuthorizationScalarFieldEnum)[keyof typeof VimopayTxnAuthorizationScalarFieldEnum]
+
+
+export const AepsTransactionIdempotencyScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  profileId: 'profileId',
+  provider: 'provider',
+  transactionType: 'transactionType',
+  idempotencyKey: 'idempotencyKey',
+  requestHash: 'requestHash',
+  lockToken: 'lockToken',
+  status: 'status',
+  providerMerchantRefId: 'providerMerchantRefId',
+  providerTxnRefId: 'providerTxnRefId',
+  providerStatusCode: 'providerStatusCode',
+  response: 'response',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AepsTransactionIdempotencyScalarFieldEnum = (typeof AepsTransactionIdempotencyScalarFieldEnum)[keyof typeof AepsTransactionIdempotencyScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -114,4 +199,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

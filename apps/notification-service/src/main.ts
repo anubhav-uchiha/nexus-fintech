@@ -1,12 +1,11 @@
-import { Transport } from '@nestjs/microservices';
 import { NotificationServiceModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
+import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
 
 async function bootstrap() {
   const app = await NestFactory.create(NotificationServiceModule);
   app.connectMicroservice({
-    transport: Transport.KAFKA,
-    options: {
+    strategy: new AutoCreateTopicsServerKafka({
       client: {
         clientId: 'notification-service',
         brokers: ['localhost:9092'],
@@ -14,7 +13,7 @@ async function bootstrap() {
       consumer: {
         groupId: 'notification-consumer-group',
       },
-    },
+    }),
   });
   await app.startAllMicroservices();
   await app.listen(6008);

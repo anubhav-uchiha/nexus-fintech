@@ -44,3 +44,8 @@ export { Prisma }
  * 
  */
 export type Transaction = Prisma.TransactionModel
+/**
+ * Model ProviderTransaction
+ * 
+ */
+export type ProviderTransaction = Prisma.ProviderTransactionModel

@@ -397,7 +397,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 
 export const ModelName = {
-  Transaction: 'Transaction'
+  Transaction: 'Transaction',
+  ProviderTransaction: 'ProviderTransaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -413,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "transaction"
+    modelProps: "transaction" | "providerTransaction"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -491,6 +492,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProviderTransaction: {
+      payload: Prisma.$ProviderTransactionPayload<ExtArgs>
+      fields: Prisma.ProviderTransactionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProviderTransactionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProviderTransactionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>
+        }
+        findFirst: {
+          args: Prisma.ProviderTransactionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProviderTransactionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>
+        }
+        findMany: {
+          args: Prisma.ProviderTransactionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>[]
+        }
+        create: {
+          args: Prisma.ProviderTransactionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>
+        }
+        createMany: {
+          args: Prisma.ProviderTransactionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProviderTransactionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>[]
+        }
+        delete: {
+          args: Prisma.ProviderTransactionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>
+        }
+        update: {
+          args: Prisma.ProviderTransactionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProviderTransactionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProviderTransactionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProviderTransactionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProviderTransactionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionPayload>
+        }
+        aggregate: {
+          args: Prisma.ProviderTransactionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProviderTransaction>
+        }
+        groupBy: {
+          args: Prisma.ProviderTransactionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderTransactionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProviderTransactionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderTransactionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -552,6 +627,37 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const ProviderTransactionScalarFieldEnum = {
+  id: 'id',
+  referenceId: 'referenceId',
+  userId: 'userId',
+  serviceType: 'serviceType',
+  provider: 'provider',
+  operation: 'operation',
+  amount: 'amount',
+  status: 'status',
+  idempotencyKey: 'idempotencyKey',
+  merchantProfileId: 'merchantProfileId',
+  providerMerchantId: 'providerMerchantId',
+  providerMerchantRefId: 'providerMerchantRefId',
+  providerTxnRefId: 'providerTxnRefId',
+  rrn: 'rrn',
+  npciCode: 'npciCode',
+  npciMessage: 'npciMessage',
+  providerStatusCode: 'providerStatusCode',
+  providerStatusMessage: 'providerStatusMessage',
+  bankIIN: 'bankIIN',
+  aadhaarLast4: 'aadhaarLast4',
+  metadata: 'metadata',
+  providerCalledAt: 'providerCalledAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderTransactionScalarFieldEnum = (typeof ProviderTransactionScalarFieldEnum)[keyof typeof ProviderTransactionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -710,6 +816,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderTransactionStatus'
+ */
+export type EnumProviderTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderTransactionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderTransactionStatus[]'
+ */
+export type ListEnumProviderTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderTransactionStatus[]'>
     
 
 
@@ -892,6 +1012,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   transaction?: Prisma.TransactionOmit
+  providerTransaction?: Prisma.ProviderTransactionOmit
 }
 
 /* Types for Logging */

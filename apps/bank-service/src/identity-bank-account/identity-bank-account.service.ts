@@ -18,17 +18,24 @@ import {
 } from '@nexus/common/identity-bank-account/dto/update-bank-account-status.dto';
 import { RpcException } from '@nestjs/microservices';
 import { BadRequestError, NotFoundError } from 'libs/errors/ApiError';
-import { BankAccountStatus } from 'apps/bank-service/generated/prisma/enums';
+import {
+  BankAccountOwnershipStatus,
+  BankAccountStatus,
+  BankAccountVerificationStatus,
+} from 'apps/bank-service/generated/prisma/enums';
 import {
   UserBankAccountCreateInput,
   UserBankAccountUpdateInput,
 } from 'apps/bank-service/generated/prisma/models';
+
+import { BankVerificationService } from '../bank-verification/bank-verification.service';
 
 @Injectable()
 export class IdentityBankAccountService {
   constructor(
     private readonly cache: CacheService,
     private readonly bankRepositoryService: BankAccountRepository,
+    private readonly bankVerificationService: BankVerificationService,
   ) {}
 
   async addBankAccount(dto: CreateIdentityBankAccountDto) {
@@ -42,11 +49,57 @@ export class IdentityBankAccountService {
         accountNumberHash,
         ifsc: dto.ifsc,
       });
+    console.log(account);
     if (account) {
-      throw new NotFoundError(
+      throw new BadRequestError(
         'Bank account already attached.',
         'account already attached',
         'BANK_ACCOUNT_NOT_ATTACHED',
+      );
+    }
+    // if bank api returns invalid then return error from here otherwise add bank account
+    const { result, attemptId } =
+      await this.bankVerificationService.verifyBankAccount({
+        accountHolderName: dto.accountHolderName,
+        accountNumber: dto.accountNumber,
+        ifsc: dto.ifsc,
+      });
+
+    const response = result;
+    console.log(response);
+    if (response.data?.accountStatus !== 'VALID') {
+      throw new BadRequestError('Account does not seems to be valid.');
+    }
+    if (
+      !response.data?.nameAtBank
+        ?.toLowerCase()
+        ?.includes(dto.accountHolderName.toLowerCase())
+    ) {
+      throw new BadRequestError(
+        'Bank Account Ownership status failed.',
+        {
+          verificationStatus: 'failed',
+        },
+        'BANK_ACCOUNT_NOT_VALID',
+      );
+    }
+    // for eko
+    if (response.data?.accountStatusCode !== 'ACCOUNT_IS_VALID') {
+      throw new BadRequestError(
+        'Bank account not valid',
+        {
+          verificationStatus: 'failed',
+        },
+        'BANK_ACCOUNT_NOT_VALID',
+      );
+    }
+    if (!response.data?.bankName || !response.data.branch) {
+      throw new BadRequestError(
+        'Bank account detials are incorrect.',
+        {
+          verificationStatus: 'failed',
+        },
+        'BANK_ACCOUNT_DETAILS_INVALID',
       );
     }
 
@@ -55,19 +108,23 @@ export class IdentityBankAccountService {
     const accountNumberLast4 = dto.accountNumber.slice(-4);
     const dataobj: UserBankAccountCreateInput = {
       identityId: dto.identityId,
-      bankName: dto.bankName,
-      bankCode: dto.bankCode,
+      bankName: result.data?.bankName || dto.bankName,
+      bankCode: result.data?.bankName,
       ifsc: dto.ifsc,
-      branchName: dto.branchName,
-      accountHolderName: dto.accountHolderName,
+      branchName: result.data?.branch,
+      accountHolderName: result.data?.nameAtBank || dto.accountHolderName,
       accountNumberEncrypted,
       accountNumberHash,
       accountNumberLast4,
+      verificationStatus: BankAccountVerificationStatus.VERIFIED,
+      verifiedAt: new Date(),
+      status: BankAccountStatus.ACTIVE,
+      bankAccountVerifications: { connect: { id: attemptId } },
+      ownershipStatus: BankAccountOwnershipStatus.VERIFIED,
       purposes: dto.purposes,
       accountType: dto.accountType,
       isDefault: false,
     };
-    // if bank api returns invalid then return error from here otherwise add bank account
 
     const identityBanksCount =
       await this.bankRepositoryService.getIdentityBankAccountsCount(
@@ -86,6 +143,11 @@ export class IdentityBankAccountService {
   getMyBankAccount(dto: IdentityBankAccountDto) {
     return this.bankRepositoryService.getSingleBankAccount(dto);
   }
+
+  provideDecryptedBankAccount(dto: IdentityBankAccountDto) {
+    return this.bankRepositoryService.getBankAccountForInternalUse(dto);
+  }
+
   async updateMyBankAccount(
     dto: UpdateBankAccountDto & { identityId: string; bankId: string },
   ) {
@@ -93,15 +155,26 @@ export class IdentityBankAccountService {
     const dataobj: UserBankAccountUpdateInput = {};
     if (dto.bankName) dataobj.bankName = dto.bankName;
     if (dto.bankCode) dataobj.bankCode = dto.bankCode;
-    if (dto.branchName) dataobj.branchName = dto.branchName;
-    if (dto.accountHolderName)
-      dataobj.accountHolderName = dto.accountHolderName;
+    if (dto.purposes?.length) {
+      dataobj.purposes = dto.purposes;
+    }
+    if (dto.accountType) {
+      dataobj.accountType = dto.accountType;
+    }
+
     if (dto.accountNumber) {
       if (!dto.ifsc) {
         throw new BadRequestError(
           'IFSC is required for account number updation.',
           'IFSC is required',
           'IFSC_IS_REQUIRED',
+        );
+      }
+      if (!dto.accountHolderName) {
+        throw new BadRequestError(
+          'Account Holder name is required for account number updation.',
+          'Account Holder name is required',
+          'ACCOUNT_HOLDER_NAME_IS_REQUIRED',
         );
       }
       dataobj.ifsc = dto.ifsc;
@@ -121,18 +194,59 @@ export class IdentityBankAccountService {
           'BANK_ACCOUNT_NOT_ATTACHED',
         );
       }
+
+      const { result, attemptId } =
+        await this.bankVerificationService.verifyBankAccount({
+          accountHolderName: dto.accountHolderName,
+          accountNumber: dto.accountNumber,
+          ifsc: dto.ifsc,
+        });
+
+      const response = result;
+      console.log(response);
+      if (response.data?.accountStatus !== 'VALID') {
+        throw new BadRequestError('Account does not seems to be valid.');
+      }
+      if (
+        !response.data?.nameAtBank
+          ?.toLowerCase()
+          ?.includes(dto.accountHolderName.toLowerCase())
+      ) {
+        throw new BadRequestError(
+          'Bank Account Ownership status failed.',
+          {
+            verificationStatus: 'failed',
+          },
+          'BANK_ACCOUNT_NOT_VALID',
+        );
+      }
+      // for eko
+      if (response.data?.accountStatusCode !== 'ACCOUNT_IS_VALID') {
+        throw new BadRequestError(
+          'Bank account not valid',
+          {
+            verificationStatus: 'failed',
+          },
+          'BANK_ACCOUNT_NOT_VALID',
+        );
+      }
+
       const accountNumberEncrypted = encryptData(dto.accountNumber);
       const accountNumberLast4 = dto.accountNumber.slice(-4);
       dataobj.accountNumberEncrypted = accountNumberEncrypted;
       dataobj.accountNumberHash = accountNumberHash;
       dataobj.accountNumberLast4 = accountNumberLast4;
+      dataobj.accountHolderName =
+        response.data.nameAtBank || dto.accountHolderName;
+      dataobj.branchName = response.data.branch;
+      dataobj.bankName = response.data.bankName;
+      //verifications
+      dataobj.status = BankAccountStatus.ACTIVE;
+      dataobj.verificationStatus = BankAccountVerificationStatus.VERIFIED;
+      dataobj.ownershipStatus = BankAccountOwnershipStatus.VERIFIED;
+      dataobj.verifiedAt = new Date();
     }
-    if (dto.purposes?.length) {
-      dataobj.purposes = dto.purposes;
-    }
-    if (dto.accountType) {
-      dataobj.accountType = dto.accountType;
-    }
+
     return this.bankRepositoryService.updateIdentityBankAccount(
       dataobj,
       dto.identityId,

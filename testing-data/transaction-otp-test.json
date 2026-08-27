@@ -1,0 +1,15 @@
+{
+    "merchantId": "MER1234567",
+    "merchantRefId": "AEPS-AP-OTP-20260824-002",
+    "aadhaarNumber": "123456789012",
+    "bankIIN": "607094",
+    "transactionType": "APTFA",
+    "amount": "5100",
+    "mobileNumber": "8053566803",
+    "custMobileNumber": "",
+    "lat": "28.7041",
+    "long": "77.1025",
+    "ipAddress": "192.168.1.1",
+    "appPlatform": "android",
+    "appVersion": "1.0.0"
+}

@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AepsServiceModule } from './aeps-service.module';
 import { ConfigService } from '@nestjs/config';
-import { Transport } from '@nestjs/microservices';
 import { ValidationPipe } from '@nestjs/common';
+import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
 
 async function bootstrap() {
   const app = await NestFactory.create(AepsServiceModule);
@@ -26,8 +26,7 @@ async function bootstrap() {
 
   app.connectMicroservice(
     {
-      transport: Transport.KAFKA,
-      options: {
+      strategy: new AutoCreateTopicsServerKafka({
         client: {
           clientId: config.get<string>('KAFKA_CLIENT_ID') ?? 'aeps-service',
           brokers,
@@ -35,7 +34,7 @@ async function bootstrap() {
         consumer: {
           groupId: config.get<string>('KAFKA_GROUP_ID') ?? 'aeps-service-group',
         },
-      },
+      }),
     },
     {
       inheritAppConfig: true,
