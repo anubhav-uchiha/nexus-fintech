@@ -10,4 +10,5 @@ export const BANK_ACCOUNT_PATTERNS = {
   // UPLOAD_DOCUMENT: 'bank.upload-document',
   DELETE_MY_BANK_ACCOUNT: 'bank.delete',
   GET_BANK_LIST: 'bank.get-list',
+  PROVIDE_DECRYPTED_BANK_ACCOUNT: 'bank-account.provide-decrypted-bank-account',
 } as const;

@@ -22,3 +22,8 @@ export * from './enums';
  * 
  */
 export type Transaction = Prisma.TransactionModel
+/**
+ * Model ProviderTransaction
+ * 
+ */
+export type ProviderTransaction = Prisma.ProviderTransactionModel

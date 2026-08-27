@@ -36,3 +36,16 @@ export const TransactionStatus = {
 } as const
 
 export type TransactionStatus = (typeof TransactionStatus)[keyof typeof TransactionStatus]
+
+
+export const ProviderTransactionStatus = {
+  INITIATED: 'INITIATED',
+  PROCESSING: 'PROCESSING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  PENDING: 'PENDING',
+  UNKNOWN: 'UNKNOWN',
+  REVERSED: 'REVERSED'
+} as const
+
+export type ProviderTransactionStatus = (typeof ProviderTransactionStatus)[keyof typeof ProviderTransactionStatus]

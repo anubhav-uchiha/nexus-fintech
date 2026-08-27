@@ -1,15 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { KycServiceModule } from './kyc-service.module';
 import { ConfigService } from '@nestjs/config';
-import { Transport } from '@nestjs/microservices';
+import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
 
 async function bootstrap() {
   const app = await NestFactory.create(KycServiceModule);
   const config = app.get(ConfigService);
 
   app.connectMicroservice({
-    transport: Transport.KAFKA,
-    options: {
+    strategy: new AutoCreateTopicsServerKafka({
       client: {
         clientId: 'kyc-service',
         brokers: [config.get<string>('KAFKA_BROKER') ?? 'localhost:9092'],
@@ -17,7 +16,7 @@ async function bootstrap() {
       consumer: {
         groupId: 'kyc-service-group',
       },
-    },
+    }),
   });
 
   await app.startAllMicroservices();

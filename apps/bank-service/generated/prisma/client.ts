@@ -49,3 +49,8 @@ export type UserBankAccount = Prisma.UserBankAccountModel
  * 
  */
 export type UserBankStatusAudit = Prisma.UserBankStatusAuditModel
+/**
+ * Model BankAccountVerification
+ * 
+ */
+export type BankAccountVerification = Prisma.BankAccountVerificationModel

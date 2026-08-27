@@ -9,4 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/AepsMerchantProfile'
+export type * from './models/VimopayMerchantDetail'
+export type * from './models/VimopayTxnAuthorization'
+export type * from './models/AepsTransactionIdempotency'
 export type * from './commonInputTypes'

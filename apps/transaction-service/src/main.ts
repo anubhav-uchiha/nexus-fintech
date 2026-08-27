@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import { Transport } from '@nestjs/microservices';
 
 import { TransactionServiceModule } from './transaction-service.module';
+import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
 
 async function bootstrap() {
   const app = await NestFactory.create(TransactionServiceModule);
@@ -19,8 +19,7 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   app.connectMicroservice({
-    transport: Transport.KAFKA,
-    options: {
+    strategy: new AutoCreateTopicsServerKafka({
       client: {
         clientId:
           config.get<string>('KAFKA_CLIENT_ID') ?? 'transaction-service',
@@ -32,7 +31,7 @@ async function bootstrap() {
         groupId:
           config.get<string>('KAFKA_GROUP_ID') ?? 'transaction-service-group',
       },
-    },
+    }),
   });
 
   await app.startAllMicroservices();

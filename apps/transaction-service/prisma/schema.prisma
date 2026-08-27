@@ -28,25 +28,26 @@ enum TransactionStatus {
 }
 
 model Transaction {
-  id String @id @default(uuid())
-  referenceId String @unique
+  id                 String            @id @default(uuid())
+  referenceId        String            @unique
   transactionGroupId String?
-  userId String
-  walletType WalletType
-  serviceType String
-  type TransactionType
-  amount Decimal @db.Decimal(18, 2)
-  openingBalance Decimal @db.Decimal(18, 2)
-  closingBalance Decimal @db.Decimal(18, 2)
-  status TransactionStatus @default(PENDING)
-  description String?
-  externalReference String?
-  idempotencyKey String
-  metadata Json?
-  sequence BigInt @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId             String
+  walletType         WalletType
+  serviceType        String
+  type               TransactionType
+  amount             Decimal           @db.Decimal(18, 2)
+  openingBalance     Decimal           @db.Decimal(18, 2)
+  closingBalance     Decimal           @db.Decimal(18, 2)
+  status             TransactionStatus @default(PENDING)
+  description        String?
+  externalReference  String?
+  idempotencyKey     String
+  metadata           Json?
+  sequence           BigInt            @default(autoincrement())
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
+  @@unique([userId, idempotencyKey])
   @@index([userId])
   @@index([walletType])
   @@index([serviceType])
@@ -54,6 +55,138 @@ model Transaction {
   @@index([createdAt])
   @@index([transactionGroupId])
   @@index([userId, walletType, createdAt])
-  @@unique([userId,idempotencyKey])
   @@map("transactions")
+}
+
+enum ProviderTransactionStatus {
+  INITIATED
+  PROCESSING
+  SUCCESS
+  FAILED
+  PENDING
+  UNKNOWN
+  REVERSED
+}
+
+model ProviderTransaction {
+  id String @id @default(uuid()) @db.Uuid
+
+  /**
+   * Hamara internal transaction reference.
+   * Example:
+   * PTXN-1787820000-ABC123
+   */
+  referenceId String @unique @map("reference_id")
+
+  /**
+   * Logged-in identity.
+   */
+  userId String @map("user_id")
+
+  /**
+   * Example:
+   * AEPS
+   * DMT
+   * PAYOUT
+   */
+  serviceType String @map("service_type") @db.VarChar(50)
+
+  /**
+   * Example:
+   * VIMOPAY
+   * PAYSPRINT
+   * SPICE_MONEY
+   */
+  provider String @db.VarChar(50)
+
+  /**
+   * Provider operation.
+   * AEPS:
+   * BE
+   * MS
+   * CW
+   * AP
+   * CD
+   */
+  operation String @db.VarChar(50)
+
+  amount Decimal @default(0) @db.Decimal(18, 2)
+
+  status ProviderTransactionStatus @default(INITIATED)
+
+  /**
+   * Financial requests ke liye API
+   * Idempotency-Key.
+   * BE/MS mein null ho sakti hai.
+   */
+  idempotencyKey String? @unique @map("idempotency_key") @db.VarChar(100)
+
+  /**
+   * AEPS merchant profile reference.
+   * Cross-microservice FK nahi hai.
+   */
+  merchantProfileId String? @map("merchant_profile_id") @db.Uuid
+
+  /**
+   * Provider merchant.
+   * Example:
+   * MER1234567
+   */
+  providerMerchantId String? @map("provider_merchant_id") @db.VarChar(100)
+
+  /**
+   * Backend generated merchantRefId.
+   */
+  providerMerchantRefId String? @map("provider_merchant_ref_id") @db.VarChar(100)
+
+  /**
+   * Provider transaction response txnRefId.
+   */
+  providerTxnRefId String? @map("provider_txn_ref_id") @db.VarChar(150)
+
+  /**
+   * NPCI reference.
+   */
+  rrn String? @db.VarChar(50)
+
+  npciCode String? @map("npci_code") @db.VarChar(20)
+
+  npciMessage String? @map("npci_message") @db.VarChar(250)
+
+  providerStatusCode String? @map("provider_status_code") @db.VarChar(20)
+
+  providerStatusMessage String? @map("provider_status_message") @db.VarChar(500)
+
+  /**
+   * Customer selected bank IIN.
+   */
+  bankIIN String? @map("bank_iin") @db.VarChar(30)
+
+  /**
+   * Full Aadhaar kabhi save nahi.
+   */
+  aadhaarLast4 String? @map("aadhaar_last4") @db.VarChar(4)
+
+  /**
+   * Safe provider/application metadata only.
+   * pidData / OTP / full Aadhaar nahi.
+   */
+  metadata Json?
+
+  providerCalledAt DateTime? @map("provider_called_at")
+
+  completedAt DateTime? @map("completed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@index([serviceType, provider])
+  @@index([provider, operation])
+  @@index([status])
+  @@index([providerMerchantRefId])
+  @@index([providerTxnRefId])
+  @@index([rrn])
+  @@map("provider_transactions")
 }

@@ -8,17 +8,28 @@ export class ApiError extends RpcException {
   constructor(
     statusCode = 500,
     message = 'Internal server error',
-    errors: unknown = null,
+    errors: any = null,
     code = 'INTERNAL_SERVER_ERROR',
   ) {
     const finalStatusCode = statusCode >= 400 ? statusCode : 500;
-
-    super({
+    const payload: {
+      statusCode: number;
+      message: string;
+      errorCode: string;
+      errors: unknown;
+      stack?: string;
+    } = {
       statusCode: finalStatusCode,
       message,
       errorCode: code,
       errors,
-    });
+    };
+
+    super(payload);
+
+    if (process.env.NODE_ENV === 'development' && this.stack) {
+      payload.stack = this.stack;
+    }
 
     this.statusCode = finalStatusCode;
     this.errorCode = code;
@@ -39,7 +50,7 @@ export class NotFoundError extends ApiError {
 export class BadRequestError extends ApiError {
   constructor(
     message = 'Bad Request',
-    errors: unknown = null,
+    errors: any = null,
     code = 'BAD_REQUEST',
   ) {
     super(400, message, errors, code);

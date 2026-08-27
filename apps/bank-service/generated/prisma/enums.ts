@@ -29,7 +29,7 @@ export type BankAccountStatus = (typeof BankAccountStatus)[keyof typeof BankAcco
 
 export const BankAccountVerificationStatus = {
   PENDING: 'PENDING',
-  UNDER_REVIEW: 'UNDER_REVIEW',
+  PROCESSING: 'PROCESSING',
   VERIFIED: 'VERIFIED',
   REJECTED: 'REJECTED',
   FAILED: 'FAILED'
@@ -54,3 +54,11 @@ export const BankAccountType = {
 } as const
 
 export type BankAccountType = (typeof BankAccountType)[keyof typeof BankAccountType]
+
+
+export const BankProvider = {
+  EKO: 'EKO',
+  PAYSPRINT: 'PAYSPRINT'
+} as const
+
+export type BankProvider = (typeof BankProvider)[keyof typeof BankProvider]

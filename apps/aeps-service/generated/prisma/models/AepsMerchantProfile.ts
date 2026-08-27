@@ -28,15 +28,17 @@ export type AepsMerchantProfileMinAggregateOutputType = {
   id: string | null
   identityId: string | null
   provider: $Enums.AepsProvider | null
+  bankAccountId: string | null
+  kycProfileId: string | null
   providerMerchantId: string | null
   providerUserCode: string | null
-  onboardingClientRefId: string | null
   status: $Enums.AepsMerchantStatus | null
+  providerRegistrationCompleted: boolean | null
   onboardingCompleted: boolean | null
-  kycCompleted: boolean | null
   serviceActivated: boolean | null
   lastStatusCheckedAt: Date | null
-  rejectionReason: string | null
+  statusReason: string | null
+  providerRegisteredAt: Date | null
   onboardedAt: Date | null
   activatedAt: Date | null
   createdAt: Date | null
@@ -47,15 +49,17 @@ export type AepsMerchantProfileMaxAggregateOutputType = {
   id: string | null
   identityId: string | null
   provider: $Enums.AepsProvider | null
+  bankAccountId: string | null
+  kycProfileId: string | null
   providerMerchantId: string | null
   providerUserCode: string | null
-  onboardingClientRefId: string | null
   status: $Enums.AepsMerchantStatus | null
+  providerRegistrationCompleted: boolean | null
   onboardingCompleted: boolean | null
-  kycCompleted: boolean | null
   serviceActivated: boolean | null
   lastStatusCheckedAt: Date | null
-  rejectionReason: string | null
+  statusReason: string | null
+  providerRegisteredAt: Date | null
   onboardedAt: Date | null
   activatedAt: Date | null
   createdAt: Date | null
@@ -66,15 +70,17 @@ export type AepsMerchantProfileCountAggregateOutputType = {
   id: number
   identityId: number
   provider: number
+  bankAccountId: number
+  kycProfileId: number
   providerMerchantId: number
   providerUserCode: number
-  onboardingClientRefId: number
   status: number
+  providerRegistrationCompleted: number
   onboardingCompleted: number
-  kycCompleted: number
   serviceActivated: number
   lastStatusCheckedAt: number
-  rejectionReason: number
+  statusReason: number
+  providerRegisteredAt: number
   onboardedAt: number
   activatedAt: number
   createdAt: number
@@ -87,15 +93,17 @@ export type AepsMerchantProfileMinAggregateInputType = {
   id?: true
   identityId?: true
   provider?: true
+  bankAccountId?: true
+  kycProfileId?: true
   providerMerchantId?: true
   providerUserCode?: true
-  onboardingClientRefId?: true
   status?: true
+  providerRegistrationCompleted?: true
   onboardingCompleted?: true
-  kycCompleted?: true
   serviceActivated?: true
   lastStatusCheckedAt?: true
-  rejectionReason?: true
+  statusReason?: true
+  providerRegisteredAt?: true
   onboardedAt?: true
   activatedAt?: true
   createdAt?: true
@@ -106,15 +114,17 @@ export type AepsMerchantProfileMaxAggregateInputType = {
   id?: true
   identityId?: true
   provider?: true
+  bankAccountId?: true
+  kycProfileId?: true
   providerMerchantId?: true
   providerUserCode?: true
-  onboardingClientRefId?: true
   status?: true
+  providerRegistrationCompleted?: true
   onboardingCompleted?: true
-  kycCompleted?: true
   serviceActivated?: true
   lastStatusCheckedAt?: true
-  rejectionReason?: true
+  statusReason?: true
+  providerRegisteredAt?: true
   onboardedAt?: true
   activatedAt?: true
   createdAt?: true
@@ -125,15 +135,17 @@ export type AepsMerchantProfileCountAggregateInputType = {
   id?: true
   identityId?: true
   provider?: true
+  bankAccountId?: true
+  kycProfileId?: true
   providerMerchantId?: true
   providerUserCode?: true
-  onboardingClientRefId?: true
   status?: true
+  providerRegistrationCompleted?: true
   onboardingCompleted?: true
-  kycCompleted?: true
   serviceActivated?: true
   lastStatusCheckedAt?: true
-  rejectionReason?: true
+  statusReason?: true
+  providerRegisteredAt?: true
   onboardedAt?: true
   activatedAt?: true
   createdAt?: true
@@ -217,15 +229,17 @@ export type AepsMerchantProfileGroupByOutputType = {
   id: string
   identityId: string
   provider: $Enums.AepsProvider
+  bankAccountId: string | null
+  kycProfileId: string | null
   providerMerchantId: string | null
   providerUserCode: string | null
-  onboardingClientRefId: string | null
   status: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted: boolean
   onboardingCompleted: boolean
-  kycCompleted: boolean
   serviceActivated: boolean
   lastStatusCheckedAt: Date | null
-  rejectionReason: string | null
+  statusReason: string | null
+  providerRegisteredAt: Date | null
   onboardedAt: Date | null
   activatedAt: Date | null
   createdAt: Date
@@ -257,76 +271,94 @@ export type AepsMerchantProfileWhereInput = {
   id?: Prisma.UuidFilter<"AepsMerchantProfile"> | string
   identityId?: Prisma.UuidFilter<"AepsMerchantProfile"> | string
   provider?: Prisma.EnumAepsProviderFilter<"AepsMerchantProfile"> | $Enums.AepsProvider
+  bankAccountId?: Prisma.UuidNullableFilter<"AepsMerchantProfile"> | string | null
+  kycProfileId?: Prisma.UuidNullableFilter<"AepsMerchantProfile"> | string | null
   providerMerchantId?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
   providerUserCode?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
-  onboardingClientRefId?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
   status?: Prisma.EnumAepsMerchantStatusFilter<"AepsMerchantProfile"> | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFilter<"AepsMerchantProfile"> | boolean
   onboardingCompleted?: Prisma.BoolFilter<"AepsMerchantProfile"> | boolean
-  kycCompleted?: Prisma.BoolFilter<"AepsMerchantProfile"> | boolean
   serviceActivated?: Prisma.BoolFilter<"AepsMerchantProfile"> | boolean
   lastStatusCheckedAt?: Prisma.DateTimeNullableFilter<"AepsMerchantProfile"> | Date | string | null
-  rejectionReason?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
+  statusReason?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
+  providerRegisteredAt?: Prisma.DateTimeNullableFilter<"AepsMerchantProfile"> | Date | string | null
   onboardedAt?: Prisma.DateTimeNullableFilter<"AepsMerchantProfile"> | Date | string | null
   activatedAt?: Prisma.DateTimeNullableFilter<"AepsMerchantProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AepsMerchantProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AepsMerchantProfile"> | Date | string
+  vimopayDetail?: Prisma.XOR<Prisma.VimopayMerchantDetailNullableScalarRelationFilter, Prisma.VimopayMerchantDetailWhereInput> | null
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationListRelationFilter
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyListRelationFilter
 }
 
 export type AepsMerchantProfileOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   identityId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  bankAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  kycProfileId?: Prisma.SortOrderInput | Prisma.SortOrder
   providerMerchantId?: Prisma.SortOrderInput | Prisma.SortOrder
   providerUserCode?: Prisma.SortOrderInput | Prisma.SortOrder
-  onboardingClientRefId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  providerRegistrationCompleted?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
-  kycCompleted?: Prisma.SortOrder
   serviceActivated?: Prisma.SortOrder
   lastStatusCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  rejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  statusReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerRegisteredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   onboardedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   activatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  vimopayDetail?: Prisma.VimopayMerchantDetailOrderByWithRelationInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationOrderByRelationAggregateInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyOrderByRelationAggregateInput
 }
 
 export type AepsMerchantProfileWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  onboardingClientRefId?: string
   identityId_provider?: Prisma.AepsMerchantProfileIdentityIdProviderCompoundUniqueInput
+  provider_providerMerchantId?: Prisma.AepsMerchantProfileProviderProviderMerchantIdCompoundUniqueInput
   AND?: Prisma.AepsMerchantProfileWhereInput | Prisma.AepsMerchantProfileWhereInput[]
   OR?: Prisma.AepsMerchantProfileWhereInput[]
   NOT?: Prisma.AepsMerchantProfileWhereInput | Prisma.AepsMerchantProfileWhereInput[]
   identityId?: Prisma.UuidFilter<"AepsMerchantProfile"> | string
   provider?: Prisma.EnumAepsProviderFilter<"AepsMerchantProfile"> | $Enums.AepsProvider
+  bankAccountId?: Prisma.UuidNullableFilter<"AepsMerchantProfile"> | string | null
+  kycProfileId?: Prisma.UuidNullableFilter<"AepsMerchantProfile"> | string | null
   providerMerchantId?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
   providerUserCode?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
   status?: Prisma.EnumAepsMerchantStatusFilter<"AepsMerchantProfile"> | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFilter<"AepsMerchantProfile"> | boolean
   onboardingCompleted?: Prisma.BoolFilter<"AepsMerchantProfile"> | boolean
-  kycCompleted?: Prisma.BoolFilter<"AepsMerchantProfile"> | boolean
   serviceActivated?: Prisma.BoolFilter<"AepsMerchantProfile"> | boolean
   lastStatusCheckedAt?: Prisma.DateTimeNullableFilter<"AepsMerchantProfile"> | Date | string | null
-  rejectionReason?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
+  statusReason?: Prisma.StringNullableFilter<"AepsMerchantProfile"> | string | null
+  providerRegisteredAt?: Prisma.DateTimeNullableFilter<"AepsMerchantProfile"> | Date | string | null
   onboardedAt?: Prisma.DateTimeNullableFilter<"AepsMerchantProfile"> | Date | string | null
   activatedAt?: Prisma.DateTimeNullableFilter<"AepsMerchantProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AepsMerchantProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AepsMerchantProfile"> | Date | string
-}, "id" | "onboardingClientRefId" | "identityId_provider">
+  vimopayDetail?: Prisma.XOR<Prisma.VimopayMerchantDetailNullableScalarRelationFilter, Prisma.VimopayMerchantDetailWhereInput> | null
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationListRelationFilter
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyListRelationFilter
+}, "id" | "identityId_provider" | "provider_providerMerchantId">
 
 export type AepsMerchantProfileOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   identityId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  bankAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  kycProfileId?: Prisma.SortOrderInput | Prisma.SortOrder
   providerMerchantId?: Prisma.SortOrderInput | Prisma.SortOrder
   providerUserCode?: Prisma.SortOrderInput | Prisma.SortOrder
-  onboardingClientRefId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  providerRegistrationCompleted?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
-  kycCompleted?: Prisma.SortOrder
   serviceActivated?: Prisma.SortOrder
   lastStatusCheckedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  rejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  statusReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerRegisteredAt?: Prisma.SortOrderInput | Prisma.SortOrder
   onboardedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   activatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -343,15 +375,17 @@ export type AepsMerchantProfileScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"AepsMerchantProfile"> | string
   identityId?: Prisma.UuidWithAggregatesFilter<"AepsMerchantProfile"> | string
   provider?: Prisma.EnumAepsProviderWithAggregatesFilter<"AepsMerchantProfile"> | $Enums.AepsProvider
+  bankAccountId?: Prisma.UuidNullableWithAggregatesFilter<"AepsMerchantProfile"> | string | null
+  kycProfileId?: Prisma.UuidNullableWithAggregatesFilter<"AepsMerchantProfile"> | string | null
   providerMerchantId?: Prisma.StringNullableWithAggregatesFilter<"AepsMerchantProfile"> | string | null
   providerUserCode?: Prisma.StringNullableWithAggregatesFilter<"AepsMerchantProfile"> | string | null
-  onboardingClientRefId?: Prisma.StringNullableWithAggregatesFilter<"AepsMerchantProfile"> | string | null
   status?: Prisma.EnumAepsMerchantStatusWithAggregatesFilter<"AepsMerchantProfile"> | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolWithAggregatesFilter<"AepsMerchantProfile"> | boolean
   onboardingCompleted?: Prisma.BoolWithAggregatesFilter<"AepsMerchantProfile"> | boolean
-  kycCompleted?: Prisma.BoolWithAggregatesFilter<"AepsMerchantProfile"> | boolean
   serviceActivated?: Prisma.BoolWithAggregatesFilter<"AepsMerchantProfile"> | boolean
   lastStatusCheckedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AepsMerchantProfile"> | Date | string | null
-  rejectionReason?: Prisma.StringNullableWithAggregatesFilter<"AepsMerchantProfile"> | string | null
+  statusReason?: Prisma.StringNullableWithAggregatesFilter<"AepsMerchantProfile"> | string | null
+  providerRegisteredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AepsMerchantProfile"> | Date | string | null
   onboardedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AepsMerchantProfile"> | Date | string | null
   activatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AepsMerchantProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AepsMerchantProfile"> | Date | string
@@ -362,91 +396,113 @@ export type AepsMerchantProfileCreateInput = {
   id?: string
   identityId: string
   provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
   providerMerchantId?: string | null
   providerUserCode?: string | null
-  onboardingClientRefId?: string | null
   status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
   onboardingCompleted?: boolean
-  kycCompleted?: boolean
   serviceActivated?: boolean
   lastStatusCheckedAt?: Date | string | null
-  rejectionReason?: string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
   onboardedAt?: Date | string | null
   activatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailCreateNestedOneWithoutProfileInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationCreateNestedManyWithoutProfileInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyCreateNestedManyWithoutProfileInput
 }
 
 export type AepsMerchantProfileUncheckedCreateInput = {
   id?: string
   identityId: string
   provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
   providerMerchantId?: string | null
   providerUserCode?: string | null
-  onboardingClientRefId?: string | null
   status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
   onboardingCompleted?: boolean
-  kycCompleted?: boolean
   serviceActivated?: boolean
   lastStatusCheckedAt?: Date | string | null
-  rejectionReason?: string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
   onboardedAt?: Date | string | null
   activatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUncheckedCreateNestedOneWithoutProfileInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUncheckedCreateNestedManyWithoutProfileInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUncheckedCreateNestedManyWithoutProfileInput
 }
 
 export type AepsMerchantProfileUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   identityId?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingClientRefId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  kycCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUpdateOneWithoutProfileNestedInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUpdateManyWithoutProfileNestedInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUpdateManyWithoutProfileNestedInput
 }
 
 export type AepsMerchantProfileUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   identityId?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingClientRefId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  kycCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUncheckedUpdateOneWithoutProfileNestedInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUncheckedUpdateManyWithoutProfileNestedInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUncheckedUpdateManyWithoutProfileNestedInput
 }
 
 export type AepsMerchantProfileCreateManyInput = {
   id?: string
   identityId: string
   provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
   providerMerchantId?: string | null
   providerUserCode?: string | null
-  onboardingClientRefId?: string | null
   status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
   onboardingCompleted?: boolean
-  kycCompleted?: boolean
   serviceActivated?: boolean
   lastStatusCheckedAt?: Date | string | null
-  rejectionReason?: string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
   onboardedAt?: Date | string | null
   activatedAt?: Date | string | null
   createdAt?: Date | string
@@ -457,15 +513,17 @@ export type AepsMerchantProfileUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   identityId?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingClientRefId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  kycCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -476,15 +534,17 @@ export type AepsMerchantProfileUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   identityId?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  onboardingClientRefId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  kycCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -496,19 +556,26 @@ export type AepsMerchantProfileIdentityIdProviderCompoundUniqueInput = {
   provider: $Enums.AepsProvider
 }
 
+export type AepsMerchantProfileProviderProviderMerchantIdCompoundUniqueInput = {
+  provider: $Enums.AepsProvider
+  providerMerchantId: string
+}
+
 export type AepsMerchantProfileCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   identityId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  bankAccountId?: Prisma.SortOrder
+  kycProfileId?: Prisma.SortOrder
   providerMerchantId?: Prisma.SortOrder
   providerUserCode?: Prisma.SortOrder
-  onboardingClientRefId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  providerRegistrationCompleted?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
-  kycCompleted?: Prisma.SortOrder
   serviceActivated?: Prisma.SortOrder
   lastStatusCheckedAt?: Prisma.SortOrder
-  rejectionReason?: Prisma.SortOrder
+  statusReason?: Prisma.SortOrder
+  providerRegisteredAt?: Prisma.SortOrder
   onboardedAt?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -519,15 +586,17 @@ export type AepsMerchantProfileMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   identityId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  bankAccountId?: Prisma.SortOrder
+  kycProfileId?: Prisma.SortOrder
   providerMerchantId?: Prisma.SortOrder
   providerUserCode?: Prisma.SortOrder
-  onboardingClientRefId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  providerRegistrationCompleted?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
-  kycCompleted?: Prisma.SortOrder
   serviceActivated?: Prisma.SortOrder
   lastStatusCheckedAt?: Prisma.SortOrder
-  rejectionReason?: Prisma.SortOrder
+  statusReason?: Prisma.SortOrder
+  providerRegisteredAt?: Prisma.SortOrder
   onboardedAt?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -538,19 +607,26 @@ export type AepsMerchantProfileMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   identityId?: Prisma.SortOrder
   provider?: Prisma.SortOrder
+  bankAccountId?: Prisma.SortOrder
+  kycProfileId?: Prisma.SortOrder
   providerMerchantId?: Prisma.SortOrder
   providerUserCode?: Prisma.SortOrder
-  onboardingClientRefId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  providerRegistrationCompleted?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
-  kycCompleted?: Prisma.SortOrder
   serviceActivated?: Prisma.SortOrder
   lastStatusCheckedAt?: Prisma.SortOrder
-  rejectionReason?: Prisma.SortOrder
+  statusReason?: Prisma.SortOrder
+  providerRegisteredAt?: Prisma.SortOrder
   onboardedAt?: Prisma.SortOrder
   activatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type AepsMerchantProfileScalarRelationFilter = {
+  is?: Prisma.AepsMerchantProfileWhereInput
+  isNot?: Prisma.AepsMerchantProfileWhereInput
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -581,40 +657,452 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type AepsMerchantProfileCreateNestedOneWithoutVimopayDetailInput = {
+  create?: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutVimopayDetailInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutVimopayDetailInput>
+  connectOrCreate?: Prisma.AepsMerchantProfileCreateOrConnectWithoutVimopayDetailInput
+  connect?: Prisma.AepsMerchantProfileWhereUniqueInput
+}
+
+export type AepsMerchantProfileUpdateOneRequiredWithoutVimopayDetailNestedInput = {
+  create?: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutVimopayDetailInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutVimopayDetailInput>
+  connectOrCreate?: Prisma.AepsMerchantProfileCreateOrConnectWithoutVimopayDetailInput
+  upsert?: Prisma.AepsMerchantProfileUpsertWithoutVimopayDetailInput
+  connect?: Prisma.AepsMerchantProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AepsMerchantProfileUpdateToOneWithWhereWithoutVimopayDetailInput, Prisma.AepsMerchantProfileUpdateWithoutVimopayDetailInput>, Prisma.AepsMerchantProfileUncheckedUpdateWithoutVimopayDetailInput>
+}
+
+export type AepsMerchantProfileCreateNestedOneWithoutVimopayTxnAuthorizationsInput = {
+  create?: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutVimopayTxnAuthorizationsInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutVimopayTxnAuthorizationsInput>
+  connectOrCreate?: Prisma.AepsMerchantProfileCreateOrConnectWithoutVimopayTxnAuthorizationsInput
+  connect?: Prisma.AepsMerchantProfileWhereUniqueInput
+}
+
+export type AepsMerchantProfileUpdateOneRequiredWithoutVimopayTxnAuthorizationsNestedInput = {
+  create?: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutVimopayTxnAuthorizationsInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutVimopayTxnAuthorizationsInput>
+  connectOrCreate?: Prisma.AepsMerchantProfileCreateOrConnectWithoutVimopayTxnAuthorizationsInput
+  upsert?: Prisma.AepsMerchantProfileUpsertWithoutVimopayTxnAuthorizationsInput
+  connect?: Prisma.AepsMerchantProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AepsMerchantProfileUpdateToOneWithWhereWithoutVimopayTxnAuthorizationsInput, Prisma.AepsMerchantProfileUpdateWithoutVimopayTxnAuthorizationsInput>, Prisma.AepsMerchantProfileUncheckedUpdateWithoutVimopayTxnAuthorizationsInput>
+}
+
+export type AepsMerchantProfileCreateNestedOneWithoutIdempotencyRequestsInput = {
+  create?: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutIdempotencyRequestsInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutIdempotencyRequestsInput>
+  connectOrCreate?: Prisma.AepsMerchantProfileCreateOrConnectWithoutIdempotencyRequestsInput
+  connect?: Prisma.AepsMerchantProfileWhereUniqueInput
+}
+
+export type AepsMerchantProfileUpdateOneRequiredWithoutIdempotencyRequestsNestedInput = {
+  create?: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutIdempotencyRequestsInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutIdempotencyRequestsInput>
+  connectOrCreate?: Prisma.AepsMerchantProfileCreateOrConnectWithoutIdempotencyRequestsInput
+  upsert?: Prisma.AepsMerchantProfileUpsertWithoutIdempotencyRequestsInput
+  connect?: Prisma.AepsMerchantProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AepsMerchantProfileUpdateToOneWithWhereWithoutIdempotencyRequestsInput, Prisma.AepsMerchantProfileUpdateWithoutIdempotencyRequestsInput>, Prisma.AepsMerchantProfileUncheckedUpdateWithoutIdempotencyRequestsInput>
+}
+
+export type AepsMerchantProfileCreateWithoutVimopayDetailInput = {
+  id?: string
+  identityId: string
+  provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
+  providerMerchantId?: string | null
+  providerUserCode?: string | null
+  status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
+  onboardingCompleted?: boolean
+  serviceActivated?: boolean
+  lastStatusCheckedAt?: Date | string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
+  onboardedAt?: Date | string | null
+  activatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationCreateNestedManyWithoutProfileInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyCreateNestedManyWithoutProfileInput
+}
+
+export type AepsMerchantProfileUncheckedCreateWithoutVimopayDetailInput = {
+  id?: string
+  identityId: string
+  provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
+  providerMerchantId?: string | null
+  providerUserCode?: string | null
+  status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
+  onboardingCompleted?: boolean
+  serviceActivated?: boolean
+  lastStatusCheckedAt?: Date | string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
+  onboardedAt?: Date | string | null
+  activatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUncheckedCreateNestedManyWithoutProfileInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type AepsMerchantProfileCreateOrConnectWithoutVimopayDetailInput = {
+  where: Prisma.AepsMerchantProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutVimopayDetailInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutVimopayDetailInput>
+}
+
+export type AepsMerchantProfileUpsertWithoutVimopayDetailInput = {
+  update: Prisma.XOR<Prisma.AepsMerchantProfileUpdateWithoutVimopayDetailInput, Prisma.AepsMerchantProfileUncheckedUpdateWithoutVimopayDetailInput>
+  create: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutVimopayDetailInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutVimopayDetailInput>
+  where?: Prisma.AepsMerchantProfileWhereInput
+}
+
+export type AepsMerchantProfileUpdateToOneWithWhereWithoutVimopayDetailInput = {
+  where?: Prisma.AepsMerchantProfileWhereInput
+  data: Prisma.XOR<Prisma.AepsMerchantProfileUpdateWithoutVimopayDetailInput, Prisma.AepsMerchantProfileUncheckedUpdateWithoutVimopayDetailInput>
+}
+
+export type AepsMerchantProfileUpdateWithoutVimopayDetailInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUpdateManyWithoutProfileNestedInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUpdateManyWithoutProfileNestedInput
+}
+
+export type AepsMerchantProfileUncheckedUpdateWithoutVimopayDetailInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUncheckedUpdateManyWithoutProfileNestedInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+export type AepsMerchantProfileCreateWithoutVimopayTxnAuthorizationsInput = {
+  id?: string
+  identityId: string
+  provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
+  providerMerchantId?: string | null
+  providerUserCode?: string | null
+  status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
+  onboardingCompleted?: boolean
+  serviceActivated?: boolean
+  lastStatusCheckedAt?: Date | string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
+  onboardedAt?: Date | string | null
+  activatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailCreateNestedOneWithoutProfileInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyCreateNestedManyWithoutProfileInput
+}
+
+export type AepsMerchantProfileUncheckedCreateWithoutVimopayTxnAuthorizationsInput = {
+  id?: string
+  identityId: string
+  provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
+  providerMerchantId?: string | null
+  providerUserCode?: string | null
+  status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
+  onboardingCompleted?: boolean
+  serviceActivated?: boolean
+  lastStatusCheckedAt?: Date | string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
+  onboardedAt?: Date | string | null
+  activatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUncheckedCreateNestedOneWithoutProfileInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type AepsMerchantProfileCreateOrConnectWithoutVimopayTxnAuthorizationsInput = {
+  where: Prisma.AepsMerchantProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutVimopayTxnAuthorizationsInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutVimopayTxnAuthorizationsInput>
+}
+
+export type AepsMerchantProfileUpsertWithoutVimopayTxnAuthorizationsInput = {
+  update: Prisma.XOR<Prisma.AepsMerchantProfileUpdateWithoutVimopayTxnAuthorizationsInput, Prisma.AepsMerchantProfileUncheckedUpdateWithoutVimopayTxnAuthorizationsInput>
+  create: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutVimopayTxnAuthorizationsInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutVimopayTxnAuthorizationsInput>
+  where?: Prisma.AepsMerchantProfileWhereInput
+}
+
+export type AepsMerchantProfileUpdateToOneWithWhereWithoutVimopayTxnAuthorizationsInput = {
+  where?: Prisma.AepsMerchantProfileWhereInput
+  data: Prisma.XOR<Prisma.AepsMerchantProfileUpdateWithoutVimopayTxnAuthorizationsInput, Prisma.AepsMerchantProfileUncheckedUpdateWithoutVimopayTxnAuthorizationsInput>
+}
+
+export type AepsMerchantProfileUpdateWithoutVimopayTxnAuthorizationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUpdateOneWithoutProfileNestedInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUpdateManyWithoutProfileNestedInput
+}
+
+export type AepsMerchantProfileUncheckedUpdateWithoutVimopayTxnAuthorizationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUncheckedUpdateOneWithoutProfileNestedInput
+  idempotencyRequests?: Prisma.AepsTransactionIdempotencyUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+export type AepsMerchantProfileCreateWithoutIdempotencyRequestsInput = {
+  id?: string
+  identityId: string
+  provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
+  providerMerchantId?: string | null
+  providerUserCode?: string | null
+  status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
+  onboardingCompleted?: boolean
+  serviceActivated?: boolean
+  lastStatusCheckedAt?: Date | string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
+  onboardedAt?: Date | string | null
+  activatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailCreateNestedOneWithoutProfileInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationCreateNestedManyWithoutProfileInput
+}
+
+export type AepsMerchantProfileUncheckedCreateWithoutIdempotencyRequestsInput = {
+  id?: string
+  identityId: string
+  provider: $Enums.AepsProvider
+  bankAccountId?: string | null
+  kycProfileId?: string | null
+  providerMerchantId?: string | null
+  providerUserCode?: string | null
+  status?: $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: boolean
+  onboardingCompleted?: boolean
+  serviceActivated?: boolean
+  lastStatusCheckedAt?: Date | string | null
+  statusReason?: string | null
+  providerRegisteredAt?: Date | string | null
+  onboardedAt?: Date | string | null
+  activatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUncheckedCreateNestedOneWithoutProfileInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUncheckedCreateNestedManyWithoutProfileInput
+}
+
+export type AepsMerchantProfileCreateOrConnectWithoutIdempotencyRequestsInput = {
+  where: Prisma.AepsMerchantProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutIdempotencyRequestsInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutIdempotencyRequestsInput>
+}
+
+export type AepsMerchantProfileUpsertWithoutIdempotencyRequestsInput = {
+  update: Prisma.XOR<Prisma.AepsMerchantProfileUpdateWithoutIdempotencyRequestsInput, Prisma.AepsMerchantProfileUncheckedUpdateWithoutIdempotencyRequestsInput>
+  create: Prisma.XOR<Prisma.AepsMerchantProfileCreateWithoutIdempotencyRequestsInput, Prisma.AepsMerchantProfileUncheckedCreateWithoutIdempotencyRequestsInput>
+  where?: Prisma.AepsMerchantProfileWhereInput
+}
+
+export type AepsMerchantProfileUpdateToOneWithWhereWithoutIdempotencyRequestsInput = {
+  where?: Prisma.AepsMerchantProfileWhereInput
+  data: Prisma.XOR<Prisma.AepsMerchantProfileUpdateWithoutIdempotencyRequestsInput, Prisma.AepsMerchantProfileUncheckedUpdateWithoutIdempotencyRequestsInput>
+}
+
+export type AepsMerchantProfileUpdateWithoutIdempotencyRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUpdateOneWithoutProfileNestedInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUpdateManyWithoutProfileNestedInput
+}
+
+export type AepsMerchantProfileUncheckedUpdateWithoutIdempotencyRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  identityId?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.EnumAepsProviderFieldUpdateOperationsInput | $Enums.AepsProvider
+  bankAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  kycProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAepsMerchantStatusFieldUpdateOperationsInput | $Enums.AepsMerchantStatus
+  providerRegistrationCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  serviceActivated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastStatusCheckedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  statusReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerRegisteredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  onboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  vimopayDetail?: Prisma.VimopayMerchantDetailUncheckedUpdateOneWithoutProfileNestedInput
+  vimopayTxnAuthorizations?: Prisma.VimopayTxnAuthorizationUncheckedUpdateManyWithoutProfileNestedInput
+}
+
+
+/**
+ * Count Type AepsMerchantProfileCountOutputType
+ */
+
+export type AepsMerchantProfileCountOutputType = {
+  vimopayTxnAuthorizations: number
+  idempotencyRequests: number
+}
+
+export type AepsMerchantProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  vimopayTxnAuthorizations?: boolean | AepsMerchantProfileCountOutputTypeCountVimopayTxnAuthorizationsArgs
+  idempotencyRequests?: boolean | AepsMerchantProfileCountOutputTypeCountIdempotencyRequestsArgs
+}
+
+/**
+ * AepsMerchantProfileCountOutputType without action
+ */
+export type AepsMerchantProfileCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AepsMerchantProfileCountOutputType
+   */
+  select?: Prisma.AepsMerchantProfileCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * AepsMerchantProfileCountOutputType without action
+ */
+export type AepsMerchantProfileCountOutputTypeCountVimopayTxnAuthorizationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.VimopayTxnAuthorizationWhereInput
+}
+
+/**
+ * AepsMerchantProfileCountOutputType without action
+ */
+export type AepsMerchantProfileCountOutputTypeCountIdempotencyRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AepsTransactionIdempotencyWhereInput
+}
 
 
 export type AepsMerchantProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   identityId?: boolean
   provider?: boolean
+  bankAccountId?: boolean
+  kycProfileId?: boolean
   providerMerchantId?: boolean
   providerUserCode?: boolean
-  onboardingClientRefId?: boolean
   status?: boolean
+  providerRegistrationCompleted?: boolean
   onboardingCompleted?: boolean
-  kycCompleted?: boolean
   serviceActivated?: boolean
   lastStatusCheckedAt?: boolean
-  rejectionReason?: boolean
+  statusReason?: boolean
+  providerRegisteredAt?: boolean
   onboardedAt?: boolean
   activatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  vimopayDetail?: boolean | Prisma.AepsMerchantProfile$vimopayDetailArgs<ExtArgs>
+  vimopayTxnAuthorizations?: boolean | Prisma.AepsMerchantProfile$vimopayTxnAuthorizationsArgs<ExtArgs>
+  idempotencyRequests?: boolean | Prisma.AepsMerchantProfile$idempotencyRequestsArgs<ExtArgs>
+  _count?: boolean | Prisma.AepsMerchantProfileCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["aepsMerchantProfile"]>
 
 export type AepsMerchantProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   identityId?: boolean
   provider?: boolean
+  bankAccountId?: boolean
+  kycProfileId?: boolean
   providerMerchantId?: boolean
   providerUserCode?: boolean
-  onboardingClientRefId?: boolean
   status?: boolean
+  providerRegistrationCompleted?: boolean
   onboardingCompleted?: boolean
-  kycCompleted?: boolean
   serviceActivated?: boolean
   lastStatusCheckedAt?: boolean
-  rejectionReason?: boolean
+  statusReason?: boolean
+  providerRegisteredAt?: boolean
   onboardedAt?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -625,15 +1113,17 @@ export type AepsMerchantProfileSelectUpdateManyAndReturn<ExtArgs extends runtime
   id?: boolean
   identityId?: boolean
   provider?: boolean
+  bankAccountId?: boolean
+  kycProfileId?: boolean
   providerMerchantId?: boolean
   providerUserCode?: boolean
-  onboardingClientRefId?: boolean
   status?: boolean
+  providerRegistrationCompleted?: boolean
   onboardingCompleted?: boolean
-  kycCompleted?: boolean
   serviceActivated?: boolean
   lastStatusCheckedAt?: boolean
-  rejectionReason?: boolean
+  statusReason?: boolean
+  providerRegisteredAt?: boolean
   onboardedAt?: boolean
   activatedAt?: boolean
   createdAt?: boolean
@@ -644,39 +1134,91 @@ export type AepsMerchantProfileSelectScalar = {
   id?: boolean
   identityId?: boolean
   provider?: boolean
+  bankAccountId?: boolean
+  kycProfileId?: boolean
   providerMerchantId?: boolean
   providerUserCode?: boolean
-  onboardingClientRefId?: boolean
   status?: boolean
+  providerRegistrationCompleted?: boolean
   onboardingCompleted?: boolean
-  kycCompleted?: boolean
   serviceActivated?: boolean
   lastStatusCheckedAt?: boolean
-  rejectionReason?: boolean
+  statusReason?: boolean
+  providerRegisteredAt?: boolean
   onboardedAt?: boolean
   activatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AepsMerchantProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "identityId" | "provider" | "providerMerchantId" | "providerUserCode" | "onboardingClientRefId" | "status" | "onboardingCompleted" | "kycCompleted" | "serviceActivated" | "lastStatusCheckedAt" | "rejectionReason" | "onboardedAt" | "activatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["aepsMerchantProfile"]>
+export type AepsMerchantProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "identityId" | "provider" | "bankAccountId" | "kycProfileId" | "providerMerchantId" | "providerUserCode" | "status" | "providerRegistrationCompleted" | "onboardingCompleted" | "serviceActivated" | "lastStatusCheckedAt" | "statusReason" | "providerRegisteredAt" | "onboardedAt" | "activatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["aepsMerchantProfile"]>
+export type AepsMerchantProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  vimopayDetail?: boolean | Prisma.AepsMerchantProfile$vimopayDetailArgs<ExtArgs>
+  vimopayTxnAuthorizations?: boolean | Prisma.AepsMerchantProfile$vimopayTxnAuthorizationsArgs<ExtArgs>
+  idempotencyRequests?: boolean | Prisma.AepsMerchantProfile$idempotencyRequestsArgs<ExtArgs>
+  _count?: boolean | Prisma.AepsMerchantProfileCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type AepsMerchantProfileIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type AepsMerchantProfileIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $AepsMerchantProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AepsMerchantProfile"
-  objects: {}
+  objects: {
+    /**
+     * *
+     *      * Provider-specific details.
+     */
+    vimopayDetail: Prisma.$VimopayMerchantDetailPayload<ExtArgs> | null
+    vimopayTxnAuthorizations: Prisma.$VimopayTxnAuthorizationPayload<ExtArgs>[]
+    idempotencyRequests: Prisma.$AepsTransactionIdempotencyPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     identityId: string
     provider: $Enums.AepsProvider
+    /**
+     * *
+     *      * External microservice references.
+     *      * In par direct foreign key nahi lagegi,
+     *      * kyunki Bank aur KYC separate databases/services hain.
+     */
+    bankAccountId: string | null
+    kycProfileId: string | null
+    /**
+     * *
+     *      * Provider identifiers.
+     *      * VimoPay:
+     *      * providerMerchantId = MER1234567
+     *      * Future providers:
+     *      * retailerId / agentId / userCode
+     */
     providerMerchantId: string | null
     providerUserCode: string | null
-    onboardingClientRefId: string | null
+    /**
+     * *
+     *      * Common high-level provider status.
+     *      * Exact VimoPay step VimopayMerchantDetail mein rahega.
+     */
     status: $Enums.AepsMerchantStatus
+    /**
+     * *
+     *      * Provider registration complete hone ka matlab
+     *      * full onboarding complete hona nahi hai.
+     */
+    providerRegistrationCompleted: boolean
+    /**
+     * *
+     *      * Full provider onboarding complete.
+     */
     onboardingCompleted: boolean
-    kycCompleted: boolean
+    /**
+     * *
+     *      * Merchant provider transactions ke liye active hai.
+     */
     serviceActivated: boolean
     lastStatusCheckedAt: Date | null
-    rejectionReason: string | null
+    statusReason: string | null
+    providerRegisteredAt: Date | null
     onboardedAt: Date | null
     activatedAt: Date | null
     createdAt: Date
@@ -1075,6 +1617,9 @@ readonly fields: AepsMerchantProfileFieldRefs;
  */
 export interface Prisma__AepsMerchantProfileClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  vimopayDetail<T extends Prisma.AepsMerchantProfile$vimopayDetailArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AepsMerchantProfile$vimopayDetailArgs<ExtArgs>>): Prisma.Prisma__VimopayMerchantDetailClient<runtime.Types.Result.GetResult<Prisma.$VimopayMerchantDetailPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  vimopayTxnAuthorizations<T extends Prisma.AepsMerchantProfile$vimopayTxnAuthorizationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AepsMerchantProfile$vimopayTxnAuthorizationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$VimopayTxnAuthorizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  idempotencyRequests<T extends Prisma.AepsMerchantProfile$idempotencyRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AepsMerchantProfile$idempotencyRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AepsTransactionIdempotencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1107,15 +1652,17 @@ export interface AepsMerchantProfileFieldRefs {
   readonly id: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
   readonly identityId: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
   readonly provider: Prisma.FieldRef<"AepsMerchantProfile", 'AepsProvider'>
+  readonly bankAccountId: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
+  readonly kycProfileId: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
   readonly providerMerchantId: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
   readonly providerUserCode: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
-  readonly onboardingClientRefId: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
   readonly status: Prisma.FieldRef<"AepsMerchantProfile", 'AepsMerchantStatus'>
+  readonly providerRegistrationCompleted: Prisma.FieldRef<"AepsMerchantProfile", 'Boolean'>
   readonly onboardingCompleted: Prisma.FieldRef<"AepsMerchantProfile", 'Boolean'>
-  readonly kycCompleted: Prisma.FieldRef<"AepsMerchantProfile", 'Boolean'>
   readonly serviceActivated: Prisma.FieldRef<"AepsMerchantProfile", 'Boolean'>
   readonly lastStatusCheckedAt: Prisma.FieldRef<"AepsMerchantProfile", 'DateTime'>
-  readonly rejectionReason: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
+  readonly statusReason: Prisma.FieldRef<"AepsMerchantProfile", 'String'>
+  readonly providerRegisteredAt: Prisma.FieldRef<"AepsMerchantProfile", 'DateTime'>
   readonly onboardedAt: Prisma.FieldRef<"AepsMerchantProfile", 'DateTime'>
   readonly activatedAt: Prisma.FieldRef<"AepsMerchantProfile", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"AepsMerchantProfile", 'DateTime'>
@@ -1137,6 +1684,10 @@ export type AepsMerchantProfileFindUniqueArgs<ExtArgs extends runtime.Types.Exte
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
+  /**
    * Filter, which AepsMerchantProfile to fetch.
    */
   where: Prisma.AepsMerchantProfileWhereUniqueInput
@@ -1155,6 +1706,10 @@ export type AepsMerchantProfileFindUniqueOrThrowArgs<ExtArgs extends runtime.Typ
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
+  /**
    * Filter, which AepsMerchantProfile to fetch.
    */
   where: Prisma.AepsMerchantProfileWhereUniqueInput
@@ -1172,6 +1727,10 @@ export type AepsMerchantProfileFindFirstArgs<ExtArgs extends runtime.Types.Exten
    * Omit specific fields from the AepsMerchantProfile
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
   /**
    * Filter, which AepsMerchantProfile to fetch.
    */
@@ -1221,6 +1780,10 @@ export type AepsMerchantProfileFindFirstOrThrowArgs<ExtArgs extends runtime.Type
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
+  /**
    * Filter, which AepsMerchantProfile to fetch.
    */
   where?: Prisma.AepsMerchantProfileWhereInput
@@ -1268,6 +1831,10 @@ export type AepsMerchantProfileFindManyArgs<ExtArgs extends runtime.Types.Extens
    * Omit specific fields from the AepsMerchantProfile
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
   /**
    * Filter, which AepsMerchantProfiles to fetch.
    */
@@ -1317,6 +1884,10 @@ export type AepsMerchantProfileCreateArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
+  /**
    * The data needed to create a AepsMerchantProfile.
    */
   data: Prisma.XOR<Prisma.AepsMerchantProfileCreateInput, Prisma.AepsMerchantProfileUncheckedCreateInput>
@@ -1364,6 +1935,10 @@ export type AepsMerchantProfileUpdateArgs<ExtArgs extends runtime.Types.Extensio
    * Omit specific fields from the AepsMerchantProfile
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
   /**
    * The data needed to update a AepsMerchantProfile.
    */
@@ -1431,6 +2006,10 @@ export type AepsMerchantProfileUpsertArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
+  /**
    * The filter to search for the AepsMerchantProfile to update in case it exists.
    */
   where: Prisma.AepsMerchantProfileWhereUniqueInput
@@ -1457,6 +2036,10 @@ export type AepsMerchantProfileDeleteArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
+  /**
    * Filter which AepsMerchantProfile to delete.
    */
   where: Prisma.AepsMerchantProfileWhereUniqueInput
@@ -1477,6 +2060,73 @@ export type AepsMerchantProfileDeleteManyArgs<ExtArgs extends runtime.Types.Exte
 }
 
 /**
+ * AepsMerchantProfile.vimopayDetail
+ */
+export type AepsMerchantProfile$vimopayDetailArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the VimopayMerchantDetail
+   */
+  select?: Prisma.VimopayMerchantDetailSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the VimopayMerchantDetail
+   */
+  omit?: Prisma.VimopayMerchantDetailOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.VimopayMerchantDetailInclude<ExtArgs> | null
+  where?: Prisma.VimopayMerchantDetailWhereInput
+}
+
+/**
+ * AepsMerchantProfile.vimopayTxnAuthorizations
+ */
+export type AepsMerchantProfile$vimopayTxnAuthorizationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the VimopayTxnAuthorization
+   */
+  select?: Prisma.VimopayTxnAuthorizationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the VimopayTxnAuthorization
+   */
+  omit?: Prisma.VimopayTxnAuthorizationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.VimopayTxnAuthorizationInclude<ExtArgs> | null
+  where?: Prisma.VimopayTxnAuthorizationWhereInput
+  orderBy?: Prisma.VimopayTxnAuthorizationOrderByWithRelationInput | Prisma.VimopayTxnAuthorizationOrderByWithRelationInput[]
+  cursor?: Prisma.VimopayTxnAuthorizationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.VimopayTxnAuthorizationScalarFieldEnum | Prisma.VimopayTxnAuthorizationScalarFieldEnum[]
+}
+
+/**
+ * AepsMerchantProfile.idempotencyRequests
+ */
+export type AepsMerchantProfile$idempotencyRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AepsTransactionIdempotency
+   */
+  select?: Prisma.AepsTransactionIdempotencySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AepsTransactionIdempotency
+   */
+  omit?: Prisma.AepsTransactionIdempotencyOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsTransactionIdempotencyInclude<ExtArgs> | null
+  where?: Prisma.AepsTransactionIdempotencyWhereInput
+  orderBy?: Prisma.AepsTransactionIdempotencyOrderByWithRelationInput | Prisma.AepsTransactionIdempotencyOrderByWithRelationInput[]
+  cursor?: Prisma.AepsTransactionIdempotencyWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AepsTransactionIdempotencyScalarFieldEnum | Prisma.AepsTransactionIdempotencyScalarFieldEnum[]
+}
+
+/**
  * AepsMerchantProfile without action
  */
 export type AepsMerchantProfileDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1488,4 +2138,8 @@ export type AepsMerchantProfileDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Omit specific fields from the AepsMerchantProfile
    */
   omit?: Prisma.AepsMerchantProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AepsMerchantProfileInclude<ExtArgs> | null
 }

@@ -1,0 +1,17 @@
+{
+    "merchantId": "MER1234567",
+    "merchantRefId": "AEPS-AP-20260824-004",
+    "aadhaarNumber": "123456789012",
+    "mobileNumber": "8053566803",
+    "bankIIN": "607094",
+    "amount": "5100",
+    "ipAddress": "192.168.1.1",
+    "lat": "28.7041",
+    "long": "77.1025",
+    "deviceType": "mantra",
+    "cwAuthTxnId": "abcd1234",
+    "udf1": "",
+    "udf2": "",
+    "udf3": "",
+    "pidData": "SAME_UAT_PID_VALUE"
+}

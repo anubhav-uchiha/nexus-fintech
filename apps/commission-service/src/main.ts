@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import { Transport } from '@nestjs/microservices';
 import { CommissionServiceModule } from './commission-service.module';
+import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
 
 async function bootstrap() {
   const app = await NestFactory.create(CommissionServiceModule);
@@ -18,8 +18,7 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   app.connectMicroservice({
-    transport: Transport.KAFKA,
-    options: {
+    strategy: new AutoCreateTopicsServerKafka({
       client: {
         clientId: config.get<string>('KAFKA_CLIENT_ID') ?? 'commission-service',
 
@@ -30,7 +29,7 @@ async function bootstrap() {
         groupId:
           config.get<string>('KAFKA_GROUP_ID') ?? 'commission-service-group',
       },
-    },
+    }),
   });
 
   await app.startAllMicroservices();

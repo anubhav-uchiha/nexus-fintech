@@ -398,7 +398,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   UserBankAccount: 'UserBankAccount',
-  UserBankStatusAudit: 'UserBankStatusAudit'
+  UserBankStatusAudit: 'UserBankStatusAudit',
+  BankAccountVerification: 'BankAccountVerification'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -414,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "userBankAccount" | "userBankStatusAudit"
+    modelProps: "userBankAccount" | "userBankStatusAudit" | "bankAccountVerification"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -566,6 +567,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BankAccountVerification: {
+      payload: Prisma.$BankAccountVerificationPayload<ExtArgs>
+      fields: Prisma.BankAccountVerificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BankAccountVerificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BankAccountVerificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>
+        }
+        findFirst: {
+          args: Prisma.BankAccountVerificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BankAccountVerificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>
+        }
+        findMany: {
+          args: Prisma.BankAccountVerificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>[]
+        }
+        create: {
+          args: Prisma.BankAccountVerificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>
+        }
+        createMany: {
+          args: Prisma.BankAccountVerificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BankAccountVerificationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>[]
+        }
+        delete: {
+          args: Prisma.BankAccountVerificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>
+        }
+        update: {
+          args: Prisma.BankAccountVerificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.BankAccountVerificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BankAccountVerificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BankAccountVerificationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>[]
+        }
+        upsert: {
+          args: Prisma.BankAccountVerificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BankAccountVerificationPayload>
+        }
+        aggregate: {
+          args: Prisma.BankAccountVerificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBankAccountVerification>
+        }
+        groupBy: {
+          args: Prisma.BankAccountVerificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BankAccountVerificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BankAccountVerificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BankAccountVerificationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -644,12 +719,37 @@ export const UserBankStatusAuditScalarFieldEnum = {
 export type UserBankStatusAuditScalarFieldEnum = (typeof UserBankStatusAuditScalarFieldEnum)[keyof typeof UserBankStatusAuditScalarFieldEnum]
 
 
+export const BankAccountVerificationScalarFieldEnum = {
+  id: 'id',
+  bankAccountId: 'bankAccountId',
+  provider: 'provider',
+  clientRefId: 'clientRefId',
+  status: 'status',
+  accountHolderName: 'accountHolderName',
+  requestPayload: 'requestPayload',
+  responsePayload: 'responsePayload',
+  verifiedAt: 'verifiedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BankAccountVerificationScalarFieldEnum = (typeof BankAccountVerificationScalarFieldEnum)[keyof typeof BankAccountVerificationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -666,6 +766,15 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
 
@@ -776,6 +885,34 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'BankProvider'
+ */
+export type EnumBankProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BankProvider'>
+    
+
+
+/**
+ * Reference to a field of type 'BankProvider[]'
+ */
+export type ListEnumBankProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BankProvider[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -945,6 +1082,7 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   userBankAccount?: Prisma.UserBankAccountOmit
   userBankStatusAudit?: Prisma.UserBankStatusAuditOmit
+  bankAccountVerification?: Prisma.BankAccountVerificationOmit
 }
 
 /* Types for Logging */

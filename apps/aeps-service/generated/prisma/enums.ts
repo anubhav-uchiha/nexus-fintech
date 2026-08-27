@@ -10,8 +10,9 @@
 */
 
 export const AepsProvider = {
-  EKO: 'EKO',
-  PAYSPRINT: 'PAYSPRINT'
+  VIMOPAY: 'VIMOPAY',
+  PAYSPRINT: 'PAYSPRINT',
+  SPICE_MONEY: 'SPICE_MONEY'
 } as const
 
 export type AepsProvider = (typeof AepsProvider)[keyof typeof AepsProvider]
@@ -20,12 +21,69 @@ export type AepsProvider = (typeof AepsProvider)[keyof typeof AepsProvider]
 export const AepsMerchantStatus = {
   NOT_STARTED: 'NOT_STARTED',
   ONBOARDING: 'ONBOARDING',
-  KYC_PENDING: 'KYC_PENDING',
+  ACTION_REQUIRED: 'ACTION_REQUIRED',
   UNDER_REVIEW: 'UNDER_REVIEW',
   ACTIVE: 'ACTIVE',
   REJECTED: 'REJECTED',
+  FAILED: 'FAILED',
   SUSPENDED: 'SUSPENDED',
   BLOCKED: 'BLOCKED'
 } as const
 
 export type AepsMerchantStatus = (typeof AepsMerchantStatus)[keyof typeof AepsMerchantStatus]
+
+
+export const VimopayOnboardingStep = {
+  NOT_STARTED: 'NOT_STARTED',
+  REGISTRATION_PENDING: 'REGISTRATION_PENDING',
+  OTP_PENDING: 'OTP_PENDING',
+  OTP_VERIFIED: 'OTP_VERIFIED',
+  EKYC_PENDING: 'EKYC_PENDING',
+  EKYC_COMPLETED: 'EKYC_COMPLETED',
+  TWO_FA_PENDING: 'TWO_FA_PENDING',
+  ACTIVE: 'ACTIVE',
+  REJECTED: 'REJECTED',
+  FAILED: 'FAILED'
+} as const
+
+export type VimopayOnboardingStep = (typeof VimopayOnboardingStep)[keyof typeof VimopayOnboardingStep]
+
+
+export const VimopayTxnAuthType = {
+  CASH_WITHDRAWAL: 'CASH_WITHDRAWAL',
+  AADHAAR_PAY: 'AADHAAR_PAY'
+} as const
+
+export type VimopayTxnAuthType = (typeof VimopayTxnAuthType)[keyof typeof VimopayTxnAuthType]
+
+
+export const VimopayTxnAuthStatus = {
+  ISSUED: 'ISSUED',
+  CONSUMING: 'CONSUMING',
+  CONSUMED: 'CONSUMED',
+  EXPIRED: 'EXPIRED',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN'
+} as const
+
+export type VimopayTxnAuthStatus = (typeof VimopayTxnAuthStatus)[keyof typeof VimopayTxnAuthStatus]
+
+
+export const AepsFinancialTransactionType = {
+  CASH_WITHDRAWAL: 'CASH_WITHDRAWAL',
+  AADHAAR_PAY: 'AADHAAR_PAY',
+  CASH_DEPOSIT: 'CASH_DEPOSIT'
+} as const
+
+export type AepsFinancialTransactionType = (typeof AepsFinancialTransactionType)[keyof typeof AepsFinancialTransactionType]
+
+
+export const AepsIdempotencyStatus = {
+  PROCESSING: 'PROCESSING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  PENDING: 'PENDING',
+  UNKNOWN: 'UNKNOWN'
+} as const
+
+export type AepsIdempotencyStatus = (typeof AepsIdempotencyStatus)[keyof typeof AepsIdempotencyStatus]

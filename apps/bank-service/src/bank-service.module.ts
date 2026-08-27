@@ -6,6 +6,9 @@ import { PrismaModule } from './database/prisma.module';
 import kafkaConfig from '@nexus/config/configs/kafka.config';
 import appConfig from '@nexus/config/configs/app.config';
 import { ConfigModule } from '@nestjs/config';
+import { BanksModule } from './banks/banks.module';
+import { BankVerificationModule } from './bank-verification/bank-verification.module';
+import { EkoModule } from './bank-verification/providers/eko/eko.module';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { ConfigModule } from '@nestjs/config';
     }),
     PrismaModule,
     IdentityBankAccountModule,
+    BanksModule,
+    BankVerificationModule,
+    EkoModule,
   ],
   controllers: [BankServiceController],
   providers: [BankServiceService],

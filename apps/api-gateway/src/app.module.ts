@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppConfigModule } from '@nexus/config';
 import { LoggerModule } from '@nexus/logger';
@@ -6,8 +6,8 @@ import { envValidationSchema } from '@nexus/config';
 import appConfig from '@nexus/config/configs/app.config';
 import { AuthModule } from './auth/auth.module';
 import { KycModule } from './kyc/kyc.module';
-import { IdentityBankAccountModule } from './identity-bank-account/identity-bank-account.module';
-import { EkoModule } from './aeps-service/providers/eko/eko.module';
+import { BankModule } from './bank/bank.module';
+import { IdentityBankAccountModule } from './bank/identity-bank-account/identity-bank-account.module';
 
 import { S3Module } from './storage/s3/s3.module';
 import { PrismaModule } from 'apps/kyc-service/src/database/prisma.module';
@@ -19,6 +19,9 @@ import { CommisisonHierarchyModule } from './commission-hierarchy/commission-hie
 import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
 import { PackageModule } from './package/package.module';
+import { VimopayAepsModule } from './aeps/vimopay/vimopay-aeps.module';
+
+// import { EkoServiceModule } from 'apps/aeps-service/src/eko/eko.module';
 
 @Module({
   imports: [
@@ -41,8 +44,8 @@ import { PackageModule } from './package/package.module';
     LoggerModule,
     AuthModule,
     KycModule,
+    BankModule,
     IdentityBankAccountModule,
-    EkoModule,
     TransactionModule,
     WalletModule,
     S3Module,
@@ -53,6 +56,7 @@ import { PackageModule } from './package/package.module';
     RoleModule,
     PermissionModule,
     PackageModule,
+    VimopayAepsModule,
   ],
 })
 export class AppModule {}

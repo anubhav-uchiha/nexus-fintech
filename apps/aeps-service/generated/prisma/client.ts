@@ -44,3 +44,18 @@ export { Prisma }
  * 
  */
 export type AepsMerchantProfile = Prisma.AepsMerchantProfileModel
+/**
+ * Model VimopayMerchantDetail
+ * 
+ */
+export type VimopayMerchantDetail = Prisma.VimopayMerchantDetailModel
+/**
+ * Model VimopayTxnAuthorization
+ * 
+ */
+export type VimopayTxnAuthorization = Prisma.VimopayTxnAuthorizationModel
+/**
+ * Model AepsTransactionIdempotency
+ * 
+ */
+export type AepsTransactionIdempotency = Prisma.AepsTransactionIdempotencyModel

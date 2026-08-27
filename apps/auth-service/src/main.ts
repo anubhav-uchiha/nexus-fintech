@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AuthServiceModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import { Transport } from '@nestjs/microservices';
+import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
 
 async function bootstrap() {
   const app = await NestFactory.create(AuthServiceModule);
@@ -19,8 +19,7 @@ async function bootstrap() {
 
   app.connectMicroservice(
     {
-      transport: Transport.KAFKA,
-      options: {
+      strategy: new AutoCreateTopicsServerKafka({
         client: {
           clientId: config.get<string>('KAFKA_CLIENT_ID') ?? 'auth-service',
           brokers: [config.get<string>('KAFKA_BROKER') ?? 'localhost:9092'],
@@ -28,7 +27,7 @@ async function bootstrap() {
         consumer: {
           groupId: config.get<string>('KAFKA_GROUP_ID') ?? 'auth-service-group',
         },
-      },
+      }),
     },
     {
       inheritAppConfig: true,

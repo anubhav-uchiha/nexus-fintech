@@ -51,7 +51,8 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Transaction: 'Transaction'
+  Transaction: 'Transaction',
+  ProviderTransaction: 'ProviderTransaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -92,6 +93,37 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const ProviderTransactionScalarFieldEnum = {
+  id: 'id',
+  referenceId: 'referenceId',
+  userId: 'userId',
+  serviceType: 'serviceType',
+  provider: 'provider',
+  operation: 'operation',
+  amount: 'amount',
+  status: 'status',
+  idempotencyKey: 'idempotencyKey',
+  merchantProfileId: 'merchantProfileId',
+  providerMerchantId: 'providerMerchantId',
+  providerMerchantRefId: 'providerMerchantRefId',
+  providerTxnRefId: 'providerTxnRefId',
+  rrn: 'rrn',
+  npciCode: 'npciCode',
+  npciMessage: 'npciMessage',
+  providerStatusCode: 'providerStatusCode',
+  providerStatusMessage: 'providerStatusMessage',
+  bankIIN: 'bankIIN',
+  aadhaarLast4: 'aadhaarLast4',
+  metadata: 'metadata',
+  providerCalledAt: 'providerCalledAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderTransactionScalarFieldEnum = (typeof ProviderTransactionScalarFieldEnum)[keyof typeof ProviderTransactionScalarFieldEnum]
 
 
 export const SortOrder = {

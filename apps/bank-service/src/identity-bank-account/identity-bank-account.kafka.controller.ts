@@ -71,4 +71,12 @@ export class IdentityBankAccountKafkaController {
     console.log('KAFKA received:', dto);
     return this.identityBankAccountService.getPrimaryBankAccount(dto);
   }
+
+  @MessagePattern(BANK_ACCOUNT_PATTERNS.PROVIDE_DECRYPTED_BANK_ACCOUNT)
+  provideDecryptedBankAccount(
+    @Payload()
+    dto: IdentityBankAccountDto,
+  ) {
+    return this.identityBankAccountService.provideDecryptedBankAccount(dto);
+  }
 }

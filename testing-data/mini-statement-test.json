@@ -1,0 +1,16 @@
+{
+    "merchantId": "MER1234567",
+    "merchantRefId": "AEPS-BE-20260824-001",
+    "aadhaarNumber": "123456789012",
+    "mobileNumber": "8053566803",
+    "bankIIN": "607094",
+    "ipAddress": "192.168.1.1",
+    "lat": "28.7041",
+    "long": "77.1025",
+    "deviceType": "mantra",
+    "cwAuthTxnId": "",
+    "udf1": "",
+    "udf2": "",
+    "udf3": "",
+    "pidData": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><PidOptions ver=\"1.0\"><Opts fCount=\"1\" fType=\"2\" format=\"0\" pidVer=\"2.0\" timeout=\"10000\" otp=\"\" posh=\"UNKNOWN\" env=\"P\" wadh=\"\"/></PidOptions>"
+}
