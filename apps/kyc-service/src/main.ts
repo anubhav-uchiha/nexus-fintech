@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { KycServiceModule } from './kyc-service.module';
 import { ConfigService } from '@nestjs/config';
 import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
+import { HttpToRpcExceptionInterceptor } from '@nexus/common/interceptors/http-to-rpc-exception.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(KycServiceModule);
@@ -18,6 +19,8 @@ async function bootstrap() {
       },
     }),
   });
+
+  app.useGlobalInterceptors(new HttpToRpcExceptionInterceptor());
 
   await app.startAllMicroservices();
 

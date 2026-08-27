@@ -52,10 +52,42 @@ export class OtpRepository {
     });
   }
 
+  async markVerifiedIfPending(id: string) {
+    return this.prisma.otp.updateMany({
+      where: {
+        id,
+        verifiedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      data: {
+        verifiedAt: new Date(),
+      },
+    });
+  }
+
   async increaseAttempts(id: string) {
     return this.prisma.otp.update({
       where: { id },
       data: { attempts: { increment: 1 } },
+    });
+  }
+
+  async increaseAttemptsIfPending(id: string) {
+    return this.prisma.otp.updateMany({
+      where: {
+        id,
+        verifiedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      data: {
+        attempts: {
+          increment: 1,
+        },
+      },
     });
   }
 
@@ -76,6 +108,13 @@ export class OtpRepository {
       },
       orderBy: {
         createdAt: 'desc',
+      },
+    });
+  }
+  async deleteById(id: string) {
+    return this.prisma.otp.deleteMany({
+      where: {
+        id,
       },
     });
   }

@@ -8,7 +8,7 @@ export const envValidationSchema = Joi.object({
 
   APP_NAME: Joi.string().required(),
 
-  APP_PORT: Joi.number().default(3000),
+  APP_PORT: Joi.number().default(8000),
 
   APP_VERSION: Joi.string().default('v1'),
 

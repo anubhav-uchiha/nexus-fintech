@@ -5,15 +5,21 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable, catchError, throwError } from 'rxjs';
+
+import { catchError, Observable, throwError } from 'rxjs';
+
+type ExceptionMessage = string | string[] | Record<string, unknown>;
 
 interface RpcErrorPayload {
   statusCode: number;
-  message: string | string[];
+  message: ExceptionMessage;
   error?: string;
   errorCode?: string;
   errors?: unknown;
+<<<<<<< Updated upstream
   stack?: string;
+=======
+>>>>>>> Stashed changes
 }
 
 @Injectable()
@@ -21,6 +27,7 @@ export class RpcToHttpExceptionInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       catchError((error: unknown) => {
+<<<<<<< Updated upstream
         const payload = this.extractRpcError(error);
 
         if (payload) {
@@ -51,9 +58,44 @@ export class RpcToHttpExceptionInterceptor implements NestInterceptor {
           return throwError(
             () => new HttpException(response, payload.statusCode),
           );
+=======
+        // Exceptions created directly in the gateway are already
+        // HTTP exceptions and do not need conversion.
+        if (error instanceof HttpException) {
+          return throwError(() => error);
+>>>>>>> Stashed changes
         }
 
-        return throwError(() => error);
+        const payload = this.extractRpcError(error);
+
+        if (!payload) {
+          return throwError(() => error);
+        }
+
+        return throwError(
+          () =>
+            new HttpException(
+              {
+                statusCode: payload.statusCode,
+
+                message: payload.message,
+
+                ...(payload.error && {
+                  error: payload.error,
+                }),
+
+                ...(payload.errorCode && {
+                  errorCode: payload.errorCode,
+                }),
+
+                ...(payload.errors !== undefined && {
+                  errors: payload.errors,
+                }),
+              },
+
+              payload.statusCode,
+            ),
+        );
       }),
     );
   }
@@ -73,6 +115,10 @@ export class RpcToHttpExceptionInterceptor implements NestInterceptor {
 
     if ('response' in error && this.isRpcError(error.response)) {
       return error.response;
+    }
+
+    if ('error' in error && this.isRpcError(error.error)) {
+      return error.error;
     }
 
     return null;

@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   HttpException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -11,6 +12,12 @@ import { Request } from 'express';
 
 import { AuthGatewayService } from '../auth.gateway.service';
 import { REQUIRED_PERMISSIONS_KEY } from '../decorator/require-permissions.decorator';
+import { ConfigService } from '@nestjs/config';
+import { CacheService } from 'libs/cache/src';
+import {
+  PERMISSION_CACHE_KEY_PREFIX,
+  PERMISSION_CACHE_VERSION_KEY,
+} from '../constants/permission-cache.constants';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -30,10 +37,24 @@ interface RpcErrorPayload {
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
+  private readonly logger = new Logger(PermissionGuard.name);
+
+  private readonly permissionCacheTtlSeconds: number;
   constructor(
     private readonly reflector: Reflector,
     private readonly authGatewayService: AuthGatewayService,
-  ) {}
+    private readonly cacheService: CacheService,
+    private readonly configService: ConfigService,
+  ) {
+    const configuredTtl = Number(
+      this.configService.get<string | number>(
+        'AUTH_PERMISSION_CACHE_TTL_SECONDS',
+      ) ?? 10,
+    );
+
+    this.permissionCacheTtlSeconds =
+      Number.isInteger(configuredTtl) && configuredTtl > 0 ? configuredTtl : 10;
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermissions =
@@ -54,17 +75,9 @@ export class PermissionGuard implements CanActivate {
       throw new UnauthorizedException('Authenticated identity is missing');
     }
 
-    let resolution: IdentityPermissionResolution;
+    const permissionCodes = await this.getIdentityPermissionCodes(identityId);
 
-    try {
-      resolution = (await this.authGatewayService.resolveIdentityPermissions(
-        identityId,
-      )) as IdentityPermissionResolution;
-    } catch (error) {
-      this.rethrowRpcError(error);
-    }
-
-    const grantedPermissions = new Set(resolution!.permissionCodes ?? []);
+    const grantedPermissions = new Set(permissionCodes);
 
     const missingPermissions = requiredPermissions.filter(
       (permission) => !grantedPermissions.has(permission),
@@ -79,6 +92,87 @@ export class PermissionGuard implements CanActivate {
     return true;
   }
 
+  private async getIdentityPermissionCodes(
+    identityId: string,
+  ): Promise<string[]> {
+    const cacheVersion = await this.getPermissionCacheVersion();
+
+    const cacheKey =
+      cacheVersion !== null
+        ? `${PERMISSION_CACHE_KEY_PREFIX}:v${cacheVersion}:${identityId}`
+        : null;
+    if (cacheKey) {
+      try {
+        const cachedPermissions =
+          await this.cacheService.get<string[]>(cacheKey);
+
+        if (Array.isArray(cachedPermissions)) {
+          return cachedPermissions.filter(
+            (permission): permission is string =>
+              typeof permission === 'string',
+          );
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unknown Redis read error';
+
+        this.logger.warn(`Unable to read permission cache: ${message}`);
+      }
+    }
+
+    let resolution: IdentityPermissionResolution;
+
+    try {
+      resolution = (await this.authGatewayService.resolveIdentityPermissions(
+        identityId,
+      )) as IdentityPermissionResolution;
+    } catch (error) {
+      this.rethrowRpcError(error);
+    }
+
+    const permissionCodes = Array.isArray(resolution!.permissionCodes)
+      ? resolution!.permissionCodes.filter(
+          (permission): permission is string => typeof permission === 'string',
+        )
+      : [];
+    if (cacheKey) {
+      try {
+        await this.cacheService.set(
+          cacheKey,
+          permissionCodes,
+          this.permissionCacheTtlSeconds,
+        );
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unknown Redis write error';
+
+        this.logger.warn(`Unable to write permission cache: ${message}`);
+      }
+    }
+
+    return permissionCodes;
+  }
+
+  private async getPermissionCacheVersion(): Promise<number | null> {
+    try {
+      const version = await this.cacheService.get<number>(
+        PERMISSION_CACHE_VERSION_KEY,
+      );
+      if (version === null || !Number.isInteger(version) || version < 0) {
+        return 0;
+      }
+
+      return version;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown permission cache version error';
+
+      this.logger.warn(`Unable to read permission cache version: ${message}`);
+      return null;
+    }
+  }
   private rethrowRpcError(error: unknown): never {
     const payload = this.extractRpcError(error);
 

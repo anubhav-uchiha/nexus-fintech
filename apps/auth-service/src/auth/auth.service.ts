@@ -2,8 +2,12 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import dayjs from 'dayjs';
@@ -20,7 +24,6 @@ import {
 } from '../../generated/prisma/enums';
 import { OtpService } from '../otp/otp.service';
 import {
-  LoginDto,
   LoginKafkaResponseDto,
   LogoutDto,
   RefreshKafkaResponseDto,
@@ -43,12 +46,16 @@ import { generatePassword } from './utils/password-generator';
 import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-password/verify-user.dto';
 import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
 import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { JwtPayload } from './jwt/interfaces/jwt-payload.interface';
 import { LoginKafkaDto } from '@nexus/common/auth/dto/login-kafka.dto';
+import { KAFKA_TOPICS, KafkaProducerService } from 'libs/kafka/src';
+import { AUDIT_PATTERNS, CreateAuditLogDto } from '@nexus/common/audit';
+import { isPeerTransferRole } from '@nexus/common/wallet/peer-transfer.constants';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly identityService: IdentityService,
     private readonly roleService: RoleService,
@@ -58,18 +65,17 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly cache: CacheService,
     private readonly sessionService: SessionService,
+    private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
-  async cacheTest() {
-    await this.cache.set('hello', { name: 'Anubhav' }, 60);
-    return this.cache.get('hello');
+  private queueAuditLog(data: Omit<CreateAuditLogDto, 'eventId'>): void {
+    void this.publishAuditLog(data);
   }
 
   async registerRole(dto: RegisterRoleDto) {
-    console.log('SERVICE HIT');
     const role = await this.roleService.findByName(dto.role);
 
-    if (!role) {
+    if (!role || !role.isActive) {
       throw new BadRequestException('Invalid role');
     }
 
@@ -123,7 +129,7 @@ export class AuthService {
       phoneNumber: dto.phoneNumber,
     });
 
-    const otp = await this.otpService.sendOtp({
+    const otpResult = await this.otpService.sendOtp({
       type: OtpType.PHONE,
       purpose: OtpPurpose.REGISTER,
       phoneNumber: dto.phoneNumber,
@@ -131,9 +137,8 @@ export class AuthService {
 
     return {
       draftId: draft.id,
-      otp,
       nextStep: 'VERIFY_PHONE_OTP',
-      message: 'OTP sent successfully',
+      ...otpResult,
     };
   }
 
@@ -194,17 +199,17 @@ export class AuthService {
       throw new BadRequestException('Phone number is not verified');
     }
 
-    const existingIdentity = await this.identityService.findByPanNumber(
-      dto.panNumber,
-    );
+    const panNumber = dto.panNumber.trim().toUpperCase();
+
+    const existingIdentity =
+      await this.identityService.findByPanNumber(panNumber);
 
     if (existingIdentity) {
       throw new ConflictException('PAN number already registered');
     }
 
-    const existingDraft = await this.identityService.findRegistrationDraftByPan(
-      dto.panNumber,
-    );
+    const existingDraft =
+      await this.identityService.findRegistrationDraftByPan(panNumber);
 
     if (existingDraft && existingDraft.id !== draft.id) {
       throw new ConflictException(
@@ -216,9 +221,9 @@ export class AuthService {
     // const panResult = await this.panService.verify(dto.panNumber);
 
     await this.identityService.updateRegistrationDraft(draft.id, {
-      panNumber: dto.panNumber,
-      isPanVerified: true,
-      registrationStep: 'PAN_VERIFIED',
+      panNumber,
+      isPanVerified: false,
+      registrationStep: RegistrationStep.PAN_VERIFIED,
     });
 
     return {
@@ -238,7 +243,7 @@ export class AuthService {
     if (
       draft.registrationStep !== RegistrationStep.PAN_VERIFIED ||
       !draft.isPhoneVerified ||
-      !draft.isPanVerified
+      !draft.panNumber
     ) {
       throw new BadRequestException(
         'Complete previous registration steps first.',
@@ -298,28 +303,50 @@ export class AuthService {
       },
     });
 
-    // 7. Send SMS (Implement Later)
+    const credentialEventId = `registration-credentials-${identity.id}`;
 
-    /*
-  await this.kafkaProducer.publish(KAFKA_TOPICS.SMS_SEND, {
-      phoneNumber: identity.phoneNumber,
-      message: `
-Welcome to KRT
+    let credentialsDeliveryQueued = false;
 
-Login ID : ${loginId}
-Password : ${password}
-MPIN : ${mpin}
+    try {
+      await this.kafkaProducer.publish(KAFKA_TOPICS.SMS_SEND, {
+        eventId: credentialEventId,
+        phoneNumber: identity.phoneNumber,
+        message: [
+          'Welcome to UmiPay',
+          '',
+          `Login ID: ${identity.loginId}`,
+          `Temporary Password: ${password}`,
+          `Temporary MPIN: ${mpin}`,
+          '',
+          'Please change your password and MPIN after your first login.',
+        ].join('\n'),
+      });
 
-Please change your password after first login.
-`
-  });
-  */
+      credentialsDeliveryQueued = true;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown credential notification error';
+
+      this.logger.error(
+        `Registration completed, but credentials could not be queued: ${message}`,
+      );
+    }
+
+    const showTemporaryCredentials = process.env.NODE_ENV === 'development';
+
     return {
       success: true,
-      message: 'Registration completed successfully.',
+      message: credentialsDeliveryQueued
+        ? 'Registration completed successfully. Credentials have been sent by SMS.'
+        : 'Registration completed, but credentials could not be sent. Use forgot password to create a new password.',
       loginId: identity.loginId,
-      temporaryPassword: password,
-      temporaryMpin: mpin,
+      credentialsDeliveryQueued,
+      ...(showTemporaryCredentials && {
+        temporaryPassword: password,
+        temporaryMpin: mpin,
+      }),
     };
   }
 
@@ -340,126 +367,187 @@ Please change your password after first login.
   }
 
   async login(dto: LoginKafkaDto): Promise<LoginKafkaResponseDto> {
-    const hasLatitude = dto.latitude !== undefined;
+    let auditIdentity: {
+      id: string;
+      loginId: string;
+      role: {
+        name: string;
+      };
+    } | null = null;
 
-    const hasLongitude = dto.longitude !== undefined;
+    try {
+      const hasLatitude = dto.latitude !== undefined;
+      const hasLongitude = dto.longitude !== undefined;
 
-    if (hasLatitude !== hasLongitude) {
-      throw new BadRequestException(
-        'Latitude and longitude must be provided together',
+      if (hasLatitude !== hasLongitude) {
+        throw new BadRequestException(
+          'Latitude and longitude must be provided together',
+        );
+      }
+
+      if (
+        !hasLatitude &&
+        (dto.locationAccuracy !== undefined ||
+          dto.locationCapturedAt !== undefined)
+      ) {
+        throw new BadRequestException(
+          'Location accuracy and capture time require latitude and longitude',
+        );
+      }
+
+      if (dto.loginWith !== 'PASSWORD' && dto.loginWith !== 'MPIN') {
+        throw new BadRequestException('Invalid login type');
+      }
+
+      await this.checkLoginRateLimit(dto);
+
+      const identity = await this.identityService.findByIdentifier(
+        dto.identifier,
       );
-    }
 
-    if (
-      !hasLatitude &&
-      (dto.locationAccuracy !== undefined ||
-        dto.locationCapturedAt !== undefined)
-    ) {
-      throw new BadRequestException(
-        'Location accuracy and capture time require latitude and longitude',
-      );
-    }
+      if (!identity) {
+        await this.recordFailedLoginAttempt(dto);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      auditIdentity = identity;
 
-    const identity = await this.identityService.findByIdentifier(
-      dto.identifier,
-    );
+      if (identity.status !== UserStatus.ACTIVE) {
+        throw new ForbiddenException(
+          `Account is ${identity.status.toLowerCase()}.`,
+        );
+      }
 
-    if (!identity) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+      if (!identity.role.isActive) {
+        throw new ForbiddenException('Account role is inactive');
+      }
 
-    if (identity.status !== UserStatus.ACTIVE) {
-      throw new ForbiddenException(
-        `Accound is ${identity.status.toLowerCase()}.`,
-      );
-    }
+      const credentialHash =
+        dto.loginWith === 'PASSWORD' ? identity.password : identity.mpin;
 
-    let isValid = false;
-
-    if (dto.loginWith === 'PASSWORD') {
-      isValid = await this.passwordService.verify(
-        identity.password,
+      const isValid = await this.passwordService.verify(
+        credentialHash,
         dto.password,
       );
-    } else if (dto.loginWith === 'MPIN') {
-      isValid = await this.passwordService.verify(identity.mpin, dto.password);
-    } else {
-      throw new BadRequestException('Invalid login type');
-    }
 
-    if (!isValid) {
-      throw new UnauthorizedException('Invalid Credentials');
-    }
+      if (!isValid) {
+        await this.recordFailedLoginAttempt(dto);
 
-    const location =
-      hasLatitude && hasLongitude
-        ? {
-            latitude: Number(dto.latitude!.toFixed(6)),
-            longitude: Number(dto.longitude!.toFixed(6)),
-            ...(dto.locationAccuracy !== undefined && {
-              locationAccuracy: dto.locationAccuracy,
-            }),
+        throw new UnauthorizedException('Invalid credentials');
+      }
 
-            locationCapturedAt: dto.locationCapturedAt
-              ? new Date(dto.locationCapturedAt)
-              : new Date(),
-          }
-        : undefined;
-    const sessionId = randomUUID();
-    const payload = {
-      sub: identity.id,
-      sid: sessionId,
-      username: identity.username,
-      email: identity.email,
-      role: identity.role.name,
-    };
+      await this.clearLoginAttempts(dto);
 
-    const tokens = await this.jwtService.generateTokens(payload);
+      const location =
+        hasLatitude && hasLongitude
+          ? {
+              latitude: Number(dto.latitude!.toFixed(6)),
+              longitude: Number(dto.longitude!.toFixed(6)),
+              ...(dto.locationAccuracy !== undefined && {
+                locationAccuracy: dto.locationAccuracy,
+              }),
 
-    await this.identityService.updateLastLogin(
-      identity.id,
-      location
-        ? {
-            latitude: location.latitude,
-            longitude: location.longitude,
-          }
-        : undefined,
-    );
-
-    const refreshExpiry = new Date();
-    refreshExpiry.setDate(refreshExpiry.getDate() + 7);
-
-    await this.sessionService.create({
-      id: sessionId,
-      identityId: identity.id,
-      refreshToken: tokens.refreshToken,
-      expiresAt: refreshExpiry,
-      ipAddress: dto.ipAddress,
-      userAgent: dto.userAgent,
-      device: dto.device,
-      ...(location && {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        locationAccuracy: location.locationAccuracy,
-        locationCapturedAt: location.locationCapturedAt,
-      }),
-    });
-
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      identity: {
-        id: identity.id,
+              locationCapturedAt: dto.locationCapturedAt
+                ? new Date(dto.locationCapturedAt)
+                : new Date(),
+            }
+          : undefined;
+      const sessionId = randomUUID();
+      const payload = {
+        sub: identity.id,
+        sid: sessionId,
         loginId: identity.loginId,
-        fullName: identity.fullName,
         username: identity.username,
         email: identity.email,
-        phoneNumber: identity.phoneNumber,
         role: identity.role.name,
-        status: identity.status,
-        preferredLoginMethod: identity.preferredLoginMethod,
-      },
-    };
+      };
+
+      const tokens = await this.jwtService.generateTokens(payload);
+
+      await this.sessionService.create({
+        id: sessionId,
+        identityId: identity.id,
+        refreshToken: tokens.refreshToken,
+        expiresAt: tokens.refreshExpiresAt,
+        ipAddress: dto.ipAddress,
+        userAgent: dto.userAgent,
+        device: dto.device,
+        ...(location && {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          locationAccuracy: location.locationAccuracy,
+          locationCapturedAt: location.locationCapturedAt,
+        }),
+      });
+
+      this.updateLastLoginInBackground(
+        identity.id,
+        location
+          ? {
+              latitude: location.latitude,
+              longitude: location.longitude,
+            }
+          : undefined,
+      );
+
+      this.queueAuditLog({
+        identityId: identity.id,
+        sessionId,
+        loginId: identity.loginId,
+        role: identity.role.name,
+        service: 'AUTH',
+        action: 'LOGIN_SUCCESS',
+        status: 'SUCCESS',
+        httpMethod: 'POST',
+        endpoint: '/auth/login',
+        statusCode: 200,
+        ipAddress: dto.ipAddress,
+        metadata: {
+          loginMethod: dto.loginWith,
+        },
+      });
+
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        identity: {
+          id: identity.id,
+          loginId: identity.loginId,
+          fullName: identity.fullName,
+          username: identity.username,
+          email: identity.email,
+          phoneNumber: identity.phoneNumber,
+          role: identity.role.name,
+          status: identity.status,
+          passwordChangedAt: identity.passwordChangedAt,
+          preferredLoginMethod: identity.preferredLoginMethod,
+        },
+      };
+    } catch (error) {
+      const statusCode =
+        error instanceof HttpException ? error.getStatus() : 500;
+
+      const reason =
+        error instanceof HttpException
+          ? error.message
+          : 'Unexpected login error';
+      this.queueAuditLog({
+        identityId: auditIdentity?.id,
+        loginId: auditIdentity?.loginId,
+        role: auditIdentity?.role.name,
+        service: 'AUTH',
+        action: 'LOGIN_FAILED',
+        status: 'FAILED',
+        httpMethod: 'POST',
+        endpoint: '/auth/login',
+        statusCode,
+        ipAddress: dto.ipAddress,
+        metadata: {
+          reason,
+          loginMethod: dto.loginWith,
+        },
+      });
+      throw error;
+    }
   }
 
   async sendPhoneOtp(dto: SendPhoneOtpDto) {
@@ -497,7 +585,23 @@ Please change your password after first login.
     );
   }
   async refresh(dto: RefreshTokenDto): Promise<RefreshKafkaResponseDto> {
-    const session = await this.sessionService.findValidSession(
+    let refreshPayload: JwtPayload;
+
+    try {
+      refreshPayload = await this.jwtService.verifyRefreshToken(
+        dto.refreshToken,
+      );
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    if (!refreshPayload.sid || !refreshPayload.sub) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const session = await this.sessionService.findValidSessionById(
+      refreshPayload.sid,
+      refreshPayload.sub,
       dto.refreshToken,
     );
 
@@ -505,23 +609,42 @@ Please change your password after first login.
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const payload: JwtPayload = {
+    if (
+      session.identity.status !== UserStatus.ACTIVE ||
+      !session.identity.role.isActive
+    ) {
+      await this.sessionService.revoke(session.id);
+
+      throw new UnauthorizedException('Session is no longer valid');
+    }
+
+    const nextPayload: JwtPayload = {
       sub: session.identity.id,
       sid: session.id,
+      loginId: session.identity.loginId,
       username: session.identity.username,
       email: session.identity.email,
       role: session.identity.role.name,
+      jti: randomUUID(),
     };
 
     const tokens = await this.jwtService.generateTokens(
-      payload,
+      nextPayload,
       session.expiresAt,
     );
 
-    await this.sessionService.updateRefreshToken(
+    const rotated = await this.sessionService.rotateRefreshToken(
       session.id,
+      dto.refreshToken,
       tokens.refreshToken,
     );
+
+    if (!rotated) {
+      throw new UnauthorizedException(
+        'Refresh token has already been used or is invalid',
+      );
+    }
+
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -540,185 +663,796 @@ Please change your password after first login.
 
   async changePassword(dto: {
     identityId: string;
+    sessionId: string;
+    role: string;
     currentPassword: string;
     newPassword: string;
   }) {
-    const user = await this.identityService.findById(dto.identityId);
+    let loginId: string | undefined;
+    try {
+      const user = await this.identityService.findById(dto.identityId);
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
 
-    const passwordMatch = await this.passwordService.verify(
-      user.password,
-      dto.currentPassword,
-    );
+      loginId = user.loginId;
 
-    if (!passwordMatch) {
-      throw new BadRequestException('Current password is incorrect');
-    }
-
-    if (dto.currentPassword === dto.newPassword) {
-      throw new BadRequestException(
-        'New password must be different from current password',
+      const passwordMatch = await this.passwordService.verify(
+        user.password,
+        dto.currentPassword,
       );
+
+      if (!passwordMatch) {
+        throw new BadRequestException('Current password is incorrect');
+      }
+
+      if (dto.currentPassword === dto.newPassword) {
+        throw new BadRequestException(
+          'New password must be different from current password',
+        );
+      }
+
+      const hashedPassword = await this.passwordService.hash(dto.newPassword);
+
+      const result =
+        await this.identityService.changePasswordAndRevokeOtherSessions({
+          identityId: dto.identityId,
+          currentSessionId: dto.sessionId,
+          expectedCurrentPasswordHash: user.password,
+          hashedPassword,
+        });
+
+      this.queueAuditLog({
+        identityId: dto.identityId,
+        sessionId: dto.sessionId,
+        loginId,
+        role: dto.role,
+        service: 'AUTH',
+        action: 'PASSWORD_CHANGE_SUCCESS',
+        status: 'SUCCESS',
+        httpMethod: 'POST',
+        endpoint: '/auth/change-password',
+        statusCode: 200,
+        metadata: {
+          revokedOtherSessionCount: result.revokedSessionCount,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Password changed successfully',
+        revokedOtherSessionCount: result.revokedSessionCount,
+      };
+    } catch (error) {
+      const statusCode =
+        error instanceof HttpException ? error.getStatus() : 500;
+
+      const reason =
+        error instanceof Error
+          ? error.message
+          : 'Unexpected password change error';
+
+      this.queueAuditLog({
+        identityId: dto.identityId,
+        sessionId: dto.sessionId,
+        loginId,
+        role: dto.role,
+        service: 'AUTH',
+        action: 'PASSWORD_CHANGE_FAILED',
+        status: 'FAILED',
+        httpMethod: 'POST',
+        endpoint: '/auth/change-password',
+        statusCode,
+        metadata: {
+          reason,
+        },
+      });
+      throw error;
     }
-
-    const hashedPassword = await this.passwordService.hash(dto.newPassword);
-
-    await this.identityService.updatePassword(dto.identityId, hashedPassword);
-
-    return {
-      message: 'Password changed successfully',
-    };
   }
 
   async changeMpin(dto: {
     identityId: string;
+    sessionId: string;
+    role: string;
     currentMpin: string;
     newMpin: string;
   }) {
-    const user = await this.identityService.findById(dto.identityId);
+    let loginId: string | undefined;
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    try {
+      const user = await this.identityService.findById(dto.identityId);
 
-    const mpinMatch = await this.passwordService.verify(
-      user.mpin,
-      dto.currentMpin,
-    );
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
 
-    if (!mpinMatch) {
-      throw new BadRequestException('Current MPIN is incorrect');
-    }
+      loginId = user.loginId;
 
-    if (dto.currentMpin === dto.newMpin) {
-      throw new BadRequestException(
-        'New MPIN must be different from current MPIN',
+      const mpinMatch = await this.passwordService.verify(
+        user.mpin,
+        dto.currentMpin,
       );
+
+      if (!mpinMatch) {
+        throw new BadRequestException('Current MPIN is incorrect');
+      }
+
+      if (dto.currentMpin === dto.newMpin) {
+        throw new BadRequestException(
+          'New MPIN must be different from current MPIN',
+        );
+      }
+
+      const hashedMpin = await this.passwordService.hash(dto.newMpin);
+
+      const result =
+        await this.identityService.changeMpinAndRevokeOtherSessions({
+          identityId: dto.identityId,
+          currentSessionId: dto.sessionId,
+          expectedCurrentMpinHash: user.mpin,
+          hashedMpin,
+        });
+
+      this.queueAuditLog({
+        identityId: dto.identityId,
+        sessionId: dto.sessionId,
+        loginId,
+        role: dto.role,
+        service: 'AUTH',
+        action: 'MPIN_CHANGE_SUCCESS',
+        status: 'SUCCESS',
+        httpMethod: 'POST',
+        endpoint: '/auth/change-mpin',
+        statusCode: 200,
+        metadata: {
+          revokedOtherSessionCount: result.revokedSessionCount,
+        },
+      });
+      return {
+        success: true,
+        message: 'MPIN changed successfully',
+        revokedOtherSessionCount: result.revokedSessionCount,
+      };
+    } catch (error) {
+      const statusCode =
+        error instanceof HttpException ? error.getStatus() : 500;
+
+      const reason =
+        error instanceof Error ? error.message : 'Unexpected MPIN change error';
+
+      this.queueAuditLog({
+        identityId: dto.identityId,
+        sessionId: dto.sessionId,
+        loginId,
+        role: dto.role,
+        service: 'AUTH',
+        action: 'MPIN_CHANGE_FAILED',
+        status: 'FAILED',
+        httpMethod: 'POST',
+        endpoint: '/auth/change-mpin',
+        statusCode,
+        metadata: {
+          reason,
+        },
+      });
+
+      throw error;
     }
-
-    const hashedMpin = await this.passwordService.hash(dto.newMpin);
-
-    await this.identityService.updateMpin(dto.identityId, hashedMpin);
-    return {
-      message: 'MPIN changed successfully',
-    };
   }
 
   async forgotPasswordVerifyUser(dto: VerifyForgotPasswordUserDto) {
-    const user = await this.identityService.findByLoginId(dto.loginId);
+    let auditIdentity: {
+      id: string;
+      loginId: string;
+      role: {
+        name: string;
+      };
+    } | null = null;
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+    try {
+      const user = await this.identityService.findByLoginId(dto.loginId.trim());
+
+      if (!user) {
+        throw new BadRequestException('Unable to verify account details');
+      }
+
+      auditIdentity = user;
+
+      const providedPan = dto.panNumber.trim().toUpperCase();
+      const storedPan = user.panNumber.trim().toUpperCase();
+
+      const providedAadhaarLast4 = dto.aadharLast4.trim();
+      const storedAadhaarLast4 = user.aadhaarNumber.slice(-4);
+
+      const panMatches = storedPan === providedPan;
+      const aadhaarMatches = storedAadhaarLast4 === providedAadhaarLast4;
+
+      if (!panMatches || !aadhaarMatches) {
+        throw new BadRequestException('Unable to verify account details');
+      }
+
+      const otpResult = await this.otpService.sendOtp({
+        type: OtpType.PHONE,
+        purpose: OtpPurpose.FORGOT_PASSWORD,
+        phoneNumber: user.phoneNumber,
+      });
+
+      const draft = await this.identityService.createPasswordResetDraft({
+        identityId: user.id,
+        expiresAt: dayjs().add(10, 'minute').toDate(),
+      });
+
+      this.queueAuditLog({
+        identityId: user.id,
+        loginId: user.loginId,
+        role: user.role.name,
+        service: 'AUTH',
+        action: 'PASSWORD_RESET_REQUEST_SUCCESS',
+        status: 'SUCCESS',
+        httpMethod: 'POST',
+        endpoint: '/auth/forgot-password/verify-user',
+        statusCode: 200,
+      });
+
+      return {
+        draftId: draft.id,
+        nextStep: 'VERIFY_OTP',
+        ...otpResult,
+      };
+    } catch (error) {
+      const statusCode =
+        error instanceof HttpException ? error.getStatus() : 500;
+
+      const reason =
+        error instanceof Error
+          ? error.message
+          : 'Unexpected password reset request error';
+
+      this.queueAuditLog({
+        identityId: auditIdentity?.id,
+
+        loginId: auditIdentity?.loginId ?? dto.loginId.slice(0, 50),
+
+        role: auditIdentity?.role.name,
+        service: 'AUTH',
+        action: 'PASSWORD_RESET_REQUEST_FAILED',
+        status: 'FAILED',
+        httpMethod: 'POST',
+        endpoint: '/auth/forgot-password/verify-user',
+        statusCode,
+
+        metadata: {
+          reason,
+        },
+      });
+
+      throw error;
     }
-
-    if (user.panNumber !== dto.panNumber) {
-      throw new BadRequestException('PAN number is incorrect');
-    }
-
-    const last4 = user.aadhaarNumber.slice(-4);
-
-    if (last4 !== dto.aadharLast4) {
-      throw new BadRequestException('Last 4 digits of Aadhaar are incorrect');
-    }
-
-    const otp = await this.otpService.sendOtp({
-      type: OtpType.PHONE,
-      purpose: OtpPurpose.FORGOT_PASSWORD,
-      phoneNumber: user.phoneNumber,
-    });
-
-    const draft = await this.identityService.createPasswordResetDraft({
-      identityId: user.id,
-      expiresAt: dayjs().add(10, 'minute').toDate(),
-    });
-
-    return {
-      draftId: draft.id,
-      nextStep: 'VERIFY_OTP',
-      otp,
-      message: 'OTP sent successfully',
-    };
   }
 
   async forgotPasswordVerifyOtp(dto: VerifyForgotPasswordOtpDto) {
-    const draft = await this.identityService.findPasswordResetDraft(
-      dto.draftId,
-    );
+    let auditIdentity: {
+      id: string;
+      loginId: string;
+      role: {
+        name: string;
+      };
+    } | null = null;
 
-    if (!draft) {
-      throw new NotFoundException('Password reset request not found');
+    try {
+      const draft = await this.identityService.findPasswordResetDraft(
+        dto.draftId,
+      );
+
+      if (!draft) {
+        throw new NotFoundException('Password reset request not found');
+      }
+
+      auditIdentity = draft.identity;
+
+      if (draft.expiresAt < new Date()) {
+        throw new BadRequestException('Password reset request has expired');
+      }
+
+      await this.otpService.verifyOtp(
+        OtpType.PHONE,
+        OtpPurpose.FORGOT_PASSWORD,
+        dto.otp,
+        draft.identity.phoneNumber,
+      );
+
+      await this.identityService.updatePasswordRestedDraft(draft.id, {
+        otpVerified: true,
+      });
+
+      this.queueAuditLog({
+        identityId: draft.identity.id,
+        loginId: draft.identity.loginId,
+        role: draft.identity.role.name,
+        service: 'AUTH',
+        action: 'PASSWORD_RESET_OTP_SUCCESS',
+        status: 'SUCCESS',
+        httpMethod: 'POST',
+        endpoint: '/auth/forgot-password/verify-otp',
+        statusCode: 200,
+      });
+
+      return {
+        draftId: draft.id,
+        nextStep: 'RESET_PASSWORD',
+        message: 'OTP verified successfully',
+      };
+    } catch (error) {
+      const statusCode =
+        error instanceof HttpException ? error.getStatus() : 500;
+
+      const reason =
+        error instanceof Error
+          ? error.message
+          : 'Unexpected OTP verification error';
+
+      this.queueAuditLog({
+        identityId: auditIdentity?.id,
+        loginId: auditIdentity?.loginId,
+        role: auditIdentity?.role.name,
+        service: 'AUTH',
+        action: 'PASSWORD_RESET_OTP_FAILED',
+        status: 'FAILED',
+        httpMethod: 'POST',
+        endpoint: '/auth/forgot-password/verify-otp',
+        statusCode,
+        metadata: {
+          reason,
+        },
+      });
+
+      throw error;
     }
-
-    if (draft.expiresAt < new Date()) {
-      throw new BadRequestException('Password reset request has expired');
-    }
-
-    await this.otpService.verifyOtp(
-      OtpType.PHONE,
-      OtpPurpose.FORGOT_PASSWORD,
-      dto.otp,
-      draft.identity.phoneNumber,
-    );
-
-    await this.identityService.updatePasswordRestedDraft(draft.id, {
-      otpVerified: true,
-    });
-
-    return {
-      draftId: draft.id,
-      nextStep: 'REST_PASSWORD',
-      message: 'OTP verified successfully',
-    };
   }
 
   async forgotPasswordReset(dto: ResetForgotPasswordDto) {
-    if (dto.newPassword !== dto.confirmPassword) {
-      throw new BadRequestException('Password do not match');
+    let auditIdentity: {
+      id: string;
+      loginId: string;
+      role: {
+        name: string;
+      };
+    } | null = null;
+
+    try {
+      const draft = await this.identityService.findPasswordResetDraft(
+        dto.draftId,
+      );
+
+      if (!draft) {
+        throw new NotFoundException('Password reset request not found');
+      }
+
+      auditIdentity = draft.identity;
+
+      if (dto.newPassword !== dto.confirmPassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
+
+      if (draft.expiresAt <= new Date()) {
+        throw new BadRequestException('Password reset request has expired');
+      }
+
+      if (!draft.otpVerified) {
+        throw new BadRequestException('OTP verification required');
+      }
+
+      const hashedPassword = await this.passwordService.hash(dto.newPassword);
+
+      const resetResult =
+        await this.identityService.resetPasswordWithVerifiedDraft({
+          draftId: draft.id,
+          identityId: draft.identityId,
+          hashedPassword,
+        });
+
+      this.queueAuditLog({
+        identityId: draft.identity.id,
+        loginId: draft.identity.loginId,
+        role: draft.identity.role.name,
+        service: 'AUTH',
+        action: 'PASSWORD_RESET_SUCCESS',
+        status: 'SUCCESS',
+        httpMethod: 'POST',
+        endpoint: '/auth/forgot-password/reset',
+        statusCode: 200,
+        metadata: {
+          revokedSessionCount: resetResult.revokedSessionCount,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Password reset successfully. Please login.',
+      };
+    } catch (error) {
+      const statusCode =
+        error instanceof HttpException ? error.getStatus() : 500;
+
+      const reason =
+        error instanceof Error
+          ? error.message
+          : 'Unexpected password reset error';
+
+      this.queueAuditLog({
+        identityId: auditIdentity?.id,
+        loginId: auditIdentity?.loginId,
+        role: auditIdentity?.role.name,
+        service: 'AUTH',
+        action: 'PASSWORD_RESET_FAILED',
+        status: 'FAILED',
+        httpMethod: 'POST',
+        endpoint: '/auth/forgot-password/reset',
+        statusCode,
+        metadata: {
+          reason,
+        },
+      });
+
+      throw error;
     }
-    const draft = await this.identityService.findPasswordResetDraft(
-      dto.draftId,
-    );
+  }
 
-    if (!draft) {
-      throw new NotFoundException('Pasword reset request not found');
+  async resolvePeerTransferParticipants(dto: {
+    senderUserId: string;
+    receiverLoginId: string;
+  }) {
+    if (!dto.senderUserId?.trim()) {
+      throw new UnauthorizedException('Invalid authenticated user');
     }
 
-    if (draft.expiresAt < new Date()) {
-      throw new BadRequestException('Password reset request expired');
+    if (!dto.receiverLoginId?.trim()) {
+      throw new BadRequestException('Receiver login ID is required');
     }
 
-    if (!draft.otpVerified) {
-      throw new BadRequestException('OTP verification required');
+    const { sender, receiver } =
+      await this.identityService.findPeerTransferParticipants(
+        dto.senderUserId,
+        dto.receiverLoginId,
+      );
+
+    if (!sender) {
+      throw new UnauthorizedException('Sender account is no longer available');
     }
 
-    const hashedPassword = await this.passwordService.hash(dto.newPassword);
+    if (!receiver) {
+      throw new NotFoundException('Receiver not found');
+    }
 
-    await this.identityService.updatePassword(draft.identityId, hashedPassword);
+    if (sender.id === receiver.id) {
+      throw new BadRequestException(
+        'Sender and receiver cannot be the same user',
+      );
+    }
 
-    await this.sessionService.revokeAll(draft.identityId);
+    if (sender.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('Sender account is not active');
+    }
 
-    await this.identityService.deletePasswordResetDraft(draft.id);
+    if (receiver.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('Receiver account is not active');
+    }
+
+    if (!sender.role.isActive || !receiver.role.isActive) {
+      throw new ForbiddenException('Sender or receiver role is inactive');
+    }
+
+    if (sender.roleId !== receiver.roleId) {
+      throw new ForbiddenException(
+        'Wallet transfers are allowed only between users with the same role',
+      );
+    }
 
     return {
-      success: true,
-      message: 'Password reset successfully. Please login.',
+      sender: {
+        id: sender.id,
+        loginId: sender.loginId,
+        fullName: sender.fullName,
+        role: sender.role.name,
+      },
+
+      receiver: {
+        id: receiver.id,
+        loginId: receiver.loginId,
+        fullName: receiver.fullName,
+        role: receiver.role.name,
+      },
     };
   }
 
   async logout(dto: LogoutDto) {
-    const session = await this.sessionService.findByRefreshToken(
+    let refreshPayload: JwtPayload;
+
+    try {
+      refreshPayload = await this.jwtService.verifyRefreshToken(
+        dto.refreshToken,
+      );
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    if (!refreshPayload.sid || !refreshPayload.sub) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const session = await this.sessionService.findValidSessionById(
+      refreshPayload.sid,
+      refreshPayload.sub,
       dto.refreshToken,
     );
+
     if (!session) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+
     await this.sessionService.revoke(session.id);
+
+    this.queueAuditLog({
+      identityId: session.identity.id,
+      sessionId: session.id,
+      loginId: session.identity.loginId,
+      role: session.identity.role.name,
+      service: 'AUTH',
+      action: 'LOGOUT_SUCCESS',
+      status: 'SUCCESS',
+      httpMethod: 'POST',
+      endpoint: '/auth/logout',
+      statusCode: 200,
+      metadata: {
+        revokedSessionId: session.id,
+      },
+    });
 
     return {
       message: 'Logged out successfully',
     };
+  }
+
+  private async publishAuditLog(
+    data: Omit<CreateAuditLogDto, 'eventId'>,
+  ): Promise<void> {
+    try {
+      await this.kafkaProducer.publish(AUDIT_PATTERNS.CREATE_LOG, {
+        eventId: randomUUID(),
+        ...data,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown audit publishing error';
+
+      this.logger.error(
+        `Failed to publish authentication audit log: ${message}`,
+      );
+    }
+  }
+
+  private getPositiveLoginConfig(key: string, fallback: number): number {
+    const configuredValue = Number(
+      this.configService.get<number | string>(key) ?? fallback,
+    );
+    if (!Number.isInteger(configuredValue) || configuredValue <= 0) {
+      this.logger.warn(
+        `Invalid login configuration for ${key}. Using ${fallback}.`,
+      );
+      return fallback;
+    }
+    return configuredValue;
+  }
+
+  private getLoginRateLimitKeys(
+    dto: Pick<LoginKafkaDto, 'identifier' | 'ipAddress'>,
+  ): {
+    identifierAttempts: string;
+    identifierLock: string;
+    ipAttempts?: string;
+    ipLock?: string;
+  } {
+    const identifier = dto.identifier.trim().toLowerCase();
+    const identifierHash = createHash('sha256')
+      .update(identifier)
+      .digest('hex');
+    const ipAddress = dto.ipAddress?.trim();
+    const ipHash = ipAddress
+      ? createHash('sha256').update(ipAddress).digest('hex')
+      : undefined;
+    return {
+      identifierAttempts: `auth:login:attempts:identifier:${identifierHash}`,
+      identifierLock: `auth:login:lock:identifier:${identifierHash}`,
+      ...(ipHash && {
+        ipAttempts: `auth:login:attempts:ip:${ipHash}`,
+        ipLock: `auth:login:lock:ip:${ipHash}`,
+      }),
+    };
+  }
+
+  private createLoginRateLimitException(
+    remainingSeconds: number,
+  ): HttpException {
+    const seconds = Math.max(1, remainingSeconds);
+
+    return new HttpException(
+      {
+        statusCode: HttpStatus.TOO_MANY_REQUESTS,
+        message: `Too many failed login attempts. Please try again in ${seconds} seconds.`,
+        error: 'Too Many Requests',
+      },
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+  }
+
+  private async checkLoginRateLimit(
+    dto: Pick<LoginKafkaDto, 'identifier' | 'ipAddress'>,
+  ): Promise<void> {
+    const keys = this.getLoginRateLimitKeys(dto);
+
+    try {
+      const [identifierLockTtl, ipLockTtl] = await Promise.all([
+        this.cache.ttl(keys.identifierLock),
+
+        keys.ipLock ? this.cache.ttl(keys.ipLock) : Promise.resolve(-2),
+      ]);
+
+      if (identifierLockTtl > 0 || ipLockTtl > 0) {
+        throw this.createLoginRateLimitException(
+          Math.max(identifierLockTtl, ipLockTtl),
+        );
+      }
+
+      if (identifierLockTtl === -1 || ipLockTtl === -1) {
+        const lockSeconds = this.getPositiveLoginConfig(
+          'AUTH_LOGIN_LOCK_SECONDS',
+          900,
+        );
+
+        throw this.createLoginRateLimitException(lockSeconds);
+      }
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown login rate-limit error';
+
+      this.logger.error(`Unable to check login rate limit: ${message}`);
+
+      throw new ServiceUnavailableException(
+        'Login service is temporarily unavailable',
+      );
+    }
+  }
+
+  private async recordFailedLoginAttempt(
+    dto: Pick<LoginKafkaDto, 'identifier' | 'ipAddress'>,
+  ): Promise<void> {
+    const keys = this.getLoginRateLimitKeys(dto);
+
+    const maxIdentifierAttempts = this.getPositiveLoginConfig(
+      'AUTH_LOGIN_MAX_ATTEMPTS',
+      5,
+    );
+
+    const maxIpAttempts = this.getPositiveLoginConfig(
+      'AUTH_LOGIN_IP_MAX_ATTEMPTS',
+      30,
+    );
+
+    const attemptsWindowSeconds = this.getPositiveLoginConfig(
+      'AUTH_LOGIN_ATTEMPT_WINDOW_SECONDS',
+      900,
+    );
+
+    const lockSeconds = this.getPositiveLoginConfig(
+      'AUTH_LOGIN_LOCK_SECONDS',
+      900,
+    );
+
+    try {
+      const [identifierAttempts, ipAttempts] = await Promise.all([
+        this.cache.incrementWithExpiry(
+          keys.identifierAttempts,
+          attemptsWindowSeconds,
+        ),
+
+        keys.ipAttempts
+          ? this.cache.incrementWithExpiry(
+              keys.ipAttempts,
+              attemptsWindowSeconds,
+            )
+          : Promise.resolve(0),
+      ]);
+
+      const shouldLockIdentifier = identifierAttempts >= maxIdentifierAttempts;
+
+      const shouldLockIp = Boolean(keys.ipLock) && ipAttempts >= maxIpAttempts;
+
+      if (!shouldLockIdentifier && !shouldLockIp) {
+        return;
+      }
+
+      await Promise.all([
+        shouldLockIdentifier
+          ? this.cache.setIfNotExists(
+              keys.identifierLock,
+              'locked',
+              lockSeconds,
+            )
+          : Promise.resolve(false),
+
+        shouldLockIp && keys.ipLock
+          ? this.cache.setIfNotExists(keys.ipLock, 'locked', lockSeconds)
+          : Promise.resolve(false),
+      ]);
+
+      throw this.createLoginRateLimitException(lockSeconds);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown failed-login tracking error';
+
+      this.logger.error(`Unable to record failed login attempt: ${message}`);
+
+      throw new ServiceUnavailableException(
+        'Login service is temporarily unavailable',
+      );
+    }
+  }
+
+  private async clearLoginAttempts(
+    dto: Pick<LoginKafkaDto, 'identifier' | 'ipAddress'>,
+  ): Promise<void> {
+    const keys = this.getLoginRateLimitKeys(dto);
+
+    try {
+      await this.cache.del(keys.identifierAttempts, keys.identifierLock);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown login attempt cleanup error';
+
+      this.logger.error(`Unable to clear login attempts: ${message}`);
+
+      throw new ServiceUnavailableException(
+        'Login service is temporarily unavailable',
+      );
+    }
+  }
+
+  private updateLastLoginInBackground(
+    identityId: string,
+    location?: {
+      latitude: number;
+      longitude: number;
+    },
+  ): void {
+    void this.identityService
+      .updateLastLogin(identityId, location)
+      .catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Unknown last-login update error';
+
+        this.logger.error(
+          `Failed to update last login for identity ${identityId}: ${message}`,
+        );
+      });
   }
 }

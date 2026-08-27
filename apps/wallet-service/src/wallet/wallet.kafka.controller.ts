@@ -3,7 +3,10 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { WalletService } from './wallet.service';
 import { WALLET_PATTERNS } from '@nexus/common/wallet/wallet.patterns';
 import { AddMoneyDto } from '@nexus/common/transaction/dto/add-money.dto';
-import { TransferMoneyDto } from '@nexus/common/transaction/dto/transfer-money.dto';
+import {
+  PeerTransferCommandDto,
+  TransferMoneyDto,
+} from '@nexus/common/transaction/dto/transfer-money.dto';
 import { CalculateCommissionDto } from '@nexus/common/commission/dto/calculate-commission.dto';
 
 @Controller()
@@ -26,7 +29,7 @@ export class WalletKafkaController {
   }
 
   @MessagePattern(WALLET_PATTERNS.TRANSFER)
-  async transferMoney(@Payload() dto: TransferMoneyDto) {
+  async transferMoney(@Payload() dto: PeerTransferCommandDto) {
     return this.walletService.transferMoney(dto);
   }
 

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { WalletServiceModule } from './wallet-service.module';
 import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
+import { HttpToRpcExceptionInterceptor } from '@nexus/common/interceptors/http-to-rpc-exception.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(WalletServiceModule);
@@ -31,6 +32,7 @@ async function bootstrap() {
     }),
   });
 
+  app.useGlobalInterceptors(new HttpToRpcExceptionInterceptor());
   await app.startAllMicroservices();
 
   const port = config.get<number>('WALLET_SERVICE_PORT') ?? 6004;

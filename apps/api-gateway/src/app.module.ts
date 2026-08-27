@@ -20,8 +20,11 @@ import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
 import { PackageModule } from './package/package.module';
 import { VimopayAepsModule } from './aeps/vimopay/vimopay-aeps.module';
-
-// import { EkoServiceModule } from 'apps/aeps-service/src/eko/eko.module';
+import { AuditModule } from './audit/audit.module';
+import redisConfig from '@nexus/config/configs/redis.config';
+import { CacheModule } from 'libs/cache/src';
+import { APP_GUARD } from '@nestjs/core';
+import { RateLimitGuard } from './common/rate-limit/rate-limit.guard';
 
 @Module({
   imports: [
@@ -35,12 +38,13 @@ import { VimopayAepsModule } from './aeps/vimopay/vimopay-aeps.module';
         'apps/api-gateway/.env',
       ],
 
-      load: [appConfig],
+      load: [appConfig, redisConfig],
 
       validationSchema: envValidationSchema,
     }),
 
     AppConfigModule,
+    CacheModule,
     LoggerModule,
     AuthModule,
     KycModule,
@@ -57,6 +61,13 @@ import { VimopayAepsModule } from './aeps/vimopay/vimopay-aeps.module';
     PermissionModule,
     PackageModule,
     VimopayAepsModule,
+    AuditModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RateLimitGuard,
+    },
   ],
 })
 export class AppModule {}

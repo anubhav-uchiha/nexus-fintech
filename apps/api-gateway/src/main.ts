@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { ValidationPipe } from '@nestjs/common';
+<<<<<<< Updated upstream
 import { ensureKafkaReplyTopics } from './kafka-topics';
 
 function getKafkaBrokers(config: ConfigService): string[] {
@@ -16,6 +17,10 @@ function getKafkaBrokers(config: ConfigService): string[] {
     .map((broker) => broker.trim())
     .filter(Boolean);
 }
+=======
+import { AuditMiddleware } from './audit/audit.middleware';
+import { RpcToHttpExceptionInterceptor } from './common/interceptors/rpc-to-http-exception';
+>>>>>>> Stashed changes
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -24,7 +29,7 @@ async function bootstrap() {
 
   const allowedOrigins = (
     config.get<string>('CORS_ORIGINS') ??
-    'http://localhost:3000,http://localhost:5173,http://localhost:4200,http://192.168.1.11:8081,https://hoppscotch.io'
+    'http://localhost:3000,http://localhost:5173,http://localhost:4200,http://192.168.1.16:8081,https://hoppscotch.io'
   )
     .split(',')
     .map((origin) => origin.trim().replace(/\/+$/, ''))
@@ -71,9 +76,15 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalInterceptors(new RpcToHttpExceptionInterceptor());
+
   app.use(cookieParser());
 
+  const auditMiddleware = app.get(AuditMiddleware);
+  app.use(auditMiddleware.use.bind(auditMiddleware));
+
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+<<<<<<< Updated upstream
 
   // ClientKafka subscribes to reply topics in onModuleInit. Create every reply
   // topic before app.listen() triggers those hooks, so a fresh Kafka cluster can
@@ -84,8 +95,9 @@ async function bootstrap() {
   );
   await ensureKafkaReplyTopics(getKafkaBrokers(config), replyTopicPartitions);
 
+=======
+>>>>>>> Stashed changes
   const port = config.get<number>('app.gateway.port') ?? 8000;
-
   await app.listen(port, '0.0.0.0');
 
   console.log(`🚀 API Gateway running on http://localhost:${port}`);

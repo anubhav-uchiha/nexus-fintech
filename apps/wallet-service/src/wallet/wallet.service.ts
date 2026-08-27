@@ -4,9 +4,31 @@ import { firstValueFrom } from 'rxjs';
 
 import { TRANSACTION_PATTERNS } from '@nexus/common/transaction/transaction.patterns';
 import { AddMoneyDto } from '@nexus/common/transaction/dto/add-money.dto';
-import { TransferMoneyDto } from '@nexus/common/transaction/dto/transfer-money.dto';
+import {
+  PeerTransferCommandDto,
+  TransferMoneyDto,
+  TransferWalletType,
+} from '@nexus/common/transaction/dto/transfer-money.dto';
 import { COMMISSION_PATTERNS } from '@nexus/common/commission/commission.patterns';
 import { CalculateCommissionDto } from '@nexus/common/commission/dto/calculate-commission.dto';
+import { AUTH_PATTERNS } from '@nexus/common';
+import { isPeerTransferRole } from '@nexus/common/wallet/peer-transfer.constants';
+
+type PeerTransferParticipants = {
+  sender: {
+    id: string;
+    loginId: string;
+    fullName: string;
+    role: string;
+  };
+
+  receiver: {
+    id: string;
+    loginId: string;
+    fullName: string;
+    role: string;
+  };
+};
 
 @Injectable()
 export class WalletService implements OnModuleInit {
@@ -15,6 +37,8 @@ export class WalletService implements OnModuleInit {
     private readonly transactionClient: ClientKafka,
     @Inject('COMMISSION_SERVICE')
     private readonly commissionClient: ClientKafka,
+    @Inject('AUTH_SERVICE')
+    private readonly authClient: ClientKafka,
   ) {}
 
   async onModuleInit() {
@@ -31,6 +55,16 @@ export class WalletService implements OnModuleInit {
     );
 
     this.commissionClient.subscribeToResponseOf(COMMISSION_PATTERNS.CALCULATE);
+
+    this.authClient.subscribeToResponseOf(
+      AUTH_PATTERNS.RESOLVE_PEER_TRANSFER_PARTICIPANTS,
+    );
+
+    await Promise.all([
+      this.transactionClient.connect(),
+      this.commissionClient.connect(),
+      this.authClient.connect(),
+    ]);
   }
 
   async addMoney(dto: AddMoneyDto, role: string) {
@@ -154,13 +188,52 @@ export class WalletService implements OnModuleInit {
       },
     };
   }
-  async transferMoney(dto: TransferMoneyDto) {
+  async transferMoney(dto: PeerTransferCommandDto) {
     try {
+      const participants = await firstValueFrom(
+        this.authClient.send<PeerTransferParticipants>(
+          AUTH_PATTERNS.RESOLVE_PEER_TRANSFER_PARTICIPANTS,
+          {
+            senderUserId: dto.senderUserId,
+            receiverLoginId: dto.receiverLoginId,
+          },
+        ),
+      );
+      const senderRole = participants.sender.role;
+      const receiverRole = participants.receiver.role;
+
+      if (!isPeerTransferRole(senderRole)) {
+        throw new RpcException({
+          status: 403,
+          message: 'Your role is not allowed to perform peer transfers',
+        });
+      }
+
+      if (senderRole !== receiverRole) {
+        throw new RpcException({
+          status: 403,
+          message:
+            'Wallet transfers are allowed only between users with the same role',
+        });
+      }
+
+      const transferDto: TransferMoneyDto = {
+        senderUserId: participants.sender.id,
+        receiverUserId: participants.receiver.id,
+        senderLoginId: participants.sender.loginId,
+        receiverLoginId: participants.receiver.loginId,
+        senderRole,
+        receiverRole,
+        walletType: TransferWalletType.MAIN,
+        amount: dto.amount,
+        idempotencyKey: dto.idempotencyKey,
+      };
+
       return await firstValueFrom(
-        this.transactionClient.send(TRANSACTION_PATTERNS.TRANSFER, dto),
+        this.transactionClient.send(TRANSACTION_PATTERNS.TRANSFER, transferDto),
       );
     } catch (error: any) {
-      console.error('TRANSACTION SERVICE ERROR:', error);
+      console.error('PEER TRANSFER ERROR:', error);
 
       let rpcError = error;
 

@@ -2,13 +2,15 @@ import {
   HttpException,
   Inject,
   Injectable,
-  InternalServerErrorException,
   OnModuleInit,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { AddMoneyDto } from '@nexus/common/transaction/dto/add-money.dto';
-import { TransferMoneyDto } from '@nexus/common/transaction/dto/transfer-money.dto';
+import {
+  PeerTransferCommandDto,
+  PeerTransferRequestDto,
+} from '@nexus/common/transaction/dto/transfer-money.dto';
 import { WALLET_PATTERNS } from '@nexus/common/wallet/wallet.patterns';
 import { CalculateCommissionDto } from '@nexus/common/commission/dto/calculate-commission.dto';
 
@@ -58,10 +60,22 @@ export class WalletGatewayService implements OnModuleInit {
     }
   }
 
-  async transferMoney(dto: TransferMoneyDto) {
+  async transferMoney(
+    dto: PeerTransferRequestDto,
+    senderUserId: string,
+    idempotencyKey: string,
+  ) {
     try {
+      const command: PeerTransferCommandDto = {
+        senderUserId,
+        receiverLoginId: dto.receiverLoginId.trim().toUpperCase(),
+        amount: dto.amount,
+        description: dto.description?.trim(),
+        idempotencyKey,
+      };
+
       return await firstValueFrom(
-        this.walletClient.send(WALLET_PATTERNS.TRANSFER, dto),
+        this.walletClient.send(WALLET_PATTERNS.TRANSFER, command),
       );
     } catch (error: any) {
       throw this.handleRpcError(error, 'Unable to transfer money');

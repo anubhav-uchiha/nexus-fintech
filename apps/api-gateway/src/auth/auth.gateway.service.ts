@@ -1,4 +1,11 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  GatewayTimeoutException,
+  Inject,
+  Injectable,
+  Logger,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import {
   ChangeMpinDto,
@@ -43,17 +50,110 @@ import {
   ROLE_REGISTER_PERMISSION_PATTERNS,
   UpdateRoleRegisterPermissionStatusDto,
 } from '@nexus/common/role-register-permission';
-import { firstValueFrom } from 'rxjs';
+import { Observable, timeout, TimeoutError, firstValueFrom } from 'rxjs';
 import { RequestMetadata } from './utils/request-metadata.util';
+import { ConfigService } from '@nestjs/config';
+import { CacheService } from 'libs/cache/src';
+import { PERMISSION_CACHE_VERSION_KEY } from './constants/permission-cache.constants';
 
 @Injectable()
 export class AuthGatewayService implements OnModuleInit {
+  private readonly logger = new Logger(AuthGatewayService.name);
+
+  private activeRequests = 0;
+
+  private readonly maxInFlightRequests: number;
+
+  private readonly requestTimeoutMs: number;
   constructor(
     @Inject('AUTH_SERVICE')
     private readonly client: ClientKafka,
-  ) {}
+    private readonly configService: ConfigService,
+    private readonly cacheService: CacheService,
+  ) {
+    const configuredTimeout = Number(
+      this.configService.get<string | number>(
+        'AUTH_KAFKA_REQUEST_TIMEOUT_MS',
+      ) ?? 10000,
+    );
+    this.requestTimeoutMs =
+      Number.isInteger(configuredTimeout) && configuredTimeout > 0
+        ? configuredTimeout
+        : 10000;
 
-  async onModuleInit() {
+    const configuredMaxInFlight = Number(
+      this.configService.get<string | number>(
+        'AUTH_KAFKA_MAX_IN_FLIGHT_REQUESTS',
+      ) ?? 200,
+    );
+
+    this.maxInFlightRequests =
+      Number.isInteger(configuredMaxInFlight) && configuredMaxInFlight > 0
+        ? configuredMaxInFlight
+        : 200;
+  }
+
+  private async withTimeout<T>(source: Observable<T>): Promise<T> {
+    if (this.activeRequests >= this.maxInFlightRequests) {
+      throw new ServiceUnavailableException(
+        'Authentication service is handling the maximum number of requests',
+      );
+    }
+
+    this.activeRequests += 1;
+    try {
+      return await firstValueFrom(
+        source.pipe(
+          timeout({
+            first: this.requestTimeoutMs,
+          }),
+        ),
+      );
+    } catch (error) {
+      if (error instanceof TimeoutError) {
+        this.logger.warn(
+          `Auth Service request timed out after ${this.requestTimeoutMs}ms`,
+        );
+
+        throw new GatewayTimeoutException(
+          'Authentication service did not respond in time',
+        );
+      }
+
+      throw error;
+    } finally {
+      this.activeRequests = Math.max(0, this.activeRequests - 1);
+    }
+  }
+
+  private async advancePermissionCacheVersion(): Promise<void> {
+    try {
+      const version = await this.cacheService.increment(
+        PERMISSION_CACHE_VERSION_KEY,
+      );
+
+      this.logger.log(`Permission cache version advanced to ${version}`);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown permission cache invalidation error';
+
+      this.logger.error(`Unable to invalidate permission cache: ${message}`);
+    }
+  }
+
+  private async withPermissionCacheInvalidation<T>(
+    source: Observable<T>,
+  ): Promise<T> {
+    const result = await this.withTimeout(source);
+
+    await this.advancePermissionCacheVersion();
+
+    return result;
+  }
+
+  async onModuleInit(): Promise<void> {
     this.client.subscribeToResponseOf(AUTH_PATTERNS.REGISTER_ROLE);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.REGISTER_SEND_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.REGISTER_VERIFY_OTP);
@@ -70,10 +170,10 @@ export class AuthGatewayService implements OnModuleInit {
     this.client.subscribeToResponseOf(
       AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_USER,
     );
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.CHANGE_LOGIN_METHOD);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.FORGOT_PASSWORD_RESET);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.LOGOUT);
-    this.client.subscribeToResponseOf(AUTH_PATTERNS.CACHE_TEST);
 
     for (const pattern of Object.values(ROLE_PATTERNS)) {
       this.client.subscribeToResponseOf(pattern);
@@ -135,34 +235,33 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   registerRole(dto: any) {
-    console.log('Sending to kafka', dto);
-    return firstValueFrom(this.client.send(AUTH_PATTERNS.REGISTER_ROLE, dto));
+    return this.withTimeout(this.client.send(AUTH_PATTERNS.REGISTER_ROLE, dto));
   }
 
   registerSendOtp(dto: any) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.REGISTER_SEND_OTP, dto),
     );
   }
 
   registerVerifyOtp(dto: any) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.REGISTER_VERIFY_OTP, dto),
     );
   }
 
   registerPan(dto: any) {
-    return firstValueFrom(this.client.send(AUTH_PATTERNS.REGISTER_PAN, dto));
+    return this.withTimeout(this.client.send(AUTH_PATTERNS.REGISTER_PAN, dto));
   }
 
   registerDetails(dto: any) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.REGISTER_DETAILS, dto),
     );
   }
 
   changeLoginMethod(dto: ChangeLoginMethodDto, identityId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.CHANGE_LOGIN_METHOD, {
         identityId,
         ...dto,
@@ -171,116 +270,132 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   login(dto: LoginDto, metadata: RequestMetadata) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.LOGIN, {
         ...dto,
         ipAddress: metadata.ipAddress,
-
         userAgent: metadata.userAgent,
-
         device: metadata.device,
       }),
     );
   }
 
   sendPhoneOtp(dto: any) {
-    return firstValueFrom(this.client.send(AUTH_PATTERNS.SEND_PHONE_OTP, dto));
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.SEND_PHONE_OTP, dto),
+    );
   }
 
   sendEmailOtp(dto: any) {
-    return firstValueFrom(this.client.send(AUTH_PATTERNS.SEND_EMAIL_OTP, dto));
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.SEND_EMAIL_OTP, dto),
+    );
   }
 
   verifyPhoneOtp(dto: any) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.VERIFY_PHONE_OTP, dto),
     );
   }
 
   verifyEmailOtp(dto: any) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.VERIFY_EMAIL_OTP, dto),
     );
   }
 
   refreshToken(dto: RefreshTokenDto) {
-    return firstValueFrom(this.client.send(AUTH_PATTERNS.REFRESH_TOKEN, dto));
+    return this.withTimeout(this.client.send(AUTH_PATTERNS.REFRESH_TOKEN, dto));
   }
 
-  changePassword(dto: ChangePasswordDto, identityId: string) {
-    return firstValueFrom(
+  changePassword(
+    dto: ChangePasswordDto,
+    identityId: string,
+    sessionId: string,
+    role: string,
+  ) {
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.CHANGE_PASSWORD, {
         identityId,
+        sessionId,
+        role,
         ...dto,
       }),
     );
   }
 
-  changeMpin(dto: ChangeMpinDto, identityId: string) {
-    return firstValueFrom(
+  changeMpin(
+    dto: ChangeMpinDto,
+    identityId: string,
+    sessionId: string,
+    role: string,
+  ) {
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.CHANGE_MPIN, {
         identityId,
+        sessionId,
+        role,
         ...dto,
       }),
     );
   }
 
   forgotPasswordVerifyUser(dto: VerifyForgotPasswordUserDto) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_USER, dto),
     );
   }
 
   forgotPasswordVerifyOtp(dto: VerifyForgotPasswordOtpDto) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_OTP, dto),
     );
   }
 
   forgotPasswordReset(dto: ResetForgotPasswordDto) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.FORGOT_PASSWORD_RESET, dto),
     );
   }
 
   logout(dto: LogoutDto) {
-    return firstValueFrom(this.client.send(AUTH_PATTERNS.LOGOUT, dto));
+    return this.withTimeout(this.client.send(AUTH_PATTERNS.LOGOUT, dto));
   }
 
   createRole(dto: CreateRoleDto) {
-    return firstValueFrom(this.client.send(ROLE_PATTERNS.CREATE, dto));
+    return this.withTimeout(this.client.send(ROLE_PATTERNS.CREATE, dto));
   }
 
   findAllRoles() {
-    return firstValueFrom(this.client.send(ROLE_PATTERNS.FIND_ALL, {}));
+    return this.withTimeout(this.client.send(ROLE_PATTERNS.FIND_ALL, {}));
   }
 
   findRoleById(id: string) {
-    return firstValueFrom(this.client.send(ROLE_PATTERNS.FIND_BY_ID, { id }));
+    return this.withTimeout(this.client.send(ROLE_PATTERNS.FIND_BY_ID, { id }));
   }
 
   updateRole(id: string, dto: UpdateRoleDto) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(ROLE_PATTERNS.UPDATE, { id, ...dto }),
     );
   }
 
   updateRoleStatus(id: string, dto: UpdateRoleStatusDto) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(ROLE_PATTERNS.UPDATE_STATUS, { id, ...dto }),
     );
   }
 
   createPermission(dto: CreatePermissionDto) {
-    return firstValueFrom(this.client.send(PERMISSION_PATTERNS.CREATE, dto));
+    return this.withTimeout(this.client.send(PERMISSION_PATTERNS.CREATE, dto));
   }
 
   findAllPermissions() {
-    return firstValueFrom(this.client.send(PERMISSION_PATTERNS.FIND_ALL, {}));
+    return this.withTimeout(this.client.send(PERMISSION_PATTERNS.FIND_ALL, {}));
   }
 
   findPermissionById(id: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(PERMISSION_PATTERNS.FIND_BY_ID, {
         id,
       }),
@@ -288,7 +403,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   updatePermission(id: string, dto: UpdatePermissionDto) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(PERMISSION_PATTERNS.UPDATE, {
         id,
         ...dto,
@@ -297,7 +412,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   updatePermissionStatus(id: string, dto: UpdatePermissionStatusDto) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(PERMISSION_PATTERNS.UPDATE_STATUS, {
         id,
         ...dto,
@@ -306,21 +421,21 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   createPackage(dto: CreatePackageDto) {
-    return firstValueFrom(this.client.send(PACKAGE_PATTERNS.CREATE, dto));
+    return this.withTimeout(this.client.send(PACKAGE_PATTERNS.CREATE, dto));
   }
 
   findAllPackages() {
-    return firstValueFrom(this.client.send(PACKAGE_PATTERNS.FIND_ALL, {}));
+    return this.withTimeout(this.client.send(PACKAGE_PATTERNS.FIND_ALL, {}));
   }
 
   findPackageById(id: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(PACKAGE_PATTERNS.FIND_BY_ID, { id }),
     );
   }
 
   updatePackage(id: string, dto: UpdatePackageDto) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(PACKAGE_PATTERNS.UPDATE, {
         id,
         ...dto,
@@ -329,7 +444,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   updatePackageStatus(id: string, dto: UpdatePackageStatusDto) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(PACKAGE_PATTERNS.UPDATE_STATUS, {
         id,
         ...dto,
@@ -341,7 +456,7 @@ export class AuthGatewayService implements OnModuleInit {
     packageId: string,
     dto: AssignPackagePermissionDto,
   ) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(PACKAGE_PERMISSION_PATTERNS.ASSIGN, {
         packageId,
         permissionId: dto.permissionId,
@@ -350,7 +465,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   findPermissionsByPackage(packageId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(PACKAGE_PERMISSION_PATTERNS.FIND_BY_PACKAGE, {
         packageId,
       }),
@@ -358,7 +473,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   removePermissionFromPackage(packageId: string, permissionId: string) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(PACKAGE_PERMISSION_PATTERNS.REMOVE, {
         packageId,
         permissionId,
@@ -367,7 +482,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   assignPackageToRole(roleId: string, dto: AssignRolePackageDto) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(ROLE_PACKAGE_PATTERNS.ASSIGN, {
         roleId,
         packageId: dto.packageId,
@@ -376,7 +491,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   findPackagesByRole(roleId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(ROLE_PACKAGE_PATTERNS.FIND_BY_ROLE, {
         roleId,
       }),
@@ -384,7 +499,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   removePackageFromRole(roleId: string, packageId: string) {
-    return firstValueFrom(
+    return this.withPermissionCacheInvalidation(
       this.client.send(ROLE_PACKAGE_PATTERNS.REMOVE, {
         roleId,
         packageId,
@@ -396,7 +511,7 @@ export class AuthGatewayService implements OnModuleInit {
     registrarRoleId: string,
     dto: CreateRoleRegisterPermissionDto,
   ) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(ROLE_REGISTER_PERMISSION_PATTERNS.CREATE, {
         registrarRoleId,
         targetRoleId: dto.targetRoleId,
@@ -406,7 +521,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   findRoleRegisterPermissions(registrarRoleId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(ROLE_REGISTER_PERMISSION_PATTERNS.FIND_BY_REGISTRAR, {
         registrarRoleId,
       }),
@@ -418,7 +533,7 @@ export class AuthGatewayService implements OnModuleInit {
     targetRoleId: string,
     dto: UpdateRoleRegisterPermissionStatusDto,
   ) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(ROLE_REGISTER_PERMISSION_PATTERNS.UPDATE_STATUS, {
         registrarRoleId,
         targetRoleId,
@@ -428,7 +543,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   removeRoleRegisterPermission(registrarRoleId: string, targetRoleId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(ROLE_REGISTER_PERMISSION_PATTERNS.REMOVE, {
         registrarRoleId,
         targetRoleId,
@@ -436,8 +551,8 @@ export class AuthGatewayService implements OnModuleInit {
     );
   }
 
-  async resolveRolePermissions(roleId: string) {
-    return await firstValueFrom(
+  resolveRolePermissions(roleId: string) {
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.RESOLVE_ROLE_PERMISSIONS, {
         roleId,
       }),
@@ -445,7 +560,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   resolveIdentityPermissions(identityId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.RESOLVE_IDENTITY_PERMISSIONS, {
         identityId,
       }),
@@ -453,7 +568,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   getSessions(identityId: string, currentSessionId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.GET_SESSIONS, {
         identityId,
 
@@ -463,7 +578,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   getSession(identityId: string, sessionId: string, currentSessionId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.GET_SESSION, {
         identityId,
 
@@ -479,7 +594,7 @@ export class AuthGatewayService implements OnModuleInit {
     sessionId: string,
     currentSessionId: string,
   ) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.REVOKE_SESSION, {
         identityId,
 
@@ -491,7 +606,7 @@ export class AuthGatewayService implements OnModuleInit {
   }
 
   revokeOtherSessions(identityId: string, currentSessionId: string) {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.REVOKE_OTHER_SESSIONS, {
         identityId,
 
@@ -500,10 +615,11 @@ export class AuthGatewayService implements OnModuleInit {
     );
   }
 
-  revokeAllSessions(identityId: string) {
-    return firstValueFrom(
+  revokeAllSessions(identityId: string, currentSessionId: string) {
+    return this.withTimeout(
       this.client.send(AUTH_PATTERNS.REVOKE_ALL_SESSIONS, {
         identityId,
+        currentSessionId,
       }),
     );
   }
@@ -515,7 +631,7 @@ export class AuthGatewayService implements OnModuleInit {
   ): Promise<{
     valid: boolean;
   }> {
-    return firstValueFrom(
+    return this.withTimeout(
       this.client.send<{
         valid: boolean;
       }>(
@@ -528,9 +644,5 @@ export class AuthGatewayService implements OnModuleInit {
         },
       ),
     );
-  }
-
-  cacheTest() {
-    return firstValueFrom(this.client.send(AUTH_PATTERNS.CACHE_TEST, {}));
   }
 }

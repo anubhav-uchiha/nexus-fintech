@@ -71,6 +71,8 @@ export class AuthKafkaController {
     @Payload()
     dto: {
       identityId: string;
+      sessionId: string;
+      role: string;
       currentPassword: string;
       newPassword: string;
     },
@@ -79,7 +81,14 @@ export class AuthKafkaController {
   }
 
   @MessagePattern(AUTH_PATTERNS.CHANGE_MPIN)
-  changeMpin(@Payload() dto: ChangeMpinDto & { identityId: string }) {
+  changeMpin(
+    @Payload()
+    dto: ChangeMpinDto & {
+      identityId: string;
+      sessionId: string;
+      role: string;
+    },
+  ) {
     return this.authService.changeMpin(dto);
   }
 
@@ -123,13 +132,19 @@ export class AuthKafkaController {
     return this.authService.refresh(dto);
   }
 
+  @MessagePattern(AUTH_PATTERNS.RESOLVE_PEER_TRANSFER_PARTICIPANTS)
+  resolvePeerTransferParticipants(
+    @Payload()
+    dto: {
+      senderUserId: string;
+      receiverLoginId: string;
+    },
+  ) {
+    return this.authService.resolvePeerTransferParticipants(dto);
+  }
+
   @MessagePattern(AUTH_PATTERNS.LOGOUT)
   logout(@Payload() dto: LogoutDto) {
     return this.authService.logout(dto);
-  }
-
-  @MessagePattern(AUTH_PATTERNS.CACHE_TEST)
-  cacheTest() {
-    return this.authService.cacheTest();
   }
 }

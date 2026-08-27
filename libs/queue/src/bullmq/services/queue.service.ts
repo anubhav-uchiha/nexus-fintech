@@ -1,10 +1,12 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { QUEUE_NAMES } from '../constants/bullmq.constants';
 import { Job, JobsOptions, Queue } from 'bullmq';
 
 @Injectable()
 export class QueueService {
+  private readonly logger = new Logger(QueueService.name);
+
   constructor(
     @InjectQueue(QUEUE_NAMES.OTP)
     private readonly otpQueue: Queue,
@@ -19,8 +21,8 @@ export class QueueService {
     private readonly notificationQueue: Queue,
   ) {}
 
-  private getQueue(queue: string): Queue {
-    switch (queue) {
+  private getQueue(queueName: string): Queue {
+    switch (queueName) {
       case QUEUE_NAMES.OTP:
         return this.otpQueue;
       case QUEUE_NAMES.EMAIL:
@@ -30,17 +32,29 @@ export class QueueService {
       case QUEUE_NAMES.NOTIFICATION:
         return this.notificationQueue;
       default:
-        throw new Error(`Queue "${queue}" not found`);
+        throw new Error(`Queue "${queueName}" not found`);
     }
   }
 
+  private isSensitiveQueue(queueName: string): boolean {
+    return (
+      queueName === QUEUE_NAMES.OTP ||
+      queueName === QUEUE_NAMES.EMAIL ||
+      queueName === QUEUE_NAMES.SMS
+    );
+  }
+
   async add<T>(
-    queue: string,
-    job: string,
+    queueName: string,
+    jobName: string,
     data: T,
     options?: JobsOptions,
   ): Promise<Job<T>> {
-    return this.getQueue(queue).add(job, data, {
+    if (!jobName.trim()) {
+      throw new Error('Queue job name cannot be empty');
+    }
+    const queue = this.getQueue(queueName);
+    const jobOptions: JobsOptions = {
       attempts: 3,
 
       backoff: {
@@ -48,20 +62,36 @@ export class QueueService {
         delay: 5000,
       },
 
-      removeOnComplete: 100,
+      removeOnComplete: {
+        age: 3600,
+        count: 100,
+      },
 
-      removeOnFail: 100,
+      removeOnFail: {
+        age: 24 * 60 * 60,
+        count: 100,
+      },
 
       ...options,
-    });
+    };
+    if (this.isSensitiveQueue(queueName)) {
+      jobOptions.removeOnComplete = true;
+      jobOptions.removeOnFail = true;
+    }
+    const createdJob = await queue.add(jobName, data, jobOptions);
+
+    this.logger.log(
+      `Added job ${createdJob.id} to queue ${queueName}: ${jobName}`,
+    );
+    return createdJob;
   }
 
-  async getJob(queue: string, jobId: string) {
-    return this.getQueue(queue).getJob(jobId);
+  async getJob(queueName: string, jobId: string) {
+    return this.getQueue(queueName).getJob(jobId);
   }
 
-  async remove(queue: string, jobId: string): Promise<boolean> {
-    const job = await this.getJob(queue, jobId);
+  async remove(queueName: string, jobId: string): Promise<boolean> {
+    const job = await this.getJob(queueName, jobId);
 
     if (!job) {
       return false;
@@ -70,36 +100,39 @@ export class QueueService {
     return true;
   }
 
-  async getWaiting(queue: string) {
-    return this.getQueue(queue).getWaiting();
+  async getWaiting(queueName: string) {
+    return this.getQueue(queueName).getWaiting();
   }
 
-  async getActive(queue: string) {
-    return this.getQueue(queue).getActive();
+  async getActive(queueName: string) {
+    return this.getQueue(queueName).getActive();
   }
 
-  async getDelayed(queue: string) {
-    return this.getQueue(queue).getDelayed();
+  async getDelayed(queueName: string) {
+    return this.getQueue(queueName).getDelayed();
   }
 
-  async getCompleted(queue: string) {
-    return this.getQueue(queue).getCompleted();
+  async getCompleted(queueName: string) {
+    return this.getQueue(queueName).getCompleted();
+  }
+  async getFailed(queueName: string) {
+    return this.getQueue(queueName).getFailed();
   }
 
-  async grtFailed(queue: string) {
-    return this.getQueue(queue).getFailed();
+  async grtFailed(queueName: string) {
+    return this.getFailed(queueName);
   }
 
-  async pause(queue: string) {
-    return this.getQueue(queue).pause();
+  async pause(queueName: string) {
+    return this.getQueue(queueName).pause();
   }
 
-  async resume(queue: string) {
-    return this.getQueue(queue).resume();
+  async resume(queueName: string) {
+    return this.getQueue(queueName).resume();
   }
 
   async clean(
-    queue: string,
+    queueName: string,
     grace = 0,
     limit = 1000,
     type:
@@ -111,10 +144,10 @@ export class QueueService {
       | 'delayed'
       | 'failed' = 'completed',
   ) {
-    return this.getQueue(queue).clean(grace, limit, type);
+    return this.getQueue(queueName).clean(grace, limit, type);
   }
 
-  async getJobCounts(queue: string) {
-    return this.getQueue(queue).getJobCounts();
+  async getJobCounts(queueName: string) {
+    return this.getQueue(queueName).getJobCounts();
   }
 }

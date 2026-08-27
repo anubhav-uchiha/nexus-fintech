@@ -1,9 +1,21 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Headers,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 
 import { WalletGatewayService } from './wallet.service';
 import { AddMoneyDto } from '@nexus/common/transaction/dto/add-money.dto';
-import { TransferMoneyDto } from '@nexus/common/transaction/dto/transfer-money.dto';
+
 import { CalculateCommissionDto } from '@nexus/common/commission/dto/calculate-commission.dto';
+import { PeerTransferRequestDto } from '@nexus/common/transaction/dto/transfer-money.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth-guard';
 
 @Controller('wallet')
 export class WalletGatewayController {
@@ -19,8 +31,29 @@ export class WalletGatewayController {
   }
 
   @Post('transfer')
-  async transferMoney(@Body() dto: TransferMoneyDto) {
-    return this.walletService.transferMoney(dto);
+  @UseGuards(JwtAuthGuard)
+  async transferMoney(
+    @Body() dto: PeerTransferRequestDto,
+
+    @Headers('idempotency-key')
+    idempotencyKey: string | undefined,
+
+    @Req()
+    request: {
+      user: {
+        sub: string;
+      };
+    },
+  ) {
+    if (!idempotencyKey?.trim()) {
+      throw new BadRequestException('Idempotency-Key header is required');
+    }
+
+    return this.walletService.transferMoney(
+      dto,
+      request.user.sub,
+      idempotencyKey.trim(),
+    );
   }
 
   @Post('calculate-commission')

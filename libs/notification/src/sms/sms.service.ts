@@ -5,7 +5,8 @@ export class SmsService {
   private readonly logger = new Logger(SmsService.name);
 
   async sendOtp(phoneNumber: string, otp: string) {
-    this.logger.log(`Sending OTP ${otp} to ${phoneNumber}`);
+    this.logger.log('SMS delivery requested');
+    // this.logger.log(`Sending OTP ${otp} to ${phoneNumber}`);
 
     /**
      * Next Step:
@@ -18,10 +19,11 @@ export class SmsService {
   async sendSms(phoneNumber: string, message: string) {
     this.logger.log('Sending SMS');
 
-    this.logger.log({
-      phoneNumber,
-      message,
-    });
+    // this.logger.log({
+    //   phoneNumber,
+    //   message,
+    // });
+    this.logger.log('SMS delivery requested');
 
     return true;
   }

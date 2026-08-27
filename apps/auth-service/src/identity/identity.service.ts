@@ -3,10 +3,17 @@ import {
   Prisma,
   RegistrationStep,
 } from '../../generated/prisma/client';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CacheService } from 'libs/cache/src';
 import { CompleteRegistrationData } from '../auth/types/register.type';
+import { getSessionValidationVersionKey } from '@nexus/common/auth/constants/session-validation-cache.constants';
 
 export type DuplicateField = 'email' | 'username' | 'phoneNumber' | null;
 
@@ -16,85 +23,80 @@ export type IdentityWithRole = Prisma.IdentityGetPayload<{
   };
 }>;
 
+const loginIdentitySelect = {
+  id: true,
+  loginId: true,
+  fullName: true,
+  username: true,
+  email: true,
+  phoneNumber: true,
+  password: true,
+  mpin: true,
+  status: true,
+  passwordChangedAt: true,
+  preferredLoginMethod: true,
+  role: {
+    select: {
+      name: true,
+      isActive: true,
+    },
+  },
+} satisfies Prisma.IdentitySelect;
+
+const peerTransferIdentitySelect = {
+  id: true,
+  loginId: true,
+  fullName: true,
+  status: true,
+  roleId: true,
+  role: {
+    select: {
+      id: true,
+      name: true,
+      isActive: true,
+    },
+  },
+} satisfies Prisma.IdentitySelect;
+
+export type LoginIdentity = Prisma.IdentityGetPayload<{
+  select: typeof loginIdentitySelect;
+}>;
+
 @Injectable()
 export class IdentityService {
+  private readonly logger = new Logger(IdentityService.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly cacheService: CacheService,
   ) {}
 
   async findByEmail(email: string): Promise<IdentityWithRole | null> {
-    const key = `identity:email:${email}`;
-
-    const cached = await this.cacheService.get<IdentityWithRole>(key);
-
-    if (cached) {
-      return cached;
-    }
-    const identity = await this.prisma.identity.findUnique({
+    return await this.prisma.identity.findUnique({
       where: { email },
       include: { role: true },
     });
-
-    if (identity) {
-      await this.cacheService.set(key, identity, 300);
-    }
-    return identity;
   }
 
   async findByUsername(username: string): Promise<IdentityWithRole | null> {
-    const key = `identity:username:${username}`;
-
-    const cached = await this.cacheService.get<IdentityWithRole>(key);
-
-    if (cached) {
-      return cached;
-    }
-
-    const identity = await this.prisma.identity.findUnique({
+    return await this.prisma.identity.findUnique({
       where: { username },
       include: {
         role: true,
       },
     });
-
-    if (identity) {
-      await this.cacheService.set(key, identity, 300);
-    }
-
-    return identity;
   }
 
   async findByPhoneNumber(
     phoneNumber: string,
   ): Promise<IdentityWithRole | null> {
-    const key = `identity:phone:${phoneNumber}`;
-    const cached = await this.cacheService.get<IdentityWithRole>(key);
-    if (cached) {
-      return cached;
-    }
-    const identity = await this.prisma.identity.findUnique({
+    return await this.prisma.identity.findUnique({
       where: { phoneNumber },
       include: { role: true },
     });
-
-    if (identity) {
-      await this.cacheService.set(key, identity, 300);
-    }
-
-    return identity;
   }
 
   async findByLoginId(loginId: string): Promise<IdentityWithRole | null> {
-    const key = `identity:loginId:${loginId}`;
-
-    const cached = await this.cacheService.get<IdentityWithRole>(key);
-
-    if (cached) {
-      return cached;
-    }
-
-    const identity = await this.prisma.identity.findUnique({
+    return await this.prisma.identity.findUnique({
       where: {
         loginId,
       },
@@ -102,48 +104,110 @@ export class IdentityService {
         role: true,
       },
     });
+  }
 
-    if (identity) {
-      await this.cacheService.set(key, identity, 300);
-    }
+  async findPeerTransferParticipants(
+    senderUserId: string,
+    receiverLoginId: string,
+  ) {
+    const normalizedReceiverLoginId = receiverLoginId.trim().toUpperCase();
 
-    return identity;
+    const [sender, receiver] = await Promise.all([
+      this.prisma.identity.findUnique({
+        where: {
+          id: senderUserId,
+        },
+        select: peerTransferIdentitySelect,
+      }),
+
+      this.prisma.identity.findUnique({
+        where: {
+          loginId: normalizedReceiverLoginId,
+        },
+        select: peerTransferIdentitySelect,
+      }),
+    ]);
+
+    return {
+      sender,
+      receiver,
+    };
   }
 
   async findById(id: string) {
-    return this.prisma.identity.findUnique({
+    return await this.prisma.identity.findUnique({
       where: {
         id,
       },
     });
   }
 
-  async findByIdentifier(identifier: string) {
-    let identity = await this.findByEmail(identifier);
+  async findByIdentifier(identifier: string): Promise<LoginIdentity | null> {
+    const normalizedIdentifier = identifier.trim();
 
-    if (identity?.preferredLoginMethod === LoginMethod.EMAIL) {
-      return identity;
+    if (!normalizedIdentifier) {
+      return null;
+    }
+    let identities = await this.prisma.identity.findMany({
+      where: {
+        OR: [
+          {
+            email: normalizedIdentifier,
+            preferredLoginMethod: LoginMethod.EMAIL,
+          },
+          {
+            username: normalizedIdentifier,
+            preferredLoginMethod: LoginMethod.USERNAME,
+          },
+          {
+            loginId: normalizedIdentifier,
+            preferredLoginMethod: LoginMethod.LOGIN_ID,
+          },
+          {
+            phoneNumber: normalizedIdentifier,
+            preferredLoginMethod: LoginMethod.PHONENUMBER,
+          },
+        ],
+      },
+      select: loginIdentitySelect,
+      take: 4,
+    });
+    const emailIdentity = identities.find(
+      (identity) =>
+        identity.email === normalizedIdentifier &&
+        identity.preferredLoginMethod === LoginMethod.EMAIL,
+    );
+
+    if (emailIdentity) {
+      return emailIdentity;
     }
 
-    identity = await this.findByUsername(identifier);
+    const usernameIdentity = identities.find(
+      (identity) =>
+        identity.username === normalizedIdentifier &&
+        identity.preferredLoginMethod === LoginMethod.USERNAME,
+    );
 
-    if (identity?.preferredLoginMethod === LoginMethod.USERNAME) {
-      return identity;
+    if (usernameIdentity) {
+      return usernameIdentity;
     }
 
-    identity = await this.findByLoginId(identifier);
-
-    if (identity?.preferredLoginMethod === LoginMethod.LOGIN_ID) {
-      return identity;
+    const loginIdIdentity = identities.find(
+      (identity) =>
+        identity.loginId === normalizedIdentifier &&
+        identity.preferredLoginMethod === LoginMethod.LOGIN_ID,
+    );
+    if (loginIdIdentity) {
+      return loginIdIdentity;
     }
 
-    identity = await this.findByPhoneNumber(identifier);
+    const phoneIdentity = identities.find(
+      (identity) =>
+        identity.phoneNumber === normalizedIdentifier &&
+        identity.preferredLoginMethod === LoginMethod.PHONENUMBER,
+    );
 
-    if (identity?.preferredLoginMethod === LoginMethod.PHONENUMBER) {
-      return identity;
-    }
-
-    return null;
+    return phoneIdentity ?? null;
   }
 
   async findByPanNumber(panNumber: string) {
@@ -239,25 +303,37 @@ export class IdentityService {
   }
 
   async clearIdentityCache(identity: {
+    id?: string | null;
     email?: string | null;
     username?: string | null;
     loginId?: string | null;
     phoneNumber?: string | null;
-  }) {
+  }): Promise<void> {
+    const keys: string[] = [];
+    if (identity.id) {
+      keys.push(
+        `identity:id:${identity.id}`,
+        `identity:profile:${identity.id}`,
+      );
+    }
     if (identity.email) {
-      await this.cacheService.del(`identity:email:${identity.email}`);
+      keys.push(`identity:email:${identity.email}`);
     }
 
     if (identity.username) {
-      await this.cacheService.del(`identity:username:${identity.username}`);
+      keys.push(`identity:username:${identity.username}`);
     }
 
     if (identity.loginId) {
-      await this.cacheService.del(`identity:loginId:${identity.loginId}`);
+      keys.push(`identity:loginId:${identity.loginId}`);
     }
 
     if (identity.phoneNumber) {
-      await this.cacheService.del(`identity:phone:${identity.phoneNumber}`);
+      keys.push(`identity:phone:${identity.phoneNumber}`);
+    }
+
+    if (keys.length > 0) {
+      await this.cacheService.del(...keys);
     }
   }
 
@@ -451,8 +527,296 @@ export class IdentityService {
     return identity;
   }
 
+  async resetPasswordWithVerifiedDraft(data: {
+    draftId: string;
+    identityId: string;
+    hashedPassword: string;
+  }): Promise<{
+    revokedSessionCount: number;
+  }> {
+    const now = new Date();
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const consumedDraft = await tx.passwordResetDraft.deleteMany({
+        where: {
+          id: data.draftId,
+          identityId: data.identityId,
+          otpVerified: true,
+          expiresAt: {
+            gt: now,
+          },
+        },
+      });
+
+      if (consumedDraft.count !== 1) {
+        throw new BadRequestException(
+          'Password reset request is invalid, expired, or already used',
+        );
+      }
+
+      const identity = await tx.identity.update({
+        where: {
+          id: data.identityId,
+        },
+        data: {
+          password: data.hashedPassword,
+          passwordChangedAt: now,
+        },
+      });
+
+      const revokedSessions = await tx.session.updateMany({
+        where: {
+          identityId: data.identityId,
+          revoked: false,
+        },
+        data: {
+          revoked: true,
+        },
+      });
+
+      return {
+        identity,
+        revokedSessionCount: revokedSessions.count,
+      };
+    });
+
+    if (result.revokedSessionCount > 0) {
+      await this.advanceSessionValidationCacheVersion(data.identityId);
+    }
+
+    try {
+      await this.clearIdentityCache(result.identity);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown identity cache invalidation error';
+
+      this.logger.error(
+        `Password was reset, but identity cache invalidation failed: ${message}`,
+      );
+    }
+
+    return {
+      revokedSessionCount: result.revokedSessionCount,
+    };
+  }
+
+  async changePasswordAndRevokeOtherSessions(data: {
+    identityId: string;
+    currentSessionId: string;
+    expectedCurrentPasswordHash: string;
+    hashedPassword: string;
+  }): Promise<{
+    revokedSessionCount: number;
+  }> {
+    const now = new Date();
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const currentSession = await tx.session.updateMany({
+        where: {
+          id: data.currentSessionId,
+          identityId: data.identityId,
+          revoked: false,
+          expiresAt: {
+            gt: now,
+          },
+        },
+        data: {
+          lastUsedAt: now,
+        },
+      });
+
+      if (currentSession.count !== 1) {
+        throw new UnauthorizedException('Current session is no longer valid');
+      }
+
+      const passwordUpdate = await tx.identity.updateMany({
+        where: {
+          id: data.identityId,
+          password: data.expectedCurrentPasswordHash,
+        },
+        data: {
+          password: data.hashedPassword,
+          passwordChangedAt: now,
+        },
+      });
+
+      if (passwordUpdate.count !== 1) {
+        throw new ConflictException(
+          'Password was changed by another request. Please try again.',
+        );
+      }
+
+      const revokedSessions = await tx.session.updateMany({
+        where: {
+          identityId: data.identityId,
+          id: {
+            not: data.currentSessionId,
+          },
+          revoked: false,
+          expiresAt: {
+            gt: now,
+          },
+        },
+        data: {
+          revoked: true,
+        },
+      });
+
+      const identity = await tx.identity.findUnique({
+        where: {
+          id: data.identityId,
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          loginId: true,
+          phoneNumber: true,
+        },
+      });
+
+      if (!identity) {
+        throw new BadRequestException('User not found');
+      }
+
+      return {
+        identity,
+        revokedSessionCount: revokedSessions.count,
+      };
+    });
+
+    if (result.revokedSessionCount > 0) {
+      await this.advanceSessionValidationCacheVersion(data.identityId);
+    }
+
+    try {
+      await this.clearIdentityCache(result.identity);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown identity cache invalidation error';
+
+      this.logger.error(
+        `Password changed, but identity cache invalidation failed: ${message}`,
+      );
+    }
+
+    return {
+      revokedSessionCount: result.revokedSessionCount,
+    };
+  }
+
+  async changeMpinAndRevokeOtherSessions(data: {
+    identityId: string;
+    currentSessionId: string;
+    expectedCurrentMpinHash: string;
+    hashedMpin: string;
+  }): Promise<{
+    revokedSessionCount: number;
+  }> {
+    const now = new Date();
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const currentSession = await tx.session.updateMany({
+        where: {
+          id: data.currentSessionId,
+          identityId: data.identityId,
+          revoked: false,
+          expiresAt: {
+            gt: now,
+          },
+        },
+        data: {
+          lastUsedAt: now,
+        },
+      });
+
+      if (currentSession.count !== 1) {
+        throw new UnauthorizedException('Current session is no longer valid');
+      }
+
+      const mpinUpdate = await tx.identity.updateMany({
+        where: {
+          id: data.identityId,
+          mpin: data.expectedCurrentMpinHash,
+        },
+        data: {
+          mpin: data.hashedMpin,
+        },
+      });
+
+      if (mpinUpdate.count !== 1) {
+        throw new ConflictException(
+          'MPIN was changed by another request. Please try again.',
+        );
+      }
+
+      const revokedSessions = await tx.session.updateMany({
+        where: {
+          identityId: data.identityId,
+          id: {
+            not: data.currentSessionId,
+          },
+          revoked: false,
+          expiresAt: {
+            gt: now,
+          },
+        },
+        data: {
+          revoked: true,
+        },
+      });
+
+      const identity = await tx.identity.findUnique({
+        where: {
+          id: data.identityId,
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          loginId: true,
+          phoneNumber: true,
+        },
+      });
+
+      if (!identity) {
+        throw new BadRequestException('User not found');
+      }
+
+      return {
+        identity,
+        revokedSessionCount: revokedSessions.count,
+      };
+    });
+
+    if (result.revokedSessionCount > 0) {
+      await this.advanceSessionValidationCacheVersion(data.identityId);
+    }
+
+    try {
+      await this.clearIdentityCache(result.identity);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown identity cache invalidation error';
+
+      this.logger.error(
+        `MPIN changed, but identity cache invalidation failed: ${message}`,
+      );
+    }
+
+    return {
+      revokedSessionCount: result.revokedSessionCount,
+    };
+  }
+
   async updatePassword(identityId: string, password: string) {
-    return this.prisma.identity.update({
+    const identity = await this.prisma.identity.update({
       where: {
         id: identityId,
       },
@@ -461,10 +825,12 @@ export class IdentityService {
         passwordChangedAt: new Date(),
       },
     });
+    await this.clearIdentityCache(identity);
+    return identity;
   }
 
   async updateMpin(identityId: string, hashedMpin: string) {
-    return this.prisma.identity.update({
+    const identity = await this.prisma.identity.update({
       where: {
         id: identityId,
       },
@@ -472,6 +838,9 @@ export class IdentityService {
         mpin: hashedMpin,
       },
     });
+
+    await this.clearIdentityCache(identity);
+    return identity;
   }
 
   async createPasswordResetDraft(data: {
@@ -487,7 +856,7 @@ export class IdentityService {
     return this.prisma.passwordResetDraft.findUnique({
       where: { id },
       include: {
-        identity: true,
+        identity: { include: { role: true } },
       },
     });
   }
@@ -521,5 +890,27 @@ export class IdentityService {
     });
     await this.clearIdentityCache(identity);
     return identity;
+  }
+
+  private async advanceSessionValidationCacheVersion(
+    identityId: string,
+  ): Promise<void> {
+    try {
+      const version = await this.cacheService.increment(
+        getSessionValidationVersionKey(identityId),
+      );
+
+      this.logger.log(
+        `Session-validation cache version advanced to ${version}`,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown session cache invalidation error';
+      this.logger.error(
+        `Unable to invalidate session-validation cache: ${message}`,
+      );
+    }
   }
 }

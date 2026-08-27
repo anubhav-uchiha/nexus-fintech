@@ -8,7 +8,7 @@ export const KAFKA_TOPICS = {
   SMS_SEND: 'notification.sms.send',
   PUSH_SEND: 'notification.push.send',
   WALLET_CREATED: 'wallet.created',
-  MONEY_ADDED: 'wallet.money.withdrawn',
+  MONEY_ADDED: 'wallet.money.added',
   MONEY_TRANSFERRED: 'wallet.money.transferred',
   MONEY_ROLLBACK: 'wallet.money.rollback',
   TRANSACTION_CREATED: 'transaction.created',

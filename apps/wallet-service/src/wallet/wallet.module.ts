@@ -42,6 +42,23 @@ import { WalletKafkaController } from './wallet.kafka.controller';
           },
         }),
       },
+      {
+        name: 'AUTH_SERVICE',
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              clientId: 'wallet-service-auth-client',
+              brokers: [config.get<string>('KAFKA_BROKER') ?? 'localhost:9092'],
+            },
+            consumer: {
+              groupId: 'wallet-service-auth-client',
+            },
+          },
+        }),
+      },
     ]),
   ],
   controllers: [WalletKafkaController],

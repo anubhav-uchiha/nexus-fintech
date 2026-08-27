@@ -76,9 +76,13 @@ export class SessionKafkaController {
     @Payload()
     payload: {
       identityId: string;
+      currentSessionId: string;
     },
   ) {
-    return this.sessionService.revokeAllUserSessions(payload.identityId);
+    return this.sessionService.revokeAllUserSessions(
+      payload.identityId,
+      payload.currentSessionId,
+    );
   }
 
   @MessagePattern(AUTH_PATTERNS.VALIDATE_SESSION)

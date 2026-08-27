@@ -37,5 +37,7 @@ export const AUTH_PATTERNS = {
   REVOKE_ALL_SESSIONS: 'auth.sessions.revoke-all',
   VALIDATE_SESSION: 'auth.sessions.validate',
 
+  RESOLVE_PEER_TRANSFER_PARTICIPANTS: 'auth.peer-transfer.resolve-participants',
+
   CACHE_TEST: 'auth.cache-test',
 } as const;

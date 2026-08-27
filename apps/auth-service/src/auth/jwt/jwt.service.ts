@@ -4,6 +4,12 @@ import { JwtService as NestJwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { SignOptions } from 'jsonwebtoken';
 
+interface GeneratedTokens {
+  accessToken: string;
+  refreshToken: string;
+  refreshExpiresAt: Date;
+}
+
 @Injectable()
 export class JwtService {
   constructor(
@@ -26,11 +32,15 @@ export class JwtService {
     refreshExpiresAt?: Date,
   ): Promise<string> {
     let expiresIn: SignOptions['expiresIn'];
+
     if (refreshExpiresAt) {
-      expiresIn = Math.max(
-        1,
-        Math.floor((refreshExpiresAt.getTime() - Date.now()) / 1000),
+      const remainingSeconds = Math.floor(
+        (refreshExpiresAt.getTime() - Date.now()) / 1000,
       );
+      if (remainingSeconds <= 0) {
+        throw new Error('Refresh token expiry must be in the future');
+      }
+      expiresIn = remainingSeconds;
     } else {
       expiresIn = this.config.getOrThrow<string>(
         'JWT_REFRESH_EXPIRES',
@@ -42,26 +52,46 @@ export class JwtService {
     });
   }
 
-  async generateTokens(payload: JwtPayload, refreshExpiresAt?: Date) {
-    const accessToken = await this.generateAccessToken(payload);
-    const refreshToken = await this.generateRefreshToken(
-      payload,
-      refreshExpiresAt,
-    );
+  async generateTokens(
+    payload: JwtPayload,
+    refreshExpiresAt?: Date,
+  ): Promise<GeneratedTokens> {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.generateAccessToken(payload),
+      this.generateRefreshToken(payload, refreshExpiresAt),
+    ]);
+    const decodedRefreshToken = this.jwtService.decode(refreshToken);
+
+    if (
+      !decodedRefreshToken ||
+      typeof decodedRefreshToken !== 'object' ||
+      typeof decodedRefreshToken.exp !== 'number'
+    ) {
+      throw new Error(
+        'Generated refresh token does not contain a valid expiry',
+      );
+    }
+
+    const calculatedRefreshExpiresAt = new Date(decodedRefreshToken.exp * 1000);
+    if (Number.isNaN(calculatedRefreshExpiresAt.getTime())) {
+      throw new Error('Generated refresh token expiry is invalid');
+    }
+
     return {
       accessToken,
       refreshToken,
+      refreshExpiresAt: calculatedRefreshExpiresAt,
     };
   }
 
   async verifyAccessToken(token: string): Promise<JwtPayload> {
-    return this.jwtService.verifyAsync(token, {
-      secret: this.config.get<string>('JWT_ACCESS_SECRET'),
+    return this.jwtService.verifyAsync<JwtPayload>(token, {
+      secret: this.config.getOrThrow<string>('JWT_ACCESS_SECRET'),
     });
   }
   async verifyRefreshToken(token: string): Promise<JwtPayload> {
-    return this.jwtService.verifyAsync(token, {
-      secret: this.config.get<string>('JWT_REFRESH_SECRET'),
+    return this.jwtService.verifyAsync<JwtPayload>(token, {
+      secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
     });
   }
 }

@@ -1,6 +1,6 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { EMAIL_JOB_NAMES, QUEUE_NAMES } from '../constants/bullmq.constants';
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { EmailService } from 'libs/notification/src';
 import { EmailJob } from '../interfaces/email-job.interface';
@@ -19,32 +19,28 @@ export class EmailProcessor extends WorkerHost {
           await this.sendEmail(job.data);
           break;
         default:
-          this.logger.warn(`Unknown Email Job: ${job.name}`);
+          throw new Error(`Unknown email job: ${job.name}`);
       }
+      this.logger.log(`Email job ${job.id} completed`);
     } catch (error) {
-      this.logger.warn(error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown email processing error';
+      this.logger.error(`Email job ${job.id} failed: ${message}`);
       throw error;
     }
   }
 
-  private async sendEmail(data: EmailJob) {
-    await this.emailService.sendOtp(data.to, data.otp);
-    // await this.emailService.sendEmail(
-    //   data.to,
-    //   data.subject,
-    //   data.html ?? data.text ?? '',
-    // );
-    // this.logger.log('==================');
-    // this.logger.log('Email QUEUE');
-    // this.logger.log(`To      : ${data.to}`);
-    // this.logger.log(`Subject : ${data.subject}`);
+  private async sendEmail(data: EmailJob): Promise<void> {
+    if (!data.to) {
+      throw new BadRequestException('Email recipient is required');
+    }
 
-    // if (data.text) {
-    //   this.logger.log(`Text   : ${data.text}`);
-    // }
-    // if (data.html) {
-    //   this.logger.log(`HTML   : ${data.html}`);
-    // }
-    // this.logger.log('===========================');
+    if (!data.otp) {
+      throw new BadRequestException('Email OTP is required');
+    }
+
+    await this.emailService.sendOtp(data.to, data.otp);
   }
 }

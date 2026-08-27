@@ -1,5 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { QUEUE_NAMES, SMS_JOB_NAMES } from '../constants/bullmq.constants';
 import { SmsService } from 'libs/notification/src';
@@ -16,25 +16,34 @@ export class SmsProcessor extends WorkerHost {
   async process(job: Job<SmsJob>): Promise<void> {
     this.logger.log(`Processing SMS Job: ${job.name} (${job.id})`);
 
-    switch (job.name) {
-      case SMS_JOB_NAMES.SEND:
-        await this.sendSms(job.data);
-        break;
+    try {
+      switch (job.name) {
+        case SMS_JOB_NAMES.SEND:
+          await this.sendSms(job.data);
+          break;
 
-      default:
-        this.logger.warn(`Unknown SMS Job: ${job.name}`);
+        default:
+          throw new Error(`Unknown SMS job: ${job.name}`);
+      }
+      this.logger.log(`SMS job ${job.id} completed`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown SMS processing error';
+
+      this.logger.error(`SMS job ${job.id} failed: ${message}`);
+
+      throw error;
     }
   }
 
-  private async sendSms(data: {
-    phoneNumber: string;
-    message: string;
-  }): Promise<void> {
+  private async sendSms(data: SmsJob): Promise<void> {
+    if (!data.phoneNumber) {
+      throw new BadRequestException('SMS phone number is required');
+    }
+
+    if (!data.message) {
+      throw new BadRequestException('SMS message is required');
+    }
     await this.smsService.sendSms(data.phoneNumber, data.message);
-    // this.logger.log('====================================');
-    // this.logger.log('SMS QUEUE');
-    // this.logger.log(`Phone   : ${data.phoneNumber}`);
-    // this.logger.log(`Message : ${data.message}`);
-    // this.logger.log('====================================');
   }
 }

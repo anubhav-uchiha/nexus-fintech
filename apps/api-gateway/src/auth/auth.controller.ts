@@ -42,12 +42,14 @@ import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-passw
 import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
 import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
 import { extractRequestMetadata } from './utils/request-metadata.util';
+import { RateLimitProfile } from '../common/rate-limit/rate-limt.decorator';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authGatewayService: AuthGatewayService) {}
 
+  @RateLimitProfile('REGISTRATION')
   @Post('register/role')
   @ApiOperation({
     summary: 'Step 1 - Select Role',
@@ -57,6 +59,7 @@ export class AuthController {
     return this.authGatewayService.registerRole(dto);
   }
 
+  @RateLimitProfile('OTP_VERIFY')
   @Post('register/phone')
   @ApiOperation({
     summary: 'Step 2 - Send OTP to Phone',
@@ -65,6 +68,7 @@ export class AuthController {
     return this.authGatewayService.registerSendOtp(dto);
   }
 
+  @RateLimitProfile('OTP_VERIFY')
   @Post('register/verify-otp')
   @ApiOperation({
     summary: 'Step 3 - Verify Phone OTP',
@@ -73,6 +77,7 @@ export class AuthController {
     return this.authGatewayService.registerVerifyOtp(dto);
   }
 
+  @RateLimitProfile('REGISTRATION')
   @Post('register/pan')
   @ApiOperation({
     summary: 'Step 4 - Verify PAN',
@@ -81,6 +86,7 @@ export class AuthController {
     return this.authGatewayService.registerPan(dto);
   }
 
+  @RateLimitProfile('REGISTRATION')
   @Post('register/details')
   @ApiOperation({
     summary: 'Step 5 - Complete Registration',
@@ -89,6 +95,7 @@ export class AuthController {
     return this.authGatewayService.registerDetails(dto);
   }
 
+  @RateLimitProfile('LOGIN')
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
@@ -120,26 +127,31 @@ export class AuthController {
     };
   }
 
+  @RateLimitProfile('OTP_SEND')
   @Post('send-phone-otp')
   sendPhoneOtp(@Body() dto: SendPhoneOtpDto) {
     return this.authGatewayService.sendPhoneOtp(dto);
   }
 
+  @RateLimitProfile('OTP_SEND')
   @Post('send-email-otp')
   sendEmailOtp(@Body() dto: SendEmailOtpDto) {
     return this.authGatewayService.sendEmailOtp(dto);
   }
 
+  @RateLimitProfile('OTP_VERIFY')
   @Post('verify-phone-otp')
   verifyPhoneOtp(@Body() dto: VerifyPhoneOtpDto) {
     return this.authGatewayService.verifyPhoneOtp(dto);
   }
 
+  @RateLimitProfile('OTP_VERIFY')
   @Post('verify-email-otp')
   verifyEmailOtp(@Body() dto: VerifyEmailOtpDto) {
     return this.authGatewayService.verifyEmailOtp(dto);
   }
 
+  @RateLimitProfile('REFRESH')
   @Post('refresh')
   @ApiResponse({ status: 200, type: RefreshTokenResponseDto })
   async refresh(
@@ -170,6 +182,7 @@ export class AuthController {
     };
   }
 
+  @RateLimitProfile('CREDENTIAL_CHANGE')
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -177,52 +190,65 @@ export class AuthController {
     @CurrentUser() user: JwtPayload,
     @Body() dto: ChangePasswordDto,
   ) {
-    return this.authGatewayService.changePassword(dto, user.sub);
+    return this.authGatewayService.changePassword(
+      dto,
+      user.sub,
+      user.sid,
+      user.role,
+    );
   }
 
+  @RateLimitProfile('CREDENTIAL_CHANGE')
   @Post('change-mpin')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   changeMpin(@CurrentUser() user: JwtPayload, @Body() dto: ChangeMpinDto) {
-    return this.authGatewayService.changeMpin(dto, user.sub);
+    return this.authGatewayService.changeMpin(
+      dto,
+      user.sub,
+      user.sid,
+      user.role,
+    );
   }
 
+  @RateLimitProfile('PASSWORD_RECOVERY')
   @Post('forgot-password/verify-user')
   forgotPasswordVerifyUser(@Body() dto: VerifyForgotPasswordUserDto) {
     console.log(dto);
     return this.authGatewayService.forgotPasswordVerifyUser(dto);
   }
 
+  @RateLimitProfile('PASSWORD_RECOVERY')
   @Post('forgot-password/verify-otp')
   forgotPasswordVerifyOtp(@Body() dto: VerifyForgotPasswordOtpDto) {
     return this.authGatewayService.forgotPasswordVerifyOtp(dto);
   }
 
+  @RateLimitProfile('PASSWORD_RECOVERY')
   @Post('forgot-password/reset')
   forgotPasswordReset(@Body() dto: ResetForgotPasswordDto) {
     return this.authGatewayService.forgotPasswordReset(dto);
   }
 
+  @RateLimitProfile('SESSION_MANAGEMENT')
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    console.log('Cookies:', req.cookies);
-    console.log('Header:', req.headers.cookie);
-
     const refreshToken = req.cookies?.[AUTH_COOKIE.REFRESH_TOKEN];
+
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token missing');
     }
-    const logout = await this.authGatewayService.logout({ refreshToken });
+    await this.authGatewayService.logout({ refreshToken });
 
     res.clearCookie(AUTH_COOKIE.REFRESH_TOKEN, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      expires: logout.refreshExpiresAt,
     });
     return {
+      success: true,
       message: 'Logout Successfully',
     };
   }
@@ -249,6 +275,7 @@ export class AuthController {
     return this.authGatewayService.getSession(user.sub, sessionId, user.sid);
   }
 
+  @RateLimitProfile('SESSION_MANAGEMENT')
   @Delete('sessions/others')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -259,6 +286,7 @@ export class AuthController {
     return this.authGatewayService.revokeOtherSessions(user.sub, user.sid);
   }
 
+  @RateLimitProfile('SESSION_MANAGEMENT')
   @Delete('sessions/:sessionId')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -290,6 +318,7 @@ export class AuthController {
     return result;
   }
 
+  @RateLimitProfile('SESSION_MANAGEMENT')
   @Delete('sessions')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -301,7 +330,10 @@ export class AuthController {
     @Res({ passthrough: true })
     res: Response,
   ) {
-    const result = await this.authGatewayService.revokeAllSessions(user.sub);
+    const result = await this.authGatewayService.revokeAllSessions(
+      user.sub,
+      user.sid,
+    );
 
     res.clearCookie(AUTH_COOKIE.REFRESH_TOKEN, {
       httpOnly: true,
@@ -320,10 +352,5 @@ export class AuthController {
   })
   getMyPermissions(@CurrentUser() user: JwtPayload) {
     return this.authGatewayService.resolveIdentityPermissions(user.sub);
-  }
-
-  @Get('cache-test')
-  cacheTest() {
-    return this.authGatewayService.cacheTest();
   }
 }
