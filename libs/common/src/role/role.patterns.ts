@@ -4,4 +4,5 @@ export const ROLE_PATTERNS = {
   FIND_BY_ID: 'auth.role.find-by-id',
   UPDATE: 'auth.role.update',
   UPDATE_STATUS: 'auth.role.update-status',
+  FIND_BY_NAME: 'auth.role.find-by-name',
 } as const;

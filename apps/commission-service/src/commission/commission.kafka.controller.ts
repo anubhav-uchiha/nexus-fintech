@@ -12,6 +12,17 @@ import { UpdateCommissionDistributionDto } from '@nexus/common/commission/dto/up
 import { CreateCommissionHierarchyDto } from '@nexus/common/commission/dto/create-commission-hierarchy.dto';
 import { CommissionHierarchyService } from './commission-hierarchy.service';
 import { UpdateCommissionHierarchyDto } from '@nexus/common/commission/dto/update-commission-hierarchy.dto';
+import { CreateProviderCommissionDto } from '@nexus/common/commission/dto/create-provider-commission.dto';
+
+import { FinalizeProviderCommissionDto } from '@nexus/common/commission/dto/finalize-provider-commission.dto';
+import { QuoteProviderCommissionDto } from '@nexus/common/commission/dto/quote-provider-commission.dto';
+import {
+  FinalizeProviderDistributionsDto,
+  GetProviderCommissionExecutionDto,
+  MarkCommissionDistributionFailedDto,
+  MarkCommissionDistributionSuccessDto,
+} from '@nexus/common/commission/dto/commission-distribution-execution.dto';
+import { CancelProviderCommissionDto } from '@nexus/common/commission/dto/cancel-provider-commission.dto';
 
 @Controller()
 export class CommissionKafkaController {
@@ -163,5 +174,76 @@ export class CommissionKafkaController {
   @MessagePattern(COMMISSION_PATTERNS.DELETE_HIERARCHY)
   async deleteHierarchy(@Payload() payload: { id: string }) {
     return this.commissionHierarchyService.deleteHierarchy(payload.id);
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.CREATE_PROVIDER_COMMISSION)
+  createProviderCommission(
+    @Payload()
+    dto: CreateProviderCommissionDto,
+  ) {
+    return this.commissionService.createProviderCommission(dto);
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.FINALIZE_PROVIDER_COMMISSION)
+  finalizeProviderCommission(
+    @Payload()
+    dto: FinalizeProviderCommissionDto,
+  ) {
+    return this.commissionService.finalizeProviderCommission(dto);
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.QUOTE_PROVIDER_COMMISSION)
+  quoteProviderCommission(
+    @Payload()
+    dto: QuoteProviderCommissionDto,
+  ) {
+    return this.commissionService.quoteProviderCommission(dto);
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.GET_PROVIDER_COMMISSION_EXECUTION)
+  getProviderCommissionExecution(
+    @Payload()
+    dto: GetProviderCommissionExecutionDto,
+  ) {
+    return this.commissionService.getProviderCommissionExecution(
+      dto.commissionReference,
+    );
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.MARK_DISTRIBUTION_SUCCESS)
+  markDistributionSuccess(
+    @Payload()
+    dto: MarkCommissionDistributionSuccessDto,
+  ) {
+    return this.commissionService.markDistributionSuccess(dto);
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.MARK_DISTRIBUTION_FAILED)
+  markDistributionFailed(
+    @Payload()
+    dto: MarkCommissionDistributionFailedDto,
+  ) {
+    return this.commissionService.markDistributionFailed(dto);
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.FINALIZE_PROVIDER_DISTRIBUTIONS)
+  finalizeProviderDistributions(
+    @Payload()
+    dto: FinalizeProviderDistributionsDto,
+  ) {
+    return this.commissionService.finalizeProviderDistributions(
+      dto.commissionReference,
+    );
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.CANCEL_PROVIDER_COMMISSION)
+  cancelProviderCommission(
+    @Payload()
+    dto: CancelProviderCommissionDto,
+  ) {
+    return this.commissionService.cancelProviderCommission(
+      dto.commissionReference,
+      dto.reason,
+    );
   }
 }

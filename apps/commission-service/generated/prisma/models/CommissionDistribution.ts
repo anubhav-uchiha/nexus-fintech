@@ -38,6 +38,7 @@ export type CommissionDistributionSumAggregateOutputType = {
 
 export type CommissionDistributionMinAggregateOutputType = {
   id: string | null
+  distributionKey: string | null
   commissionRuleId: string | null
   recipientRole: string | null
   distributionType: $Enums.CommissionType | null
@@ -50,6 +51,7 @@ export type CommissionDistributionMinAggregateOutputType = {
 
 export type CommissionDistributionMaxAggregateOutputType = {
   id: string | null
+  distributionKey: string | null
   commissionRuleId: string | null
   recipientRole: string | null
   distributionType: $Enums.CommissionType | null
@@ -62,6 +64,7 @@ export type CommissionDistributionMaxAggregateOutputType = {
 
 export type CommissionDistributionCountAggregateOutputType = {
   id: number
+  distributionKey: number
   commissionRuleId: number
   recipientRole: number
   distributionType: number
@@ -86,6 +89,7 @@ export type CommissionDistributionSumAggregateInputType = {
 
 export type CommissionDistributionMinAggregateInputType = {
   id?: true
+  distributionKey?: true
   commissionRuleId?: true
   recipientRole?: true
   distributionType?: true
@@ -98,6 +102,7 @@ export type CommissionDistributionMinAggregateInputType = {
 
 export type CommissionDistributionMaxAggregateInputType = {
   id?: true
+  distributionKey?: true
   commissionRuleId?: true
   recipientRole?: true
   distributionType?: true
@@ -110,6 +115,7 @@ export type CommissionDistributionMaxAggregateInputType = {
 
 export type CommissionDistributionCountAggregateInputType = {
   id?: true
+  distributionKey?: true
   commissionRuleId?: true
   recipientRole?: true
   distributionType?: true
@@ -209,6 +215,7 @@ export type CommissionDistributionGroupByArgs<ExtArgs extends runtime.Types.Exte
 
 export type CommissionDistributionGroupByOutputType = {
   id: string
+  distributionKey: string
   commissionRuleId: string
   recipientRole: string
   distributionType: $Enums.CommissionType
@@ -244,6 +251,7 @@ export type CommissionDistributionWhereInput = {
   OR?: Prisma.CommissionDistributionWhereInput[]
   NOT?: Prisma.CommissionDistributionWhereInput | Prisma.CommissionDistributionWhereInput[]
   id?: Prisma.StringFilter<"CommissionDistribution"> | string
+  distributionKey?: Prisma.StringFilter<"CommissionDistribution"> | string
   commissionRuleId?: Prisma.StringFilter<"CommissionDistribution"> | string
   recipientRole?: Prisma.StringFilter<"CommissionDistribution"> | string
   distributionType?: Prisma.EnumCommissionTypeFilter<"CommissionDistribution"> | $Enums.CommissionType
@@ -258,6 +266,7 @@ export type CommissionDistributionWhereInput = {
 
 export type CommissionDistributionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  distributionKey?: Prisma.SortOrder
   commissionRuleId?: Prisma.SortOrder
   recipientRole?: Prisma.SortOrder
   distributionType?: Prisma.SortOrder
@@ -272,6 +281,7 @@ export type CommissionDistributionOrderByWithRelationInput = {
 
 export type CommissionDistributionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  distributionKey?: string
   AND?: Prisma.CommissionDistributionWhereInput | Prisma.CommissionDistributionWhereInput[]
   OR?: Prisma.CommissionDistributionWhereInput[]
   NOT?: Prisma.CommissionDistributionWhereInput | Prisma.CommissionDistributionWhereInput[]
@@ -285,10 +295,11 @@ export type CommissionDistributionWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"CommissionDistribution"> | Date | string
   commissionRule?: Prisma.XOR<Prisma.CommissionRuleScalarRelationFilter, Prisma.CommissionRuleWhereInput>
   distributionTransactions?: Prisma.CommissionDistributionTransactionListRelationFilter
-}, "id">
+}, "id" | "distributionKey">
 
 export type CommissionDistributionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  distributionKey?: Prisma.SortOrder
   commissionRuleId?: Prisma.SortOrder
   recipientRole?: Prisma.SortOrder
   distributionType?: Prisma.SortOrder
@@ -309,6 +320,7 @@ export type CommissionDistributionScalarWhereWithAggregatesInput = {
   OR?: Prisma.CommissionDistributionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.CommissionDistributionScalarWhereWithAggregatesInput | Prisma.CommissionDistributionScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"CommissionDistribution"> | string
+  distributionKey?: Prisma.StringWithAggregatesFilter<"CommissionDistribution"> | string
   commissionRuleId?: Prisma.StringWithAggregatesFilter<"CommissionDistribution"> | string
   recipientRole?: Prisma.StringWithAggregatesFilter<"CommissionDistribution"> | string
   distributionType?: Prisma.EnumCommissionTypeWithAggregatesFilter<"CommissionDistribution"> | $Enums.CommissionType
@@ -321,6 +333,7 @@ export type CommissionDistributionScalarWhereWithAggregatesInput = {
 
 export type CommissionDistributionCreateInput = {
   id?: string
+  distributionKey: string
   recipientRole: string
   distributionType: $Enums.CommissionType
   distributionValue: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -334,6 +347,7 @@ export type CommissionDistributionCreateInput = {
 
 export type CommissionDistributionUncheckedCreateInput = {
   id?: string
+  distributionKey: string
   commissionRuleId: string
   recipientRole: string
   distributionType: $Enums.CommissionType
@@ -347,6 +361,7 @@ export type CommissionDistributionUncheckedCreateInput = {
 
 export type CommissionDistributionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
   distributionValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -360,6 +375,7 @@ export type CommissionDistributionUpdateInput = {
 
 export type CommissionDistributionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   commissionRuleId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
@@ -373,6 +389,7 @@ export type CommissionDistributionUncheckedUpdateInput = {
 
 export type CommissionDistributionCreateManyInput = {
   id?: string
+  distributionKey: string
   commissionRuleId: string
   recipientRole: string
   distributionType: $Enums.CommissionType
@@ -385,6 +402,7 @@ export type CommissionDistributionCreateManyInput = {
 
 export type CommissionDistributionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
   distributionValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -396,6 +414,7 @@ export type CommissionDistributionUpdateManyMutationInput = {
 
 export type CommissionDistributionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   commissionRuleId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
@@ -418,6 +437,7 @@ export type CommissionDistributionOrderByRelationAggregateInput = {
 
 export type CommissionDistributionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  distributionKey?: Prisma.SortOrder
   commissionRuleId?: Prisma.SortOrder
   recipientRole?: Prisma.SortOrder
   distributionType?: Prisma.SortOrder
@@ -435,6 +455,7 @@ export type CommissionDistributionAvgOrderByAggregateInput = {
 
 export type CommissionDistributionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  distributionKey?: Prisma.SortOrder
   commissionRuleId?: Prisma.SortOrder
   recipientRole?: Prisma.SortOrder
   distributionType?: Prisma.SortOrder
@@ -447,6 +468,7 @@ export type CommissionDistributionMaxOrderByAggregateInput = {
 
 export type CommissionDistributionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  distributionKey?: Prisma.SortOrder
   commissionRuleId?: Prisma.SortOrder
   recipientRole?: Prisma.SortOrder
   distributionType?: Prisma.SortOrder
@@ -527,6 +549,7 @@ export type CommissionDistributionUpdateOneWithoutDistributionTransactionsNested
 
 export type CommissionDistributionCreateWithoutCommissionRuleInput = {
   id?: string
+  distributionKey: string
   recipientRole: string
   distributionType: $Enums.CommissionType
   distributionValue: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -539,6 +562,7 @@ export type CommissionDistributionCreateWithoutCommissionRuleInput = {
 
 export type CommissionDistributionUncheckedCreateWithoutCommissionRuleInput = {
   id?: string
+  distributionKey: string
   recipientRole: string
   distributionType: $Enums.CommissionType
   distributionValue: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -580,6 +604,7 @@ export type CommissionDistributionScalarWhereInput = {
   OR?: Prisma.CommissionDistributionScalarWhereInput[]
   NOT?: Prisma.CommissionDistributionScalarWhereInput | Prisma.CommissionDistributionScalarWhereInput[]
   id?: Prisma.StringFilter<"CommissionDistribution"> | string
+  distributionKey?: Prisma.StringFilter<"CommissionDistribution"> | string
   commissionRuleId?: Prisma.StringFilter<"CommissionDistribution"> | string
   recipientRole?: Prisma.StringFilter<"CommissionDistribution"> | string
   distributionType?: Prisma.EnumCommissionTypeFilter<"CommissionDistribution"> | $Enums.CommissionType
@@ -592,6 +617,7 @@ export type CommissionDistributionScalarWhereInput = {
 
 export type CommissionDistributionCreateWithoutDistributionTransactionsInput = {
   id?: string
+  distributionKey: string
   recipientRole: string
   distributionType: $Enums.CommissionType
   distributionValue: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -604,6 +630,7 @@ export type CommissionDistributionCreateWithoutDistributionTransactionsInput = {
 
 export type CommissionDistributionUncheckedCreateWithoutDistributionTransactionsInput = {
   id?: string
+  distributionKey: string
   commissionRuleId: string
   recipientRole: string
   distributionType: $Enums.CommissionType
@@ -632,6 +659,7 @@ export type CommissionDistributionUpdateToOneWithWhereWithoutDistributionTransac
 
 export type CommissionDistributionUpdateWithoutDistributionTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
   distributionValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -644,6 +672,7 @@ export type CommissionDistributionUpdateWithoutDistributionTransactionsInput = {
 
 export type CommissionDistributionUncheckedUpdateWithoutDistributionTransactionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   commissionRuleId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
@@ -656,6 +685,7 @@ export type CommissionDistributionUncheckedUpdateWithoutDistributionTransactions
 
 export type CommissionDistributionCreateManyCommissionRuleInput = {
   id?: string
+  distributionKey: string
   recipientRole: string
   distributionType: $Enums.CommissionType
   distributionValue: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -667,6 +697,7 @@ export type CommissionDistributionCreateManyCommissionRuleInput = {
 
 export type CommissionDistributionUpdateWithoutCommissionRuleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
   distributionValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -679,6 +710,7 @@ export type CommissionDistributionUpdateWithoutCommissionRuleInput = {
 
 export type CommissionDistributionUncheckedUpdateWithoutCommissionRuleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
   distributionValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -691,6 +723,7 @@ export type CommissionDistributionUncheckedUpdateWithoutCommissionRuleInput = {
 
 export type CommissionDistributionUncheckedUpdateManyWithoutCommissionRuleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  distributionKey?: Prisma.StringFieldUpdateOperationsInput | string
   recipientRole?: Prisma.StringFieldUpdateOperationsInput | string
   distributionType?: Prisma.EnumCommissionTypeFieldUpdateOperationsInput | $Enums.CommissionType
   distributionValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -733,6 +766,7 @@ export type CommissionDistributionCountOutputTypeCountDistributionTransactionsAr
 
 export type CommissionDistributionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  distributionKey?: boolean
   commissionRuleId?: boolean
   recipientRole?: boolean
   distributionType?: boolean
@@ -748,6 +782,7 @@ export type CommissionDistributionSelect<ExtArgs extends runtime.Types.Extension
 
 export type CommissionDistributionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  distributionKey?: boolean
   commissionRuleId?: boolean
   recipientRole?: boolean
   distributionType?: boolean
@@ -761,6 +796,7 @@ export type CommissionDistributionSelectCreateManyAndReturn<ExtArgs extends runt
 
 export type CommissionDistributionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  distributionKey?: boolean
   commissionRuleId?: boolean
   recipientRole?: boolean
   distributionType?: boolean
@@ -774,6 +810,7 @@ export type CommissionDistributionSelectUpdateManyAndReturn<ExtArgs extends runt
 
 export type CommissionDistributionSelectScalar = {
   id?: boolean
+  distributionKey?: boolean
   commissionRuleId?: boolean
   recipientRole?: boolean
   distributionType?: boolean
@@ -784,7 +821,7 @@ export type CommissionDistributionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type CommissionDistributionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "commissionRuleId" | "recipientRole" | "distributionType" | "distributionValue" | "priority" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["commissionDistribution"]>
+export type CommissionDistributionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "distributionKey" | "commissionRuleId" | "recipientRole" | "distributionType" | "distributionValue" | "priority" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["commissionDistribution"]>
 export type CommissionDistributionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   commissionRule?: boolean | Prisma.CommissionRuleDefaultArgs<ExtArgs>
   distributionTransactions?: boolean | Prisma.CommissionDistribution$distributionTransactionsArgs<ExtArgs>
@@ -805,6 +842,7 @@ export type $CommissionDistributionPayload<ExtArgs extends runtime.Types.Extensi
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    distributionKey: string
     commissionRuleId: string
     recipientRole: string
     distributionType: $Enums.CommissionType
@@ -1239,6 +1277,7 @@ export interface Prisma__CommissionDistributionClient<T, Null = never, ExtArgs e
  */
 export interface CommissionDistributionFieldRefs {
   readonly id: Prisma.FieldRef<"CommissionDistribution", 'String'>
+  readonly distributionKey: Prisma.FieldRef<"CommissionDistribution", 'String'>
   readonly commissionRuleId: Prisma.FieldRef<"CommissionDistribution", 'String'>
   readonly recipientRole: Prisma.FieldRef<"CommissionDistribution", 'String'>
   readonly distributionType: Prisma.FieldRef<"CommissionDistribution", 'CommissionType'>

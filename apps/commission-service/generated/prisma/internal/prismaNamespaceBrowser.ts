@@ -76,6 +76,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 
 export const CommissionRuleScalarFieldEnum = {
   id: 'id',
+  ruleKey: 'ruleKey',
   serviceType: 'serviceType',
   operator: 'operator',
   role: 'role',
@@ -109,7 +110,11 @@ export const CommissionScalarFieldEnum = {
   idempotencyKey: 'idempotencyKey',
   metadata: 'metadata',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  walletTransactionId: 'walletTransactionId',
+  walletTransactionReference: 'walletTransactionReference',
+  creditedAt: 'creditedAt',
+  failureReason: 'failureReason'
 } as const
 
 export type CommissionScalarFieldEnum = (typeof CommissionScalarFieldEnum)[keyof typeof CommissionScalarFieldEnum]
@@ -117,6 +122,7 @@ export type CommissionScalarFieldEnum = (typeof CommissionScalarFieldEnum)[keyof
 
 export const CommissionDistributionScalarFieldEnum = {
   id: 'id',
+  distributionKey: 'distributionKey',
   commissionRuleId: 'commissionRuleId',
   recipientRole: 'recipientRole',
   distributionType: 'distributionType',
@@ -143,7 +149,10 @@ export const CommissionDistributionTransactionScalarFieldEnum = {
   transactionId: 'transactionId',
   idempotencyKey: 'idempotencyKey',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  transactionReference: 'transactionReference',
+  creditedAt: 'creditedAt',
+  failureReason: 'failureReason'
 } as const
 
 export type CommissionDistributionTransactionScalarFieldEnum = (typeof CommissionDistributionTransactionScalarFieldEnum)[keyof typeof CommissionDistributionTransactionScalarFieldEnum]
@@ -156,6 +165,8 @@ export const CommissionHierarchyScalarFieldEnum = {
   childUserId: 'childUserId',
   childRole: 'childRole',
   serviceType: 'serviceType',
+  relationshipKey: 'relationshipKey',
+  activeScopeKey: 'activeScopeKey',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

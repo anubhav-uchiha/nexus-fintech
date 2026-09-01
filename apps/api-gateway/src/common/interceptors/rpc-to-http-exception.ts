@@ -16,10 +16,7 @@ interface RpcErrorPayload {
   error?: string;
   errorCode?: string;
   errors?: unknown;
-<<<<<<< Updated upstream
   stack?: string;
-=======
->>>>>>> Stashed changes
 }
 
 @Injectable()
@@ -27,43 +24,10 @@ export class RpcToHttpExceptionInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
       catchError((error: unknown) => {
-<<<<<<< Updated upstream
-        const payload = this.extractRpcError(error);
-
-        if (payload) {
-          const response: Record<string, unknown> = {
-            statusCode: payload.statusCode,
-            message: payload.message,
-          };
-
-          if ('error' in payload) {
-            response.error = payload.error;
-          }
-
-          if ('errorCode' in payload) {
-            response.errorCode = payload.errorCode;
-          }
-
-          if ('errors' in payload) {
-            response.errors = payload.errors;
-          }
-
-          if (
-            process.env.NODE_ENV === 'development' &&
-            typeof payload.stack === 'string'
-          ) {
-            response.stack = payload.stack;
-          }
-
-          return throwError(
-            () => new HttpException(response, payload.statusCode),
-          );
-=======
         // Exceptions created directly in the gateway are already
         // HTTP exceptions and do not need conversion.
         if (error instanceof HttpException) {
           return throwError(() => error);
->>>>>>> Stashed changes
         }
 
         const payload = this.extractRpcError(error);

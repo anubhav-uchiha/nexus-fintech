@@ -22,4 +22,18 @@ export const COMMISSION_PATTERNS = {
   DELETE_HIERARCHY: 'commission.hierarchy.delete',
 
   RESOLVE_HIERARCHY: 'commission.hierarchy.resolve',
+
+  CREATE_PROVIDER_COMMISSION: 'commission.provider.create',
+
+  FINALIZE_PROVIDER_COMMISSION: 'commission.provider.finalize',
+  QUOTE_PROVIDER_COMMISSION: 'commission.provider.quote',
+
+  GET_PROVIDER_COMMISSION_EXECUTION: 'commission.provider.execution.get',
+
+  MARK_DISTRIBUTION_SUCCESS: 'commission.distribution.mark-success',
+
+  MARK_DISTRIBUTION_FAILED: 'commission.distribution.mark-failed',
+
+  FINALIZE_PROVIDER_DISTRIBUTIONS: 'commission.provider.distributions.finalize',
+  CANCEL_PROVIDER_COMMISSION: 'commission.provider.cancel',
 } as const;

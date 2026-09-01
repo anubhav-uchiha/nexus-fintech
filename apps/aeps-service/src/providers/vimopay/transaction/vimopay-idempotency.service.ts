@@ -57,7 +57,85 @@ export class VimopayIdempotencyService {
 
   async begin(input: BeginInput) {
     const lockToken = randomUUID();
+    /*
+     * =====================================================
+     * UNSETTLED FINANCIAL INTENT CHECK
+     * =====================================================
+     *
+     * Same financial intent:
+     *
+     * PROCESSING
+     * PENDING
+     * UNKNOWN
+     *
+     * state mein hai to NEW Idempotency-Key
+     * se bhi provider dobara hit nahi hoga.
+     */
 
+    const unsettled = await this.prisma.aepsTransactionIdempotency.findFirst({
+      where: {
+        identityId: input.identityId,
+
+        profileId: input.profileId,
+
+        provider: AepsProvider.VIMOPAY,
+
+        transactionType: input.transactionType,
+
+        requestHash: input.requestHash,
+
+        /*
+         * Current same key ko yahan
+         * handle nahi karenge.
+         *
+         * Existing upsert logic usko
+         * niche handle karegi.
+         */
+        idempotencyKey: {
+          not: input.idempotencyKey,
+        },
+
+        status: {
+          in: [
+            AepsIdempotencyStatus.PROCESSING,
+
+            AepsIdempotencyStatus.PENDING,
+
+            AepsIdempotencyStatus.UNKNOWN,
+          ],
+        },
+      },
+
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (unsettled) {
+      switch (unsettled.status) {
+        case AepsIdempotencyStatus.PROCESSING:
+          throw new ConflictException({
+            message: 'A matching transaction is already being processed',
+
+            code: 'TRANSACTION_IN_PROGRESS',
+          });
+
+        case AepsIdempotencyStatus.PENDING:
+          throw new ConflictException({
+            message: 'A previous matching transaction is still pending',
+
+            code: 'PREVIOUS_TRANSACTION_PENDING',
+          });
+
+        case AepsIdempotencyStatus.UNKNOWN:
+          throw new ConflictException({
+            message:
+              'A previous matching transaction has an uncertain status and must be reconciled before retry',
+
+            code: 'PREVIOUS_TRANSACTION_UNKNOWN',
+          });
+      }
+    }
     const record = await this.prisma.aepsTransactionIdempotency.upsert({
       where: {
         identityId_provider_transactionType_idempotencyKey: {

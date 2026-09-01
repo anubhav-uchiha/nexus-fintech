@@ -913,4 +913,24 @@ export class IdentityService {
       );
     }
   }
+  async findCommissionRecipientEligibility(identityId: string) {
+    return this.prisma.identity.findUnique({
+      where: {
+        id: identityId,
+      },
+
+      select: {
+        id: true,
+        status: true,
+
+        role: {
+          select: {
+            id: true,
+            name: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+  }
 }

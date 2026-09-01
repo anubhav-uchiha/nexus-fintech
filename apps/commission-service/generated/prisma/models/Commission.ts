@@ -53,6 +53,10 @@ export type CommissionMinAggregateOutputType = {
   idempotencyKey: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  walletTransactionId: string | null
+  walletTransactionReference: string | null
+  creditedAt: Date | null
+  failureReason: string | null
 }
 
 export type CommissionMaxAggregateOutputType = {
@@ -72,6 +76,10 @@ export type CommissionMaxAggregateOutputType = {
   idempotencyKey: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  walletTransactionId: string | null
+  walletTransactionReference: string | null
+  creditedAt: Date | null
+  failureReason: string | null
 }
 
 export type CommissionCountAggregateOutputType = {
@@ -92,6 +100,10 @@ export type CommissionCountAggregateOutputType = {
   metadata: number
   createdAt: number
   updatedAt: number
+  walletTransactionId: number
+  walletTransactionReference: number
+  creditedAt: number
+  failureReason: number
   _all: number
 }
 
@@ -123,6 +135,10 @@ export type CommissionMinAggregateInputType = {
   idempotencyKey?: true
   createdAt?: true
   updatedAt?: true
+  walletTransactionId?: true
+  walletTransactionReference?: true
+  creditedAt?: true
+  failureReason?: true
 }
 
 export type CommissionMaxAggregateInputType = {
@@ -142,6 +158,10 @@ export type CommissionMaxAggregateInputType = {
   idempotencyKey?: true
   createdAt?: true
   updatedAt?: true
+  walletTransactionId?: true
+  walletTransactionReference?: true
+  creditedAt?: true
+  failureReason?: true
 }
 
 export type CommissionCountAggregateInputType = {
@@ -162,6 +182,10 @@ export type CommissionCountAggregateInputType = {
   metadata?: true
   createdAt?: true
   updatedAt?: true
+  walletTransactionId?: true
+  walletTransactionReference?: true
+  creditedAt?: true
+  failureReason?: true
   _all?: true
 }
 
@@ -269,6 +293,10 @@ export type CommissionGroupByOutputType = {
   metadata: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
+  walletTransactionId: string | null
+  walletTransactionReference: string | null
+  creditedAt: Date | null
+  failureReason: string | null
   _count: CommissionCountAggregateOutputType | null
   _avg: CommissionAvgAggregateOutputType | null
   _sum: CommissionSumAggregateOutputType | null
@@ -312,6 +340,10 @@ export type CommissionWhereInput = {
   metadata?: Prisma.JsonNullableFilter<"Commission">
   createdAt?: Prisma.DateTimeFilter<"Commission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Commission"> | Date | string
+  walletTransactionId?: Prisma.StringNullableFilter<"Commission"> | string | null
+  walletTransactionReference?: Prisma.StringNullableFilter<"Commission"> | string | null
+  creditedAt?: Prisma.DateTimeNullableFilter<"Commission"> | Date | string | null
+  failureReason?: Prisma.StringNullableFilter<"Commission"> | string | null
   rule?: Prisma.XOR<Prisma.CommissionRuleNullableScalarRelationFilter, Prisma.CommissionRuleWhereInput> | null
   distributionTransactions?: Prisma.CommissionDistributionTransactionListRelationFilter
 }
@@ -334,6 +366,10 @@ export type CommissionOrderByWithRelationInput = {
   metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  walletTransactionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  walletTransactionReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  creditedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  failureReason?: Prisma.SortOrderInput | Prisma.SortOrder
   rule?: Prisma.CommissionRuleOrderByWithRelationInput
   distributionTransactions?: Prisma.CommissionDistributionTransactionOrderByRelationAggregateInput
 }
@@ -359,6 +395,10 @@ export type CommissionWhereUniqueInput = Prisma.AtLeast<{
   metadata?: Prisma.JsonNullableFilter<"Commission">
   createdAt?: Prisma.DateTimeFilter<"Commission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Commission"> | Date | string
+  walletTransactionId?: Prisma.StringNullableFilter<"Commission"> | string | null
+  walletTransactionReference?: Prisma.StringNullableFilter<"Commission"> | string | null
+  creditedAt?: Prisma.DateTimeNullableFilter<"Commission"> | Date | string | null
+  failureReason?: Prisma.StringNullableFilter<"Commission"> | string | null
   rule?: Prisma.XOR<Prisma.CommissionRuleNullableScalarRelationFilter, Prisma.CommissionRuleWhereInput> | null
   distributionTransactions?: Prisma.CommissionDistributionTransactionListRelationFilter
 }, "id" | "referenceId" | "idempotencyKey">
@@ -381,6 +421,10 @@ export type CommissionOrderByWithAggregationInput = {
   metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  walletTransactionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  walletTransactionReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  creditedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  failureReason?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CommissionCountOrderByAggregateInput
   _avg?: Prisma.CommissionAvgOrderByAggregateInput
   _max?: Prisma.CommissionMaxOrderByAggregateInput
@@ -409,6 +453,10 @@ export type CommissionScalarWhereWithAggregatesInput = {
   metadata?: Prisma.JsonNullableWithAggregatesFilter<"Commission">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Commission"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Commission"> | Date | string
+  walletTransactionId?: Prisma.StringNullableWithAggregatesFilter<"Commission"> | string | null
+  walletTransactionReference?: Prisma.StringNullableWithAggregatesFilter<"Commission"> | string | null
+  creditedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Commission"> | Date | string | null
+  failureReason?: Prisma.StringNullableWithAggregatesFilter<"Commission"> | string | null
 }
 
 export type CommissionCreateInput = {
@@ -428,6 +476,10 @@ export type CommissionCreateInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  walletTransactionId?: string | null
+  walletTransactionReference?: string | null
+  creditedAt?: Date | string | null
+  failureReason?: string | null
   rule?: Prisma.CommissionRuleCreateNestedOneWithoutCommissionsInput
   distributionTransactions?: Prisma.CommissionDistributionTransactionCreateNestedManyWithoutCommissionInput
 }
@@ -450,6 +502,10 @@ export type CommissionUncheckedCreateInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  walletTransactionId?: string | null
+  walletTransactionReference?: string | null
+  creditedAt?: Date | string | null
+  failureReason?: string | null
   distributionTransactions?: Prisma.CommissionDistributionTransactionUncheckedCreateNestedManyWithoutCommissionInput
 }
 
@@ -470,6 +526,10 @@ export type CommissionUpdateInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rule?: Prisma.CommissionRuleUpdateOneWithoutCommissionsNestedInput
   distributionTransactions?: Prisma.CommissionDistributionTransactionUpdateManyWithoutCommissionNestedInput
 }
@@ -492,6 +552,10 @@ export type CommissionUncheckedUpdateInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   distributionTransactions?: Prisma.CommissionDistributionTransactionUncheckedUpdateManyWithoutCommissionNestedInput
 }
 
@@ -513,6 +577,10 @@ export type CommissionCreateManyInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  walletTransactionId?: string | null
+  walletTransactionReference?: string | null
+  creditedAt?: Date | string | null
+  failureReason?: string | null
 }
 
 export type CommissionUpdateManyMutationInput = {
@@ -532,6 +600,10 @@ export type CommissionUpdateManyMutationInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CommissionUncheckedUpdateManyInput = {
@@ -552,6 +624,10 @@ export type CommissionUncheckedUpdateManyInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CommissionListRelationFilter = {
@@ -582,6 +658,10 @@ export type CommissionCountOrderByAggregateInput = {
   metadata?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  walletTransactionId?: Prisma.SortOrder
+  walletTransactionReference?: Prisma.SortOrder
+  creditedAt?: Prisma.SortOrder
+  failureReason?: Prisma.SortOrder
 }
 
 export type CommissionAvgOrderByAggregateInput = {
@@ -606,6 +686,10 @@ export type CommissionMaxOrderByAggregateInput = {
   idempotencyKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  walletTransactionId?: Prisma.SortOrder
+  walletTransactionReference?: Prisma.SortOrder
+  creditedAt?: Prisma.SortOrder
+  failureReason?: Prisma.SortOrder
 }
 
 export type CommissionMinOrderByAggregateInput = {
@@ -625,6 +709,10 @@ export type CommissionMinOrderByAggregateInput = {
   idempotencyKey?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  walletTransactionId?: Prisma.SortOrder
+  walletTransactionReference?: Prisma.SortOrder
+  creditedAt?: Prisma.SortOrder
+  failureReason?: Prisma.SortOrder
 }
 
 export type CommissionSumOrderByAggregateInput = {
@@ -683,6 +771,10 @@ export type EnumCommissionStatusFieldUpdateOperationsInput = {
   set?: $Enums.CommissionStatus
 }
 
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
+}
+
 export type CommissionCreateNestedOneWithoutDistributionTransactionsInput = {
   create?: Prisma.XOR<Prisma.CommissionCreateWithoutDistributionTransactionsInput, Prisma.CommissionUncheckedCreateWithoutDistributionTransactionsInput>
   connectOrCreate?: Prisma.CommissionCreateOrConnectWithoutDistributionTransactionsInput
@@ -714,6 +806,10 @@ export type CommissionCreateWithoutRuleInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  walletTransactionId?: string | null
+  walletTransactionReference?: string | null
+  creditedAt?: Date | string | null
+  failureReason?: string | null
   distributionTransactions?: Prisma.CommissionDistributionTransactionCreateNestedManyWithoutCommissionInput
 }
 
@@ -734,6 +830,10 @@ export type CommissionUncheckedCreateWithoutRuleInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  walletTransactionId?: string | null
+  walletTransactionReference?: string | null
+  creditedAt?: Date | string | null
+  failureReason?: string | null
   distributionTransactions?: Prisma.CommissionDistributionTransactionUncheckedCreateNestedManyWithoutCommissionInput
 }
 
@@ -784,6 +884,10 @@ export type CommissionScalarWhereInput = {
   metadata?: Prisma.JsonNullableFilter<"Commission">
   createdAt?: Prisma.DateTimeFilter<"Commission"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Commission"> | Date | string
+  walletTransactionId?: Prisma.StringNullableFilter<"Commission"> | string | null
+  walletTransactionReference?: Prisma.StringNullableFilter<"Commission"> | string | null
+  creditedAt?: Prisma.DateTimeNullableFilter<"Commission"> | Date | string | null
+  failureReason?: Prisma.StringNullableFilter<"Commission"> | string | null
 }
 
 export type CommissionCreateWithoutDistributionTransactionsInput = {
@@ -803,6 +907,10 @@ export type CommissionCreateWithoutDistributionTransactionsInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  walletTransactionId?: string | null
+  walletTransactionReference?: string | null
+  creditedAt?: Date | string | null
+  failureReason?: string | null
   rule?: Prisma.CommissionRuleCreateNestedOneWithoutCommissionsInput
 }
 
@@ -824,6 +932,10 @@ export type CommissionUncheckedCreateWithoutDistributionTransactionsInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  walletTransactionId?: string | null
+  walletTransactionReference?: string | null
+  creditedAt?: Date | string | null
+  failureReason?: string | null
 }
 
 export type CommissionCreateOrConnectWithoutDistributionTransactionsInput = {
@@ -859,6 +971,10 @@ export type CommissionUpdateWithoutDistributionTransactionsInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rule?: Prisma.CommissionRuleUpdateOneWithoutCommissionsNestedInput
 }
 
@@ -880,6 +996,10 @@ export type CommissionUncheckedUpdateWithoutDistributionTransactionsInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CommissionCreateManyRuleInput = {
@@ -899,6 +1019,10 @@ export type CommissionCreateManyRuleInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
+  walletTransactionId?: string | null
+  walletTransactionReference?: string | null
+  creditedAt?: Date | string | null
+  failureReason?: string | null
 }
 
 export type CommissionUpdateWithoutRuleInput = {
@@ -918,6 +1042,10 @@ export type CommissionUpdateWithoutRuleInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   distributionTransactions?: Prisma.CommissionDistributionTransactionUpdateManyWithoutCommissionNestedInput
 }
 
@@ -938,6 +1066,10 @@ export type CommissionUncheckedUpdateWithoutRuleInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   distributionTransactions?: Prisma.CommissionDistributionTransactionUncheckedUpdateManyWithoutCommissionNestedInput
 }
 
@@ -958,6 +1090,10 @@ export type CommissionUncheckedUpdateManyWithoutRuleInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  walletTransactionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  walletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  failureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1009,6 +1145,10 @@ export type CommissionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   metadata?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  walletTransactionId?: boolean
+  walletTransactionReference?: boolean
+  creditedAt?: boolean
+  failureReason?: boolean
   rule?: boolean | Prisma.Commission$ruleArgs<ExtArgs>
   distributionTransactions?: boolean | Prisma.Commission$distributionTransactionsArgs<ExtArgs>
   _count?: boolean | Prisma.CommissionCountOutputTypeDefaultArgs<ExtArgs>
@@ -1032,6 +1172,10 @@ export type CommissionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   metadata?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  walletTransactionId?: boolean
+  walletTransactionReference?: boolean
+  creditedAt?: boolean
+  failureReason?: boolean
   rule?: boolean | Prisma.Commission$ruleArgs<ExtArgs>
 }, ExtArgs["result"]["commission"]>
 
@@ -1053,6 +1197,10 @@ export type CommissionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   metadata?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  walletTransactionId?: boolean
+  walletTransactionReference?: boolean
+  creditedAt?: boolean
+  failureReason?: boolean
   rule?: boolean | Prisma.Commission$ruleArgs<ExtArgs>
 }, ExtArgs["result"]["commission"]>
 
@@ -1074,9 +1222,13 @@ export type CommissionSelectScalar = {
   metadata?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  walletTransactionId?: boolean
+  walletTransactionReference?: boolean
+  creditedAt?: boolean
+  failureReason?: boolean
 }
 
-export type CommissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "transactionId" | "transactionReference" | "userId" | "role" | "serviceType" | "operator" | "transactionAmount" | "commissionAmount" | "commissionType" | "ruleId" | "status" | "idempotencyKey" | "metadata" | "createdAt" | "updatedAt", ExtArgs["result"]["commission"]>
+export type CommissionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "transactionId" | "transactionReference" | "userId" | "role" | "serviceType" | "operator" | "transactionAmount" | "commissionAmount" | "commissionType" | "ruleId" | "status" | "idempotencyKey" | "metadata" | "createdAt" | "updatedAt" | "walletTransactionId" | "walletTransactionReference" | "creditedAt" | "failureReason", ExtArgs["result"]["commission"]>
 export type CommissionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   rule?: boolean | Prisma.Commission$ruleArgs<ExtArgs>
   distributionTransactions?: boolean | Prisma.Commission$distributionTransactionsArgs<ExtArgs>
@@ -1113,6 +1265,10 @@ export type $CommissionPayload<ExtArgs extends runtime.Types.Extensions.Internal
     metadata: runtime.JsonValue | null
     createdAt: Date
     updatedAt: Date
+    walletTransactionId: string | null
+    walletTransactionReference: string | null
+    creditedAt: Date | null
+    failureReason: string | null
   }, ExtArgs["result"]["commission"]>
   composites: {}
 }
@@ -1555,6 +1711,10 @@ export interface CommissionFieldRefs {
   readonly metadata: Prisma.FieldRef<"Commission", 'Json'>
   readonly createdAt: Prisma.FieldRef<"Commission", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Commission", 'DateTime'>
+  readonly walletTransactionId: Prisma.FieldRef<"Commission", 'String'>
+  readonly walletTransactionReference: Prisma.FieldRef<"Commission", 'String'>
+  readonly creditedAt: Prisma.FieldRef<"Commission", 'DateTime'>
+  readonly failureReason: Prisma.FieldRef<"Commission", 'String'>
 }
     
 

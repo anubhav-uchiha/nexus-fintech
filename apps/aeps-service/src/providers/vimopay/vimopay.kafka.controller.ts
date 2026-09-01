@@ -13,4 +13,6 @@ export class VimopayKafkaController {
   async authorize() {
     return this.vimopayService.authorize();
   }
+
+  
 }

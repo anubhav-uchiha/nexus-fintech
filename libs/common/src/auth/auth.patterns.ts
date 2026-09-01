@@ -40,4 +40,7 @@ export const AUTH_PATTERNS = {
   RESOLVE_PEER_TRANSFER_PARTICIPANTS: 'auth.peer-transfer.resolve-participants',
 
   CACHE_TEST: 'auth.cache-test',
+
+  RESOLVE_COMMISSION_RECIPIENT_ELIGIBILITY:
+    'auth.commission-recipient.resolve-eligibility',
 } as const;

@@ -301,6 +301,7 @@ model AepsTransactionIdempotency {
     profile AepsMerchantProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
     @@unique([identityId, provider, transactionType, idempotencyKey])
+    @@index([identityId, transactionType, requestHash, status])
     @@index([profileId, status])
     @@index([identityId, createdAt])
 }

@@ -276,15 +276,13 @@ export class VimopayAepsController {
   ) {
     this.validateIdempotencyKey(idempotencyKey);
 
-    return this.service.cashWithdrawal(
-      user.sub,
-
-      this.normalizeIpAddress(requestIp),
-
+    return this.service.cashWithdrawal({
+      identityId: user.sub,
+      role: user.role,
+      ipAddress: this.normalizeIpAddress(requestIp),
       idempotencyKey,
-
       dto,
-    );
+    });
   }
 
   @Post('aadhaar-pay/otp')
@@ -323,15 +321,13 @@ export class VimopayAepsController {
   ) {
     this.validateIdempotencyKey(idempotencyKey);
 
-    return this.service.aadhaarPay(
-      user.sub,
-
-      this.normalizeIpAddress(requestIp),
-
+    return this.service.aadhaarPay({
+      identityId: user.sub,
+      role: user.role,
+      ipAddress: this.normalizeIpAddress(requestIp),
       idempotencyKey,
-
       dto,
-    );
+    });
   }
 
   @Post('cash-deposit')
@@ -350,15 +346,13 @@ export class VimopayAepsController {
   ) {
     this.validateIdempotencyKey(idempotencyKey);
 
-    return this.service.cashDeposit(
-      user.sub,
-
-      this.normalizeIpAddress(requestIp),
-
+    return this.service.cashDeposit({
+      identityId: user.sub,
+      role: user.role,
+      ipAddress: this.normalizeIpAddress(requestIp),
       idempotencyKey,
-
       dto,
-    );
+    });
   }
 
   private validateIdempotencyKey(value: string) {

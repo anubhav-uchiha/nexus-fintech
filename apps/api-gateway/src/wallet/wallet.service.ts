@@ -131,4 +131,6 @@ export class WalletGatewayService implements OnModuleInit {
       throw this.handleRpcError(error, 'Unable to calculate commission');
     }
   }
+
+  
 }

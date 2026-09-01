@@ -7,6 +7,18 @@ import { ConfigService } from '@nestjs/config';
 import { AepsBankService, AEPS_BANK_CLIENT } from './bank/aeps-bank.service';
 
 import { AepsKycService, AEPS_KYC_CLIENT } from './kyc/aeps-kyc.service';
+import {
+  AepsProviderTransactionService,
+  AEPS_TRANSACTION_CLIENT,
+} from './transaction/aeps-provider-transaction.service';
+import {
+  AepsWalletService,
+  AEPS_WALLET_CLIENT,
+} from './wallet/aeps-wallet.service';
+import {
+  AepsCommissionService,
+  AEPS_COMMISSION_CLIENT,
+} from './commission/aeps-commission.service';
 
 function getKafkaBrokers(config: ConfigService): string[] {
   const brokerConfig =
@@ -66,11 +78,87 @@ function getKafkaBrokers(config: ConfigService): string[] {
           },
         }),
       },
+
+      {
+        name: AEPS_TRANSACTION_CLIENT,
+
+        inject: [ConfigService],
+
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.KAFKA,
+
+          options: {
+            client: {
+              clientId: 'aeps-transaction-client',
+
+              brokers: getKafkaBrokers(config),
+            },
+
+            consumer: {
+              groupId: 'aeps-transaction-client-group',
+            },
+          },
+        }),
+      },
+      {
+        name: AEPS_WALLET_CLIENT,
+
+        inject: [ConfigService],
+
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.KAFKA,
+
+          options: {
+            client: {
+              clientId: 'aeps-wallet-client',
+
+              brokers: getKafkaBrokers(config),
+            },
+
+            consumer: {
+              groupId: 'aeps-wallet-client-group',
+            },
+          },
+        }),
+      },
+      {
+        name: AEPS_COMMISSION_CLIENT,
+
+        inject: [ConfigService],
+
+        useFactory: (config: ConfigService) => ({
+          transport: Transport.KAFKA,
+
+          options: {
+            client: {
+              clientId: 'aeps-commission-client',
+
+              brokers: getKafkaBrokers(config),
+            },
+
+            consumer: {
+              groupId: 'aeps-commission-client-group',
+            },
+          },
+        }),
+      },
     ]),
   ],
 
-  providers: [AepsBankService, AepsKycService],
+  providers: [
+    AepsBankService,
+    AepsKycService,
+    AepsProviderTransactionService,
+    AepsWalletService,
+    AepsCommissionService,
+  ],
 
-  exports: [AepsBankService, AepsKycService],
+  exports: [
+    AepsBankService,
+    AepsKycService,
+    AepsProviderTransactionService,
+    AepsWalletService,
+    AepsCommissionService,
+  ],
 })
 export class AepsIntegrationsModule {}

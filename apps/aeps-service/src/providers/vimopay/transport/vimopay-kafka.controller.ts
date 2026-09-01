@@ -44,7 +44,7 @@ export class VimopayKafkaController {
   constructor(
     private readonly vimopayService: VimopayService,
     private readonly onboardingService: VimopayOnboardingService,
-    private readonly transactionService: VimopayTransactionService,
+    private readonly vimopayTransactionService: VimopayTransactionService,
   ) {}
 
   /*
@@ -227,7 +227,7 @@ export class VimopayKafkaController {
       dto: VimopayBalanceEnquiryRequestDto;
     },
   ) {
-    return this.transactionService.balanceEnquiry(
+    return this.vimopayTransactionService.balanceEnquiry(
       {
         identityId: payload.identityId,
 
@@ -253,7 +253,7 @@ export class VimopayKafkaController {
       dto: VimopayMiniStatementRequestDto;
     },
   ) {
-    return this.transactionService.miniStatement(
+    return this.vimopayTransactionService.miniStatement(
       {
         identityId: payload.identityId,
 
@@ -279,7 +279,7 @@ export class VimopayKafkaController {
       dto: VimopayCashWithdrawalOtpRequestDto;
     },
   ) {
-    return this.transactionService.sendCashWithdrawalOtp(
+    return this.vimopayTransactionService.sendCashWithdrawalOtp(
       {
         identityId: payload.identityId,
 
@@ -297,26 +297,25 @@ export class VimopayKafkaController {
    */
 
   @MessagePattern(VIMOPAY_AEPS_PATTERNS.CASH_WITHDRAWAL)
-  cashWithdrawal(
+  async cashWithdrawal(
     @Payload()
     payload: {
       identityId: string;
+      role: string;
       ipAddress: string;
-
       idempotencyKey: string;
-
       dto: VimopayCashWithdrawalRequestDto;
     },
   ) {
-    return this.transactionService.cashWithdrawal(
+    return this.vimopayTransactionService.cashWithdrawal(
       {
         identityId: payload.identityId,
 
+        role: payload.role,
+
         ipAddress: payload.ipAddress,
       },
-
       payload.dto,
-
       payload.idempotencyKey,
     );
   }
@@ -336,7 +335,7 @@ export class VimopayKafkaController {
       dto: VimopayAadhaarPayOtpRequestDto;
     },
   ) {
-    return this.transactionService.sendAadhaarPayOtp(
+    return this.vimopayTransactionService.sendAadhaarPayOtp(
       {
         identityId: payload.identityId,
 
@@ -359,17 +358,18 @@ export class VimopayKafkaController {
     payload: {
       identityId: string;
       ipAddress: string;
-
+      role: string;
       idempotencyKey: string;
 
       dto: VimopayAadhaarPayRequestDto;
     },
   ) {
-    return this.transactionService.aadhaarPay(
+    return this.vimopayTransactionService.aadhaarPay(
       {
         identityId: payload.identityId,
 
         ipAddress: payload.ipAddress,
+        role: payload.role,
       },
 
       payload.dto,
@@ -390,17 +390,18 @@ export class VimopayKafkaController {
     payload: {
       identityId: string;
       ipAddress: string;
-
+      role: string;
       idempotencyKey: string;
 
       dto: VimopayCashDepositRequestDto;
     },
   ) {
-    return this.transactionService.cashDeposit(
+    return this.vimopayTransactionService.cashDeposit(
       {
         identityId: payload.identityId,
 
         ipAddress: payload.ipAddress,
+        role: payload.role,
       },
 
       payload.dto,

@@ -1455,4 +1455,71 @@ export class AuthService {
         );
       });
   }
+
+  async resolveCommissionRecipientEligibility(dto: {
+    identityId: string;
+    expectedRole: string;
+  }) {
+    const expectedRole = dto.expectedRole
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '_');
+
+    const identity =
+      await this.identityService.findCommissionRecipientEligibility(
+        dto.identityId,
+      );
+
+    if (!identity) {
+      return {
+        identityId: dto.identityId,
+        eligible: false,
+        reason: 'IDENTITY_NOT_FOUND',
+      };
+    }
+
+    if (identity.status !== UserStatus.ACTIVE) {
+      return {
+        identityId: identity.id,
+        eligible: false,
+        status: identity.status,
+        role: identity.role.name,
+        reason: 'IDENTITY_NOT_ACTIVE',
+      };
+    }
+
+    if (!identity.role.isActive) {
+      return {
+        identityId: identity.id,
+        eligible: false,
+        status: identity.status,
+        role: identity.role.name,
+        reason: 'ROLE_NOT_ACTIVE',
+      };
+    }
+
+    /*
+     * Hierarchy bol rahi DISTRIBUTOR,
+     * lekin actual auth account ka role
+     * bhi DISTRIBUTOR hi hona chahiye.
+     */
+    if (identity.role.name !== expectedRole) {
+      return {
+        identityId: identity.id,
+        eligible: false,
+        status: identity.status,
+        role: identity.role.name,
+        expectedRole,
+        reason: 'ROLE_MISMATCH',
+      };
+    }
+
+    return {
+      identityId: identity.id,
+      eligible: true,
+      status: identity.status,
+      role: identity.role.name,
+      reason: null,
+    };
+  }
 }

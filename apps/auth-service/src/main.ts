@@ -1,14 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AuthServiceModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-<<<<<<< Updated upstream
-import { ValidationPipe } from '@nestjs/common';
-import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
-=======
 import { Logger, ValidationPipe } from '@nestjs/common';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { HttpToRpcExceptionInterceptor } from './common/interceptors/http-to-rpc-exception';
->>>>>>> Stashed changes
+import { AutoCreateTopicsServerKafka } from 'libs/kafka/src';
+import { MicroserviceOptions } from '@nestjs/microservices';
+import { HttpToRpcExceptionInterceptor } from '@nexus/common/interceptors/http-to-rpc-exception.interceptor';
 
 function getPositiveInteger(
   value: string | number | undefined,
@@ -59,14 +55,7 @@ async function bootstrap(): Promise<void> {
         consumer: {
           groupId: config.get<string>('KAFKA_GROUP_ID') ?? 'auth-service-group',
         },
-<<<<<<< Updated upstream
       }),
-=======
-        run: {
-          partitionsConsumedConcurrently: kafkaConcurrency,
-        },
-      },
->>>>>>> Stashed changes
     },
     {
       inheritAppConfig: true,
