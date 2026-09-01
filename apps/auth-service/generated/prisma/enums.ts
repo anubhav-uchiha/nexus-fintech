@@ -40,6 +40,17 @@ export const RegistrationStep = {
 export type RegistrationStep = (typeof RegistrationStep)[keyof typeof RegistrationStep]
 
 
+export const AccountOnboardingStatus = {
+  CREDENTIALS_ISSUED: 'CREDENTIALS_ISSUED',
+  PHONE_PENDING: 'PHONE_PENDING',
+  PAN_PENDING: 'PAN_PENDING',
+  CREDENTIAL_CHANGE_REQUIRED: 'CREDENTIAL_CHANGE_REQUIRED',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type AccountOnboardingStatus = (typeof AccountOnboardingStatus)[keyof typeof AccountOnboardingStatus]
+
+
 export const OtpType = {
   PHONE: 'PHONE',
   EMAIL: 'EMAIL'

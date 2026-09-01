@@ -34,6 +34,7 @@ const loginIdentitySelect = {
   mpin: true,
   status: true,
   passwordChangedAt: true,
+  mpinChangedAt: true,
   preferredLoginMethod: true,
   role: {
     select: {
@@ -745,6 +746,7 @@ export class IdentityService {
         },
         data: {
           mpin: data.hashedMpin,
+          mpinChangedAt: now,
         },
       });
 
@@ -836,6 +838,7 @@ export class IdentityService {
       },
       data: {
         mpin: hashedMpin,
+        mpinChangedAt: new Date(),
       },
     });
 

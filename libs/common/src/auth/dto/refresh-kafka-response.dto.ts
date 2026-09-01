@@ -13,6 +13,8 @@ export class RefreshKafkaResponseDto {
     phoneNumber: string;
     role: string;
     status: string;
+    passwordChangedAt: Date | null;
+    mpinChangedAt: Date | null;
     preferredLoginMethod: LoginMethod;
   };
 }

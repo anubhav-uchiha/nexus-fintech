@@ -35,9 +35,9 @@ export class WalletGatewayService implements OnModuleInit {
     await this.walletClient.connect();
   }
 
-  async addMoney(dto: AddMoneyDto) {
+  addMoney(dto: AddMoneyDto) {
     try {
-      return await firstValueFrom(
+      return firstValueFrom(
         this.walletClient.send(WALLET_PATTERNS.ADD_MONEY, {
           dto,
           role: 'RETAILER',

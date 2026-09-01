@@ -65,7 +65,7 @@ export class IdentityBankAccountService implements OnModuleInit {
   async getMyBankAccount(identity: IdentityDto, bankId: string) {
     return await firstValueFrom(
       this.client.send(BANK_ACCOUNT_PATTERNS.GET_MY_BANK_ACCOUNT, {
-        identity: identity.identityId,
+        identityId: identity.identityId,
         bankId,
       }),
     );
@@ -105,7 +105,7 @@ export class IdentityBankAccountService implements OnModuleInit {
   setMyBankAccountAsPrimary(identity: IdentityDto, bankId: string) {
     return firstValueFrom(
       this.client.send(BANK_ACCOUNT_PATTERNS.SET_BANK_ACCOUNT_AS_PRIMARY, {
-        identity: identity.identityId,
+        identityId: identity.identityId,
         bankId,
       }),
     );
@@ -116,6 +116,4 @@ export class IdentityBankAccountService implements OnModuleInit {
       this.client.send(BANK_ACCOUNT_PATTERNS.GET_PRIMARY_BANK_ACCOUNT, dto),
     );
   }
-
- 
 }

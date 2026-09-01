@@ -29,6 +29,14 @@ enum RegistrationStep {
   COMPLETED
 }
 
+enum AccountOnboardingStatus {
+  CREDENTIALS_ISSUED
+  PHONE_PENDING
+  PAN_PENDING
+  CREDENTIAL_CHANGE_REQUIRED
+  COMPLETED
+}
+
 model Identity {
   id      String @id @default(uuid())
   loginId String @unique
@@ -65,6 +73,7 @@ model Identity {
 
   lastLoginAt       DateTime?
   passwordChangedAt DateTime?
+  mpinChangedAt     DateTime?
 
   roleId              String
   role                Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict)
@@ -88,6 +97,75 @@ model Identity {
   @@map("identities")
 }
 
+model SuperAdmin {
+  id      String @id @default(uuid())
+  loginId String @unique
+
+  fullName String
+  username String @unique
+  email    String @unique
+
+  phoneNumber String? @unique
+
+  password String
+  mpin     String
+
+  aadhaarNumber String? @unique
+  panNumber     String? @unique
+
+  shopName    String?
+  shopAddress String?
+  shopCity    String?
+  shopState   String?
+
+  city    String
+  state   String
+  pincode String
+
+  status UserStatus @default(ACTIVE)
+
+  isEmailVerified Boolean @default(false)
+  isPhoneVerified Boolean @default(false)
+  isPanVerified   Boolean @default(false)
+
+  preferredLoginMethod LoginMethod @default(LOGIN_ID)
+
+  onboardingStatus AccountOnboardingStatus @default(CREDENTIALS_ISSUED)
+
+  temporaryCredentialsExpireAt DateTime?
+
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+  mpinChangedAt     DateTime?
+
+  lastLoginLatitude  Decimal? @db.Decimal(8, 6)
+  lastLoginLongitude Decimal? @db.Decimal(9, 6)
+
+  roleId String
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  isPrimary Boolean @default(false)
+
+  createdBySuperAdminId String?
+
+  createdBySuperAdmin SuperAdmin? @relation("SuperAdminCreator",fields: [createdBySuperAdminId],references: [id],onDelete: SetNull)
+
+  createdSuperAdmins SuperAdmin[] @relation("SuperAdminCreator")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([username])
+  @@index([phoneNumber])
+  @@index([roleId])
+  @@index([preferredLoginMethod])
+  @@index([onboardingStatus])
+  @@index([createdBySuperAdminId])
+
+  @@map("super_admins")
+}
+
 model Role {
   id          String  @id @default(uuid())
   name        String  @unique
@@ -98,6 +176,7 @@ model Role {
   lastLoginIdNumber Int @default(0)
 
   identities         Identity[]
+  superAdmins        SuperAdmin[]
   registrationDrafts RegistrationDraft[]
 
   // rolePermissions RolePermission[]

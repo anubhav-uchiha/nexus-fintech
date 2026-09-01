@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type Identity = Prisma.IdentityModel
 /**
+ * Model SuperAdmin
+ * 
+ */
+export type SuperAdmin = Prisma.SuperAdminModel
+/**
  * Model Role
  * 
  */

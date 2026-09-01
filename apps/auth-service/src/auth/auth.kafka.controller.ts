@@ -143,6 +143,11 @@ export class AuthKafkaController {
     return this.authService.resolvePeerTransferParticipants(dto);
   }
 
+  @MessagePattern(AUTH_PATTERNS.RESOLVE_NOTIFICATION_RECIPIENT)
+  resolveNotificationRecipient(@Payload() payload: { identityId: string }) {
+    return this.authService.resolveNotificationRecipient(payload.identityId);
+  }
+
   @MessagePattern(AUTH_PATTERNS.LOGOUT)
   logout(@Payload() dto: LogoutDto) {
     return this.authService.logout(dto);

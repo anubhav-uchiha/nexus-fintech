@@ -49,9 +49,12 @@ import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/r
 import { createHash, randomUUID } from 'crypto';
 import { JwtPayload } from './jwt/interfaces/jwt-payload.interface';
 import { LoginKafkaDto } from '@nexus/common/auth/dto/login-kafka.dto';
-import { KAFKA_TOPICS, KafkaProducerService } from 'libs/kafka/src';
+import {
+  AuthNotificationEvent,
+  KAFKA_TOPICS,
+  KafkaProducerService,
+} from 'libs/kafka/src';
 import { AUDIT_PATTERNS, CreateAuditLogDto } from '@nexus/common/audit';
-import { isPeerTransferRole } from '@nexus/common/wallet/peer-transfer.constants';
 
 @Injectable()
 export class AuthService {
@@ -70,6 +73,23 @@ export class AuthService {
 
   private queueAuditLog(data: Omit<CreateAuditLogDto, 'eventId'>): void {
     void this.publishAuditLog(data);
+  }
+
+  private queueAuthNotification(
+    topic: string,
+    event: AuthNotificationEvent,
+    eventName: string,
+  ): void {
+    void this.kafkaProducer.publish(topic, event).catch((error: unknown) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown notifcation publishing error';
+
+      this.logger.error(
+        `Failed to publish ${eventName} notification: ${message}`,
+      );
+    });
   }
 
   async registerRole(dto: RegisterRoleDto) {
@@ -307,20 +327,24 @@ export class AuthService {
 
     let credentialsDeliveryQueued = false;
 
+    const credentialEvent: AuthNotificationEvent = {
+      eventId: credentialEventId,
+      identityId: identity.id,
+      phoneNumber: identity.phoneNumber,
+      email: identity.email,
+      occurredAt: new Date().toISOString(),
+      data: {
+        loginId: identity.loginId,
+        temporaryPassword: password,
+        temporaryMpin: mpin,
+      },
+    };
+
     try {
-      await this.kafkaProducer.publish(KAFKA_TOPICS.SMS_SEND, {
-        eventId: credentialEventId,
-        phoneNumber: identity.phoneNumber,
-        message: [
-          'Welcome to UmiPay',
-          '',
-          `Login ID: ${identity.loginId}`,
-          `Temporary Password: ${password}`,
-          `Temporary MPIN: ${mpin}`,
-          '',
-          'Please change your password and MPIN after your first login.',
-        ].join('\n'),
-      });
+      await this.kafkaProducer.publish(
+        KAFKA_TOPICS.AUTH_CREDENTIALS_ISSED,
+        credentialEvent,
+      );
 
       credentialsDeliveryQueued = true;
     } catch (error) {
@@ -328,9 +352,8 @@ export class AuthService {
         error instanceof Error
           ? error.message
           : 'Unknown credential notification error';
-
       this.logger.error(
-        `Registration completed, but credentials could not be queued: ${message}`,
+        `Registration completed, but credential notifiaction could not be queued: ${message}`,
       );
     }
 
@@ -357,6 +380,23 @@ export class AuthService {
     const identity = await this.identityService.updatePreferredLoginMethod(
       dto.identityId,
       dto.preferredLoginMethod,
+    );
+
+    const loginMethodChangedEvent: AuthNotificationEvent = {
+      eventId: `login-method-changed-${identity.id}-${randomUUID()}`,
+      identityId: identity.id,
+      phoneNumber: identity.phoneNumber,
+      email: identity.email,
+      occurredAt: new Date().toISOString(),
+      data: {
+        preferredLoginMethod: identity.preferredLoginMethod,
+      },
+    };
+
+    this.queueAuthNotification(
+      KAFKA_TOPICS.USER_LOGIN_METHOD_CHANGED,
+      loginMethodChangedEvent,
+      'login method chnaged',
     );
 
     return {
@@ -519,6 +559,7 @@ export class AuthService {
           role: identity.role.name,
           status: identity.status,
           passwordChangedAt: identity.passwordChangedAt,
+          mpinChangedAt: identity.mpinChangedAt,
           preferredLoginMethod: identity.preferredLoginMethod,
         },
       };
@@ -656,6 +697,8 @@ export class AuthService {
         phoneNumber: session.identity.phoneNumber,
         role: session.identity.role.name,
         status: session.identity.status,
+        passwordChangedAt: session.identity.passwordChangedAt,
+        mpinChangedAt: session.identity.mpinChangedAt,
         preferredLoginMethod: session.identity.preferredLoginMethod,
       },
     };
@@ -718,6 +761,23 @@ export class AuthService {
           revokedOtherSessionCount: result.revokedSessionCount,
         },
       });
+
+      const passwordChangedEvent: AuthNotificationEvent = {
+        eventId: `password-changed-${dto.identityId}-${randomUUID()}`,
+        identityId: dto.identityId,
+        phoneNumber: user.phoneNumber,
+        email: user.email,
+        occurredAt: new Date().toISOString(),
+        data: {
+          revokedOtherSessionCOunt: result.revokedSessionCount,
+        },
+      };
+
+      this.queueAuthNotification(
+        KAFKA_TOPICS.USER_PASSWORD_CHANGED,
+        passwordChangedEvent,
+        'password changed',
+      );
 
       return {
         success: true,
@@ -810,6 +870,24 @@ export class AuthService {
           revokedOtherSessionCount: result.revokedSessionCount,
         },
       });
+
+      const mpinChangedEvent: AuthNotificationEvent = {
+        eventId: `mpin-changed-${dto.identityId}-${randomUUID()}`,
+        identityId: dto.identityId,
+        phoneNumber: user.phoneNumber,
+        email: user.email,
+        occurredAt: new Date().toISOString(),
+        data: {
+          revokedotherSessionCount: result.revokedSessionCount,
+        },
+      };
+
+      this.queueAuthNotification(
+        KAFKA_TOPICS.USER_MPIN_CHANGED,
+        mpinChangedEvent,
+        'MPIN changed',
+      );
+
       return {
         success: true,
         message: 'MPIN changed successfully',
@@ -1068,6 +1146,23 @@ export class AuthService {
         },
       });
 
+      const passwordResetEvent: AuthNotificationEvent = {
+        eventId: `password-reset-${draft.identity.id}-${randomUUID()}`,
+        identityId: draft.identity.id,
+        phoneNumber: draft.identity.phoneNumber,
+        // email: draft.identity.email,
+        occurredAt: new Date().toISOString(),
+        data: {
+          revokedSessionCount: resetResult.revokedSessionCount,
+        },
+      };
+
+      this.queueAuthNotification(
+        KAFKA_TOPICS.USER_PASSWORD_RESET,
+        passwordResetEvent,
+        'password reset',
+      );
+
       return {
         success: true,
         message: 'Password reset successfully. Please login.',
@@ -1164,6 +1259,26 @@ export class AuthService {
         fullName: receiver.fullName,
         role: receiver.role.name,
       },
+    };
+  }
+
+  async resolveNotificationRecipient(identityId: string) {
+    if (!identityId?.trim()) {
+      throw new BadRequestException('Identity ID is required');
+    }
+
+    const identity = await this.identityService.findById(identityId.trim());
+
+    if (!identity) {
+      throw new NotFoundException('Notification recipient not found');
+    }
+
+    return {
+      identityID: identity.id,
+
+      phoneNumber: identity.isPhoneVerified ? identity.phoneNumber : undefined,
+
+      email: identity.isEmailVerified ? identity.email : undefined,
     };
   }
 

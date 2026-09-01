@@ -10,6 +10,7 @@ export class LoginKafkaResponseDto {
     email: string;
     phoneNumber: string;
     passwordChangedAt: Date | null;
+    mpinChangedAt: Date | null;
     role: string;
     status: string;
     preferredLoginMethod: string;

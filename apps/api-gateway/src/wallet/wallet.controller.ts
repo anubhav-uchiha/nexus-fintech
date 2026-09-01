@@ -26,8 +26,16 @@ export class WalletGatewayController {
     return this.walletService.addMoney(dto);
   }
   @Get('balances/:userId')
-  async getBalances(@Param('userId') userId: string) {
-    return this.walletService.getBalances(userId);
+  @UseGuards(JwtAuthGuard)
+  async getBalances(
+    @Req()
+    request: {
+      user: {
+        sub: string;
+      };
+    },
+  ) {
+    return this.walletService.getBalances(request.user.sub);
   }
 
   @Post('transfer')

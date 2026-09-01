@@ -26,6 +26,8 @@ export const AUTH_PATTERNS = {
 
   RESOLVE_ROLE_PERMISSIONS: 'authorization.resolve-role-permissions',
 
+  RESOLVE_NOTIFICATION_RECIPIENT: 'auth.notification.resolve-recipient',
+
   RESOLVE_IDENTITY_PERMISSIONS: 'authorization.resolve-identity-permissions',
 
   LOGOUT: 'auth.logout',

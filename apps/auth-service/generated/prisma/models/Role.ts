@@ -241,6 +241,7 @@ export type RoleWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Role"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Role"> | Date | string
   identities?: Prisma.IdentityListRelationFilter
+  superAdmins?: Prisma.SuperAdminListRelationFilter
   registrationDrafts?: Prisma.RegistrationDraftListRelationFilter
   rolePackages?: Prisma.RolePackageListRelationFilter
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionListRelationFilter
@@ -257,6 +258,7 @@ export type RoleOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   identities?: Prisma.IdentityOrderByRelationAggregateInput
+  superAdmins?: Prisma.SuperAdminOrderByRelationAggregateInput
   registrationDrafts?: Prisma.RegistrationDraftOrderByRelationAggregateInput
   rolePackages?: Prisma.RolePackageOrderByRelationAggregateInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionOrderByRelationAggregateInput
@@ -276,6 +278,7 @@ export type RoleWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Role"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Role"> | Date | string
   identities?: Prisma.IdentityListRelationFilter
+  superAdmins?: Prisma.SuperAdminListRelationFilter
   registrationDrafts?: Prisma.RegistrationDraftListRelationFilter
   rolePackages?: Prisma.RolePackageListRelationFilter
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionListRelationFilter
@@ -322,6 +325,7 @@ export type RoleCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutRegistrarRoleInput
@@ -338,6 +342,7 @@ export type RoleUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityUncheckedCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageUncheckedCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutRegistrarRoleInput
@@ -354,6 +359,7 @@ export type RoleUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUpdateManyWithoutRegistrarRoleNestedInput
@@ -370,6 +376,7 @@ export type RoleUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUncheckedUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUncheckedUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutRegistrarRoleNestedInput
@@ -469,8 +476,18 @@ export type RoleUpdateOneRequiredWithoutIdentitiesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RoleUpdateToOneWithWhereWithoutIdentitiesInput, Prisma.RoleUpdateWithoutIdentitiesInput>, Prisma.RoleUncheckedUpdateWithoutIdentitiesInput>
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
+export type RoleCreateNestedOneWithoutSuperAdminsInput = {
+  create?: Prisma.XOR<Prisma.RoleCreateWithoutSuperAdminsInput, Prisma.RoleUncheckedCreateWithoutSuperAdminsInput>
+  connectOrCreate?: Prisma.RoleCreateOrConnectWithoutSuperAdminsInput
+  connect?: Prisma.RoleWhereUniqueInput
+}
+
+export type RoleUpdateOneRequiredWithoutSuperAdminsNestedInput = {
+  create?: Prisma.XOR<Prisma.RoleCreateWithoutSuperAdminsInput, Prisma.RoleUncheckedCreateWithoutSuperAdminsInput>
+  connectOrCreate?: Prisma.RoleCreateOrConnectWithoutSuperAdminsInput
+  upsert?: Prisma.RoleUpsertWithoutSuperAdminsInput
+  connect?: Prisma.RoleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RoleUpdateToOneWithWhereWithoutSuperAdminsInput, Prisma.RoleUpdateWithoutSuperAdminsInput>, Prisma.RoleUncheckedUpdateWithoutSuperAdminsInput>
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -546,6 +563,7 @@ export type RoleCreateWithoutIdentitiesInput = {
   lastLoginIdNumber?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  superAdmins?: Prisma.SuperAdminCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutRegistrarRoleInput
@@ -561,6 +579,7 @@ export type RoleUncheckedCreateWithoutIdentitiesInput = {
   lastLoginIdNumber?: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  superAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageUncheckedCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutRegistrarRoleInput
@@ -592,6 +611,7 @@ export type RoleUpdateWithoutIdentitiesInput = {
   lastLoginIdNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  superAdmins?: Prisma.SuperAdminUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUpdateManyWithoutRegistrarRoleNestedInput
@@ -607,6 +627,87 @@ export type RoleUncheckedUpdateWithoutIdentitiesInput = {
   lastLoginIdNumber?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  superAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutRoleNestedInput
+  registrationDrafts?: Prisma.RegistrationDraftUncheckedUpdateManyWithoutRoleNestedInput
+  rolePackages?: Prisma.RolePackageUncheckedUpdateManyWithoutRoleNestedInput
+  registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutRegistrarRoleNestedInput
+  registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutTargetRoleNestedInput
+}
+
+export type RoleCreateWithoutSuperAdminsInput = {
+  id?: string
+  name: string
+  description?: string | null
+  isActive?: boolean
+  prefix: string
+  lastLoginIdNumber?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  identities?: Prisma.IdentityCreateNestedManyWithoutRoleInput
+  registrationDrafts?: Prisma.RegistrationDraftCreateNestedManyWithoutRoleInput
+  rolePackages?: Prisma.RolePackageCreateNestedManyWithoutRoleInput
+  registrationPermissionsGranted?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutRegistrarRoleInput
+  registrationPermissionsReceived?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutTargetRoleInput
+}
+
+export type RoleUncheckedCreateWithoutSuperAdminsInput = {
+  id?: string
+  name: string
+  description?: string | null
+  isActive?: boolean
+  prefix: string
+  lastLoginIdNumber?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  identities?: Prisma.IdentityUncheckedCreateNestedManyWithoutRoleInput
+  registrationDrafts?: Prisma.RegistrationDraftUncheckedCreateNestedManyWithoutRoleInput
+  rolePackages?: Prisma.RolePackageUncheckedCreateNestedManyWithoutRoleInput
+  registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutRegistrarRoleInput
+  registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutTargetRoleInput
+}
+
+export type RoleCreateOrConnectWithoutSuperAdminsInput = {
+  where: Prisma.RoleWhereUniqueInput
+  create: Prisma.XOR<Prisma.RoleCreateWithoutSuperAdminsInput, Prisma.RoleUncheckedCreateWithoutSuperAdminsInput>
+}
+
+export type RoleUpsertWithoutSuperAdminsInput = {
+  update: Prisma.XOR<Prisma.RoleUpdateWithoutSuperAdminsInput, Prisma.RoleUncheckedUpdateWithoutSuperAdminsInput>
+  create: Prisma.XOR<Prisma.RoleCreateWithoutSuperAdminsInput, Prisma.RoleUncheckedCreateWithoutSuperAdminsInput>
+  where?: Prisma.RoleWhereInput
+}
+
+export type RoleUpdateToOneWithWhereWithoutSuperAdminsInput = {
+  where?: Prisma.RoleWhereInput
+  data: Prisma.XOR<Prisma.RoleUpdateWithoutSuperAdminsInput, Prisma.RoleUncheckedUpdateWithoutSuperAdminsInput>
+}
+
+export type RoleUpdateWithoutSuperAdminsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  prefix?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginIdNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  identities?: Prisma.IdentityUpdateManyWithoutRoleNestedInput
+  registrationDrafts?: Prisma.RegistrationDraftUpdateManyWithoutRoleNestedInput
+  rolePackages?: Prisma.RolePackageUpdateManyWithoutRoleNestedInput
+  registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUpdateManyWithoutRegistrarRoleNestedInput
+  registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUpdateManyWithoutTargetRoleNestedInput
+}
+
+export type RoleUncheckedUpdateWithoutSuperAdminsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  prefix?: Prisma.StringFieldUpdateOperationsInput | string
+  lastLoginIdNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  identities?: Prisma.IdentityUncheckedUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUncheckedUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutRegistrarRoleNestedInput
@@ -623,6 +724,7 @@ export type RoleCreateWithoutRolePackagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutRegistrarRoleInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutTargetRoleInput
@@ -638,6 +740,7 @@ export type RoleUncheckedCreateWithoutRolePackagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityUncheckedCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutRegistrarRoleInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutTargetRoleInput
@@ -669,6 +772,7 @@ export type RoleUpdateWithoutRolePackagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUpdateManyWithoutRegistrarRoleNestedInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUpdateManyWithoutTargetRoleNestedInput
@@ -684,6 +788,7 @@ export type RoleUncheckedUpdateWithoutRolePackagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUncheckedUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutRegistrarRoleNestedInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutTargetRoleNestedInput
@@ -699,6 +804,7 @@ export type RoleCreateWithoutRegistrationPermissionsGrantedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageCreateNestedManyWithoutRoleInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutTargetRoleInput
@@ -714,6 +820,7 @@ export type RoleUncheckedCreateWithoutRegistrationPermissionsGrantedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityUncheckedCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageUncheckedCreateNestedManyWithoutRoleInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutTargetRoleInput
@@ -734,6 +841,7 @@ export type RoleCreateWithoutRegistrationPermissionsReceivedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutRegistrarRoleInput
@@ -749,6 +857,7 @@ export type RoleUncheckedCreateWithoutRegistrationPermissionsReceivedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityUncheckedCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutRoleInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageUncheckedCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutRegistrarRoleInput
@@ -780,6 +889,7 @@ export type RoleUpdateWithoutRegistrationPermissionsGrantedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUpdateManyWithoutRoleNestedInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUpdateManyWithoutTargetRoleNestedInput
@@ -795,6 +905,7 @@ export type RoleUncheckedUpdateWithoutRegistrationPermissionsGrantedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUncheckedUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUncheckedUpdateManyWithoutRoleNestedInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutTargetRoleNestedInput
@@ -821,6 +932,7 @@ export type RoleUpdateWithoutRegistrationPermissionsReceivedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUpdateManyWithoutRegistrarRoleNestedInput
@@ -836,6 +948,7 @@ export type RoleUncheckedUpdateWithoutRegistrationPermissionsReceivedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUncheckedUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutRoleNestedInput
   registrationDrafts?: Prisma.RegistrationDraftUncheckedUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUncheckedUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutRegistrarRoleNestedInput
@@ -851,6 +964,7 @@ export type RoleCreateWithoutRegistrationDraftsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutRegistrarRoleInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionCreateNestedManyWithoutTargetRoleInput
@@ -866,6 +980,7 @@ export type RoleUncheckedCreateWithoutRegistrationDraftsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   identities?: Prisma.IdentityUncheckedCreateNestedManyWithoutRoleInput
+  superAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutRoleInput
   rolePackages?: Prisma.RolePackageUncheckedCreateNestedManyWithoutRoleInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutRegistrarRoleInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUncheckedCreateNestedManyWithoutTargetRoleInput
@@ -897,6 +1012,7 @@ export type RoleUpdateWithoutRegistrationDraftsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUpdateManyWithoutRegistrarRoleNestedInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUpdateManyWithoutTargetRoleNestedInput
@@ -912,6 +1028,7 @@ export type RoleUncheckedUpdateWithoutRegistrationDraftsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   identities?: Prisma.IdentityUncheckedUpdateManyWithoutRoleNestedInput
+  superAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutRoleNestedInput
   rolePackages?: Prisma.RolePackageUncheckedUpdateManyWithoutRoleNestedInput
   registrationPermissionsGranted?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutRegistrarRoleNestedInput
   registrationPermissionsReceived?: Prisma.RoleRegisterPermissionUncheckedUpdateManyWithoutTargetRoleNestedInput
@@ -924,6 +1041,7 @@ export type RoleUncheckedUpdateWithoutRegistrationDraftsInput = {
 
 export type RoleCountOutputType = {
   identities: number
+  superAdmins: number
   registrationDrafts: number
   rolePackages: number
   registrationPermissionsGranted: number
@@ -932,6 +1050,7 @@ export type RoleCountOutputType = {
 
 export type RoleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   identities?: boolean | RoleCountOutputTypeCountIdentitiesArgs
+  superAdmins?: boolean | RoleCountOutputTypeCountSuperAdminsArgs
   registrationDrafts?: boolean | RoleCountOutputTypeCountRegistrationDraftsArgs
   rolePackages?: boolean | RoleCountOutputTypeCountRolePackagesArgs
   registrationPermissionsGranted?: boolean | RoleCountOutputTypeCountRegistrationPermissionsGrantedArgs
@@ -953,6 +1072,13 @@ export type RoleCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type RoleCountOutputTypeCountIdentitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.IdentityWhereInput
+}
+
+/**
+ * RoleCountOutputType without action
+ */
+export type RoleCountOutputTypeCountSuperAdminsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SuperAdminWhereInput
 }
 
 /**
@@ -994,6 +1120,7 @@ export type RoleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   identities?: boolean | Prisma.Role$identitiesArgs<ExtArgs>
+  superAdmins?: boolean | Prisma.Role$superAdminsArgs<ExtArgs>
   registrationDrafts?: boolean | Prisma.Role$registrationDraftsArgs<ExtArgs>
   rolePackages?: boolean | Prisma.Role$rolePackagesArgs<ExtArgs>
   registrationPermissionsGranted?: boolean | Prisma.Role$registrationPermissionsGrantedArgs<ExtArgs>
@@ -1037,6 +1164,7 @@ export type RoleSelectScalar = {
 export type RoleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "isActive" | "prefix" | "lastLoginIdNumber" | "createdAt" | "updatedAt", ExtArgs["result"]["role"]>
 export type RoleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   identities?: boolean | Prisma.Role$identitiesArgs<ExtArgs>
+  superAdmins?: boolean | Prisma.Role$superAdminsArgs<ExtArgs>
   registrationDrafts?: boolean | Prisma.Role$registrationDraftsArgs<ExtArgs>
   rolePackages?: boolean | Prisma.Role$rolePackagesArgs<ExtArgs>
   registrationPermissionsGranted?: boolean | Prisma.Role$registrationPermissionsGrantedArgs<ExtArgs>
@@ -1050,6 +1178,7 @@ export type $RolePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Role"
   objects: {
     identities: Prisma.$IdentityPayload<ExtArgs>[]
+    superAdmins: Prisma.$SuperAdminPayload<ExtArgs>[]
     registrationDrafts: Prisma.$RegistrationDraftPayload<ExtArgs>[]
     rolePackages: Prisma.$RolePackagePayload<ExtArgs>[]
     registrationPermissionsGranted: Prisma.$RoleRegisterPermissionPayload<ExtArgs>[]
@@ -1459,6 +1588,7 @@ readonly fields: RoleFieldRefs;
 export interface Prisma__RoleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   identities<T extends Prisma.Role$identitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Role$identitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IdentityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  superAdmins<T extends Prisma.Role$superAdminsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Role$superAdminsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SuperAdminPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   registrationDrafts<T extends Prisma.Role$registrationDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Role$registrationDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RegistrationDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   rolePackages<T extends Prisma.Role$rolePackagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Role$rolePackagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePackagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   registrationPermissionsGranted<T extends Prisma.Role$registrationPermissionsGrantedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Role$registrationPermissionsGrantedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoleRegisterPermissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1914,6 +2044,30 @@ export type Role$identitiesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.IdentityScalarFieldEnum | Prisma.IdentityScalarFieldEnum[]
+}
+
+/**
+ * Role.superAdmins
+ */
+export type Role$superAdminsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SuperAdmin
+   */
+  select?: Prisma.SuperAdminSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SuperAdmin
+   */
+  omit?: Prisma.SuperAdminOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SuperAdminInclude<ExtArgs> | null
+  where?: Prisma.SuperAdminWhereInput
+  orderBy?: Prisma.SuperAdminOrderByWithRelationInput | Prisma.SuperAdminOrderByWithRelationInput[]
+  cursor?: Prisma.SuperAdminWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SuperAdminScalarFieldEnum | Prisma.SuperAdminScalarFieldEnum[]
 }
 
 /**

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { KycRepository } from './repository/kyc.repository';
 import { CreateKycDto } from '@nexus/common/kyc/dto/create-kyc.dto';
 import {
@@ -14,13 +14,38 @@ import { isValidPan } from './utils/pan-validator';
 import { isValidAadhaar } from './utils/aadhaar-validator';
 import { RpcException } from '@nestjs/microservices';
 import { S3Service } from '../storage/s3/s3.service';
+import {
+  KAFKA_TOPICS,
+  KafkaProducerService,
+  KycNotificationEvent,
+} from 'libs/kafka/src';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class KycService {
+  private readonly logger = new Logger(KycService.name);
   constructor(
     private readonly kycRepository: KycRepository,
     private readonly s3Service: S3Service,
+    private readonly kafkaProducer: KafkaProducerService,
   ) {}
+
+  private queueKycNotification(
+    topic: string,
+    event: KycNotificationEvent,
+    eventName: string,
+  ): void {
+    void this.kafkaProducer.publish(topic, event).catch((error: unknown) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unknown KYC notification publishing error';
+
+      this.logger.error(
+        `Faied to publish ${eventName} notification: ${message}`,
+      );
+    });
+  }
   private async getKycOrThrow(identityId: string) {
     const kyc = await this.kycRepository.findByIdentityId(identityId);
 
@@ -806,11 +831,26 @@ export class KycService {
       });
     }
 
-    await this.kycRepository.submitKyc(kyc.id);
+    const submittedKyc = await this.kycRepository.submitKyc(kyc.id);
+
+    const submittedEvent: KycNotificationEvent = {
+      eventId: `kyc-submitted-${kyc.id}-${randomUUID()}`,
+      identityId,
+      kycId: kyc.id,
+      occurredAt: new Date().toISOString(),
+    };
+
+    this.queueKycNotification(
+      KAFKA_TOPICS.KYC_SUBMITTED,
+      submittedEvent,
+      'KYC submitted',
+    );
 
     return {
       success: true,
       message: 'KYC submitted successfully',
+      status: submittedKyc.status,
+      submittedAt: submittedKyc.submittedAt,
     };
   }
 

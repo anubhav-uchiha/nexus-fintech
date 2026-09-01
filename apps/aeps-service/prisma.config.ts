@@ -12,8 +12,6 @@ export default defineConfig({
   },
 
   datasource: {
-    url:
-      process.env.DATABASE_URL ??
-      'postgresql://postgres:admin@localhost:5432/aeps_db',
+    url: process.env.DATABASE_URL,
   },
 });

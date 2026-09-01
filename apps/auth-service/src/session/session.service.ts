@@ -548,6 +548,8 @@ export class SessionService {
             phoneNumber: true,
             status: true,
             preferredLoginMethod: true,
+            passwordChangedAt: true,
+            mpinChangedAt: true,
             role: {
               select: {
                 name: true,

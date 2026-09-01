@@ -398,6 +398,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Identity: 'Identity',
+  SuperAdmin: 'SuperAdmin',
   Role: 'Role',
   Permission: 'Permission',
   Package: 'Package',
@@ -423,7 +424,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "identity" | "role" | "permission" | "package" | "rolePackage" | "packagePermission" | "roleRegisterPermission" | "otp" | "session" | "registrationDraft" | "passwordResetDraft"
+    modelProps: "identity" | "superAdmin" | "role" | "permission" | "package" | "rolePackage" | "packagePermission" | "roleRegisterPermission" | "otp" | "session" | "registrationDraft" | "passwordResetDraft"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -498,6 +499,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.IdentityCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.IdentityCountAggregateOutputType> | number
+        }
+      }
+    }
+    SuperAdmin: {
+      payload: Prisma.$SuperAdminPayload<ExtArgs>
+      fields: Prisma.SuperAdminFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SuperAdminFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SuperAdminFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>
+        }
+        findFirst: {
+          args: Prisma.SuperAdminFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SuperAdminFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>
+        }
+        findMany: {
+          args: Prisma.SuperAdminFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>[]
+        }
+        create: {
+          args: Prisma.SuperAdminCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>
+        }
+        createMany: {
+          args: Prisma.SuperAdminCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SuperAdminCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>[]
+        }
+        delete: {
+          args: Prisma.SuperAdminDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>
+        }
+        update: {
+          args: Prisma.SuperAdminUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>
+        }
+        deleteMany: {
+          args: Prisma.SuperAdminDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SuperAdminUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SuperAdminUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>[]
+        }
+        upsert: {
+          args: Prisma.SuperAdminUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminPayload>
+        }
+        aggregate: {
+          args: Prisma.SuperAdminAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSuperAdmin>
+        }
+        groupBy: {
+          args: Prisma.SuperAdminGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SuperAdminGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SuperAdminCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SuperAdminCountAggregateOutputType> | number
         }
       }
     }
@@ -1306,6 +1381,7 @@ export const IdentityScalarFieldEnum = {
   registrationStep: 'registrationStep',
   lastLoginAt: 'lastLoginAt',
   passwordChangedAt: 'passwordChangedAt',
+  mpinChangedAt: 'mpinChangedAt',
   roleId: 'roleId',
   lastLoginLatitude: 'lastLoginLatitude',
   lastLoginLongitude: 'lastLoginLongitude',
@@ -1314,6 +1390,46 @@ export const IdentityScalarFieldEnum = {
 } as const
 
 export type IdentityScalarFieldEnum = (typeof IdentityScalarFieldEnum)[keyof typeof IdentityScalarFieldEnum]
+
+
+export const SuperAdminScalarFieldEnum = {
+  id: 'id',
+  loginId: 'loginId',
+  fullName: 'fullName',
+  username: 'username',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  password: 'password',
+  mpin: 'mpin',
+  aadhaarNumber: 'aadhaarNumber',
+  panNumber: 'panNumber',
+  shopName: 'shopName',
+  shopAddress: 'shopAddress',
+  shopCity: 'shopCity',
+  shopState: 'shopState',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
+  status: 'status',
+  isEmailVerified: 'isEmailVerified',
+  isPhoneVerified: 'isPhoneVerified',
+  isPanVerified: 'isPanVerified',
+  preferredLoginMethod: 'preferredLoginMethod',
+  onboardingStatus: 'onboardingStatus',
+  temporaryCredentialsExpireAt: 'temporaryCredentialsExpireAt',
+  lastLoginAt: 'lastLoginAt',
+  passwordChangedAt: 'passwordChangedAt',
+  mpinChangedAt: 'mpinChangedAt',
+  lastLoginLatitude: 'lastLoginLatitude',
+  lastLoginLongitude: 'lastLoginLongitude',
+  roleId: 'roleId',
+  isPrimary: 'isPrimary',
+  createdBySuperAdminId: 'createdBySuperAdminId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SuperAdminScalarFieldEnum = (typeof SuperAdminScalarFieldEnum)[keyof typeof SuperAdminScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -1585,6 +1701,20 @@ export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
+ * Reference to a field of type 'AccountOnboardingStatus'
+ */
+export type EnumAccountOnboardingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountOnboardingStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AccountOnboardingStatus[]'
+ */
+export type ListEnumAccountOnboardingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountOnboardingStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -1791,6 +1921,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   identity?: Prisma.IdentityOmit
+  superAdmin?: Prisma.SuperAdminOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
   package?: Prisma.PackageOmit

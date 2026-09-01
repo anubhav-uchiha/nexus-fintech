@@ -62,6 +62,7 @@ export type IdentityMinAggregateOutputType = {
   registrationStep: $Enums.RegistrationStep | null
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
+  mpinChangedAt: Date | null
   roleId: string | null
   lastLoginLatitude: runtime.Decimal | null
   lastLoginLongitude: runtime.Decimal | null
@@ -95,6 +96,7 @@ export type IdentityMaxAggregateOutputType = {
   registrationStep: $Enums.RegistrationStep | null
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
+  mpinChangedAt: Date | null
   roleId: string | null
   lastLoginLatitude: runtime.Decimal | null
   lastLoginLongitude: runtime.Decimal | null
@@ -128,6 +130,7 @@ export type IdentityCountAggregateOutputType = {
   registrationStep: number
   lastLoginAt: number
   passwordChangedAt: number
+  mpinChangedAt: number
   roleId: number
   lastLoginLatitude: number
   lastLoginLongitude: number
@@ -173,6 +176,7 @@ export type IdentityMinAggregateInputType = {
   registrationStep?: true
   lastLoginAt?: true
   passwordChangedAt?: true
+  mpinChangedAt?: true
   roleId?: true
   lastLoginLatitude?: true
   lastLoginLongitude?: true
@@ -206,6 +210,7 @@ export type IdentityMaxAggregateInputType = {
   registrationStep?: true
   lastLoginAt?: true
   passwordChangedAt?: true
+  mpinChangedAt?: true
   roleId?: true
   lastLoginLatitude?: true
   lastLoginLongitude?: true
@@ -239,6 +244,7 @@ export type IdentityCountAggregateInputType = {
   registrationStep?: true
   lastLoginAt?: true
   passwordChangedAt?: true
+  mpinChangedAt?: true
   roleId?: true
   lastLoginLatitude?: true
   lastLoginLongitude?: true
@@ -359,6 +365,7 @@ export type IdentityGroupByOutputType = {
   registrationStep: $Enums.RegistrationStep
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
+  mpinChangedAt: Date | null
   roleId: string
   lastLoginLatitude: runtime.Decimal | null
   lastLoginLongitude: runtime.Decimal | null
@@ -415,6 +422,7 @@ export type IdentityWhereInput = {
   registrationStep?: Prisma.EnumRegistrationStepFilter<"Identity"> | $Enums.RegistrationStep
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
+  mpinChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   roleId?: Prisma.StringFilter<"Identity"> | string
   lastLoginLatitude?: Prisma.DecimalNullableFilter<"Identity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.DecimalNullableFilter<"Identity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -452,6 +460,7 @@ export type IdentityOrderByWithRelationInput = {
   registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mpinChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   roleId?: Prisma.SortOrder
   lastLoginLatitude?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginLongitude?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -492,6 +501,7 @@ export type IdentityWhereUniqueInput = Prisma.AtLeast<{
   registrationStep?: Prisma.EnumRegistrationStepFilter<"Identity"> | $Enums.RegistrationStep
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
+  mpinChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   roleId?: Prisma.StringFilter<"Identity"> | string
   lastLoginLatitude?: Prisma.DecimalNullableFilter<"Identity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.DecimalNullableFilter<"Identity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -529,6 +539,7 @@ export type IdentityOrderByWithAggregationInput = {
   registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mpinChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   roleId?: Prisma.SortOrder
   lastLoginLatitude?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginLongitude?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -570,6 +581,7 @@ export type IdentityScalarWhereWithAggregatesInput = {
   registrationStep?: Prisma.EnumRegistrationStepWithAggregatesFilter<"Identity"> | $Enums.RegistrationStep
   lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Identity"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Identity"> | Date | string | null
+  mpinChangedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Identity"> | Date | string | null
   roleId?: Prisma.StringWithAggregatesFilter<"Identity"> | string
   lastLoginLatitude?: Prisma.DecimalNullableWithAggregatesFilter<"Identity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.DecimalNullableWithAggregatesFilter<"Identity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -603,6 +615,7 @@ export type IdentityCreateInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
@@ -639,6 +652,7 @@ export type IdentityUncheckedCreateInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   roleId: string
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -675,6 +689,7 @@ export type IdentityUpdateInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -711,6 +726,7 @@ export type IdentityUncheckedUpdateInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -747,6 +763,7 @@ export type IdentityCreateManyInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   roleId: string
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -780,6 +797,7 @@ export type IdentityUpdateManyMutationInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -812,6 +830,7 @@ export type IdentityUncheckedUpdateManyInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -845,6 +864,7 @@ export type IdentityCountOrderByAggregateInput = {
   registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
+  mpinChangedAt?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
   lastLoginLatitude?: Prisma.SortOrder
   lastLoginLongitude?: Prisma.SortOrder
@@ -883,6 +903,7 @@ export type IdentityMaxOrderByAggregateInput = {
   registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
+  mpinChangedAt?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
   lastLoginLatitude?: Prisma.SortOrder
   lastLoginLongitude?: Prisma.SortOrder
@@ -916,6 +937,7 @@ export type IdentityMinOrderByAggregateInput = {
   registrationStep?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
+  mpinChangedAt?: Prisma.SortOrder
   roleId?: Prisma.SortOrder
   lastLoginLatitude?: Prisma.SortOrder
   lastLoginLongitude?: Prisma.SortOrder
@@ -1096,6 +1118,7 @@ export type IdentityCreateWithoutRoleInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
@@ -1131,6 +1154,7 @@ export type IdentityUncheckedCreateWithoutRoleInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
@@ -1195,6 +1219,7 @@ export type IdentityScalarWhereInput = {
   registrationStep?: Prisma.EnumRegistrationStepFilter<"Identity"> | $Enums.RegistrationStep
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
+  mpinChangedAt?: Prisma.DateTimeNullableFilter<"Identity"> | Date | string | null
   roleId?: Prisma.StringFilter<"Identity"> | string
   lastLoginLatitude?: Prisma.DecimalNullableFilter<"Identity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.DecimalNullableFilter<"Identity"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1228,6 +1253,7 @@ export type IdentityCreateWithoutOtpInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
@@ -1263,6 +1289,7 @@ export type IdentityUncheckedCreateWithoutOtpInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   roleId: string
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1314,6 +1341,7 @@ export type IdentityUpdateWithoutOtpInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1349,6 +1377,7 @@ export type IdentityUncheckedUpdateWithoutOtpInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1384,6 +1413,7 @@ export type IdentityCreateWithoutSessionsInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
@@ -1419,6 +1449,7 @@ export type IdentityUncheckedCreateWithoutSessionsInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   roleId: string
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1470,6 +1501,7 @@ export type IdentityUpdateWithoutSessionsInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1505,6 +1537,7 @@ export type IdentityUncheckedUpdateWithoutSessionsInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1540,6 +1573,7 @@ export type IdentityCreateWithoutPasswordResetDraftsInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
@@ -1575,6 +1609,7 @@ export type IdentityUncheckedCreateWithoutPasswordResetDraftsInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   roleId: string
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1626,6 +1661,7 @@ export type IdentityUpdateWithoutPasswordResetDraftsInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1661,6 +1697,7 @@ export type IdentityUncheckedUpdateWithoutPasswordResetDraftsInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   roleId?: Prisma.StringFieldUpdateOperationsInput | string
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1696,6 +1733,7 @@ export type IdentityCreateManyRoleInput = {
   registrationStep?: $Enums.RegistrationStep
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
   lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Date | string
@@ -1728,6 +1766,7 @@ export type IdentityUpdateWithoutRoleInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1763,6 +1802,7 @@ export type IdentityUncheckedUpdateWithoutRoleInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1798,6 +1838,7 @@ export type IdentityUncheckedUpdateManyWithoutRoleInput = {
   registrationStep?: Prisma.EnumRegistrationStepFieldUpdateOperationsInput | $Enums.RegistrationStep
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1879,6 +1920,7 @@ export type IdentitySelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   registrationStep?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
+  mpinChangedAt?: boolean
   roleId?: boolean
   lastLoginLatitude?: boolean
   lastLoginLongitude?: boolean
@@ -1917,6 +1959,7 @@ export type IdentitySelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   registrationStep?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
+  mpinChangedAt?: boolean
   roleId?: boolean
   lastLoginLatitude?: boolean
   lastLoginLongitude?: boolean
@@ -1951,6 +1994,7 @@ export type IdentitySelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   registrationStep?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
+  mpinChangedAt?: boolean
   roleId?: boolean
   lastLoginLatitude?: boolean
   lastLoginLongitude?: boolean
@@ -1985,6 +2029,7 @@ export type IdentitySelectScalar = {
   registrationStep?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
+  mpinChangedAt?: boolean
   roleId?: boolean
   lastLoginLatitude?: boolean
   lastLoginLongitude?: boolean
@@ -1992,7 +2037,7 @@ export type IdentitySelectScalar = {
   updatedAt?: boolean
 }
 
-export type IdentityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginId" | "fullName" | "username" | "email" | "phoneNumber" | "password" | "mpin" | "aadhaarNumber" | "panNumber" | "shopName" | "shopAddress" | "shopCity" | "shopState" | "city" | "state" | "pincode" | "status" | "isEmailVerified" | "isPhoneVerified" | "isPanVerified" | "preferredLoginMethod" | "registrationStep" | "lastLoginAt" | "passwordChangedAt" | "roleId" | "lastLoginLatitude" | "lastLoginLongitude" | "createdAt" | "updatedAt", ExtArgs["result"]["identity"]>
+export type IdentityOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginId" | "fullName" | "username" | "email" | "phoneNumber" | "password" | "mpin" | "aadhaarNumber" | "panNumber" | "shopName" | "shopAddress" | "shopCity" | "shopState" | "city" | "state" | "pincode" | "status" | "isEmailVerified" | "isPhoneVerified" | "isPanVerified" | "preferredLoginMethod" | "registrationStep" | "lastLoginAt" | "passwordChangedAt" | "mpinChangedAt" | "roleId" | "lastLoginLatitude" | "lastLoginLongitude" | "createdAt" | "updatedAt", ExtArgs["result"]["identity"]>
 export type IdentityInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   sessions?: boolean | Prisma.Identity$sessionsArgs<ExtArgs>
@@ -2041,6 +2086,7 @@ export type $IdentityPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     registrationStep: $Enums.RegistrationStep
     lastLoginAt: Date | null
     passwordChangedAt: Date | null
+    mpinChangedAt: Date | null
     roleId: string
     lastLoginLatitude: runtime.Decimal | null
     lastLoginLongitude: runtime.Decimal | null
@@ -2498,6 +2544,7 @@ export interface IdentityFieldRefs {
   readonly registrationStep: Prisma.FieldRef<"Identity", 'RegistrationStep'>
   readonly lastLoginAt: Prisma.FieldRef<"Identity", 'DateTime'>
   readonly passwordChangedAt: Prisma.FieldRef<"Identity", 'DateTime'>
+  readonly mpinChangedAt: Prisma.FieldRef<"Identity", 'DateTime'>
   readonly roleId: Prisma.FieldRef<"Identity", 'String'>
   readonly lastLoginLatitude: Prisma.FieldRef<"Identity", 'Decimal'>
   readonly lastLoginLongitude: Prisma.FieldRef<"Identity", 'Decimal'>

@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Identity: 'Identity',
+  SuperAdmin: 'SuperAdmin',
   Role: 'Role',
   Permission: 'Permission',
   Package: 'Package',
@@ -106,6 +107,7 @@ export const IdentityScalarFieldEnum = {
   registrationStep: 'registrationStep',
   lastLoginAt: 'lastLoginAt',
   passwordChangedAt: 'passwordChangedAt',
+  mpinChangedAt: 'mpinChangedAt',
   roleId: 'roleId',
   lastLoginLatitude: 'lastLoginLatitude',
   lastLoginLongitude: 'lastLoginLongitude',
@@ -114,6 +116,46 @@ export const IdentityScalarFieldEnum = {
 } as const
 
 export type IdentityScalarFieldEnum = (typeof IdentityScalarFieldEnum)[keyof typeof IdentityScalarFieldEnum]
+
+
+export const SuperAdminScalarFieldEnum = {
+  id: 'id',
+  loginId: 'loginId',
+  fullName: 'fullName',
+  username: 'username',
+  email: 'email',
+  phoneNumber: 'phoneNumber',
+  password: 'password',
+  mpin: 'mpin',
+  aadhaarNumber: 'aadhaarNumber',
+  panNumber: 'panNumber',
+  shopName: 'shopName',
+  shopAddress: 'shopAddress',
+  shopCity: 'shopCity',
+  shopState: 'shopState',
+  city: 'city',
+  state: 'state',
+  pincode: 'pincode',
+  status: 'status',
+  isEmailVerified: 'isEmailVerified',
+  isPhoneVerified: 'isPhoneVerified',
+  isPanVerified: 'isPanVerified',
+  preferredLoginMethod: 'preferredLoginMethod',
+  onboardingStatus: 'onboardingStatus',
+  temporaryCredentialsExpireAt: 'temporaryCredentialsExpireAt',
+  lastLoginAt: 'lastLoginAt',
+  passwordChangedAt: 'passwordChangedAt',
+  mpinChangedAt: 'mpinChangedAt',
+  lastLoginLatitude: 'lastLoginLatitude',
+  lastLoginLongitude: 'lastLoginLongitude',
+  roleId: 'roleId',
+  isPrimary: 'isPrimary',
+  createdBySuperAdminId: 'createdBySuperAdminId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SuperAdminScalarFieldEnum = (typeof SuperAdminScalarFieldEnum)[keyof typeof SuperAdminScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
