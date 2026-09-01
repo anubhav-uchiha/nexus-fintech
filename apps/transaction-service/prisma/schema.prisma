@@ -68,6 +68,23 @@ enum ProviderTransactionStatus {
   REVERSED
 }
 
+enum ProviderSettlementStatus {
+  NOT_REQUIRED
+  PENDING
+  RESERVED
+  SETTLED
+  COMPENSATED
+  FAILED
+  UNKNOWN
+}
+
+enum ProviderCommissionStatus {
+  NOT_REQUIRED
+  PENDING
+  SETTLED
+  FAILED
+}
+
 model ProviderTransaction {
   id String @id @default(uuid()) @db.Uuid
 
@@ -181,6 +198,47 @@ model ProviderTransaction {
 
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  needsReconciliation Boolean @default(false) @map("needs_reconciliation")
+
+  reconciliationReason String? @map("reconciliation_reason") @db.VarChar(500)
+
+  reconciledAt DateTime? @map("reconciled_at")
+
+  reconciledBy String? @map("reconciled_by") @db.VarChar(100)
+
+  reconciliationNote String?                      @map("reconciliation_note") @db.VarChar(500)
+  reversal           ProviderTransactionReversal?
+  reversedAt         DateTime?                    @map("reversed_at")
+
+  settlementStatus ProviderSettlementStatus @default(NOT_REQUIRED) @map("settlement_status")
+
+  settlementTransactionReference String? @map("settlement_transaction_reference") @db.VarChar(150)
+
+  compensationTransactionReference String? @map("compensation_transaction_reference") @db.VarChar(150)
+
+  settlementFailureReason String? @map("settlement_failure_reason") @db.VarChar(500)
+
+  reservedAt DateTime? @map("reserved_at")
+
+  settledAt DateTime? @map("settled_at")
+
+  compensatedAt DateTime? @map("compensated_at")
+
+  commissionStatus ProviderCommissionStatus @default(NOT_REQUIRED) @map("commission_status")
+
+  commissionReferenceId String? @map("commission_reference_id") @db.VarChar(150)
+
+  commissionWalletTransactionReference String? @map("commission_wallet_transaction_reference") @db.VarChar(150)
+
+  commissionAmount Decimal? @map("commission_amount") @db.Decimal(18, 2)
+
+  commissionFailureReason String? @map("commission_failure_reason") @db.VarChar(500)
+
+  commissionSettledAt DateTime? @map("commission_settled_at")
+
+  @@index([commissionStatus])
+  @@index([settlementStatus])
+  @@index([needsReconciliation, status])
   @@index([userId, createdAt])
   @@index([serviceType, provider])
   @@index([provider, operation])
@@ -189,4 +247,57 @@ model ProviderTransaction {
   @@index([providerTxnRefId])
   @@index([rrn])
   @@map("provider_transactions")
+}
+
+enum ProviderTransactionReversalStatus {
+  REQUESTED
+  PROCESSING
+  COMPLETED
+  FAILED
+  UNKNOWN
+}
+
+model ProviderTransactionReversal {
+  id String @id @default(uuid()) @db.Uuid
+
+  referenceId String @unique @map("reference_id") @db.VarChar(100)
+
+  providerTransactionId String @unique @map("provider_transaction_id") @db.Uuid
+
+  /**
+   * Duplicate reversal request protection.
+   */
+  idempotencyKey String @unique @map("idempotency_key") @db.VarChar(100)
+
+  amount Decimal @db.Decimal(18, 2)
+
+  status ProviderTransactionReversalStatus @default(REQUESTED)
+
+  reason String @db.VarChar(500)
+
+  requestedBy String @map("requested_by") @db.VarChar(100)
+
+  /**
+   * Future compensation transaction reference.
+   * Actual reversal complete hone se pehle
+   * ye required hoga.
+   */
+  compensationReferenceId String? @map("compensation_reference_id") @db.VarChar(150)
+
+  processingAt DateTime? @map("processing_at")
+
+  completedAt DateTime? @map("completed_at")
+
+  failedReason String? @map("failed_reason") @db.VarChar(500)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  providerTransaction ProviderTransaction @relation(fields: [providerTransactionId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([requestedBy])
+  @@index([createdAt])
+  @@map("provider_transaction_reversals")
 }

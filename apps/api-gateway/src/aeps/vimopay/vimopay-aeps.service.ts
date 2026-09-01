@@ -250,25 +250,15 @@ export class VimopayAepsService implements OnModuleInit {
    * ==========================================
    */
 
-  cashWithdrawal(
-    identityId: string,
-    ipAddress: string,
-
-    idempotencyKey: string,
-
-    dto: VimopayCashWithdrawalGatewayDto,
-  ) {
+  cashWithdrawal(input: {
+    identityId: string;
+    role: string;
+    ipAddress: string;
+    idempotencyKey: string;
+    dto: VimopayCashWithdrawalGatewayDto;
+  }) {
     return firstValueFrom(
-      this.client.send(
-        VIMOPAY_AEPS_PATTERNS.CASH_WITHDRAWAL,
-
-        {
-          identityId,
-          ipAddress,
-          idempotencyKey,
-          dto,
-        },
-      ),
+      this.client.send(VIMOPAY_AEPS_PATTERNS.CASH_WITHDRAWAL, input),
     );
   }
 
@@ -302,24 +292,18 @@ export class VimopayAepsService implements OnModuleInit {
    * ==========================================
    */
 
-  aadhaarPay(
-    identityId: string,
-    ipAddress: string,
-
-    idempotencyKey: string,
-
-    dto: VimopayAadhaarPayGatewayDto,
-  ) {
+  aadhaarPay(input: {
+    identityId: string;
+    role: string;
+    ipAddress: string;
+    idempotencyKey: string;
+    dto: VimopayAadhaarPayGatewayDto;
+  }) {
     return firstValueFrom(
       this.client.send(
         VIMOPAY_AEPS_PATTERNS.AADHAAR_PAY,
 
-        {
-          identityId,
-          ipAddress,
-          idempotencyKey,
-          dto,
-        },
+        input,
       ),
     );
   }
@@ -330,24 +314,18 @@ export class VimopayAepsService implements OnModuleInit {
    * ==========================================
    */
 
-  cashDeposit(
-    identityId: string,
-    ipAddress: string,
-
-    idempotencyKey: string,
-
-    dto: VimopayCashDepositGatewayDto,
-  ) {
+  cashDeposit(input: {
+    identityId: string;
+    role: string;
+    ipAddress: string;
+    idempotencyKey: string;
+    dto: VimopayCashDepositGatewayDto;
+  }) {
     return firstValueFrom(
       this.client.send(
         VIMOPAY_AEPS_PATTERNS.CASH_DEPOSIT,
 
-        {
-          identityId,
-          ipAddress,
-          idempotencyKey,
-          dto,
-        },
+        input,
       ),
     );
   }

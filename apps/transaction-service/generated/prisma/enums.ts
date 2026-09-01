@@ -49,3 +49,37 @@ export const ProviderTransactionStatus = {
 } as const
 
 export type ProviderTransactionStatus = (typeof ProviderTransactionStatus)[keyof typeof ProviderTransactionStatus]
+
+
+export const ProviderSettlementStatus = {
+  NOT_REQUIRED: 'NOT_REQUIRED',
+  PENDING: 'PENDING',
+  RESERVED: 'RESERVED',
+  SETTLED: 'SETTLED',
+  COMPENSATED: 'COMPENSATED',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN'
+} as const
+
+export type ProviderSettlementStatus = (typeof ProviderSettlementStatus)[keyof typeof ProviderSettlementStatus]
+
+
+export const ProviderCommissionStatus = {
+  NOT_REQUIRED: 'NOT_REQUIRED',
+  PENDING: 'PENDING',
+  SETTLED: 'SETTLED',
+  FAILED: 'FAILED'
+} as const
+
+export type ProviderCommissionStatus = (typeof ProviderCommissionStatus)[keyof typeof ProviderCommissionStatus]
+
+
+export const ProviderTransactionReversalStatus = {
+  REQUESTED: 'REQUESTED',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN'
+} as const
+
+export type ProviderTransactionReversalStatus = (typeof ProviderTransactionReversalStatus)[keyof typeof ProviderTransactionReversalStatus]

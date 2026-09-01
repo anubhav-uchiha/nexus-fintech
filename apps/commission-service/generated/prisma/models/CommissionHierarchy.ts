@@ -31,6 +31,8 @@ export type CommissionHierarchyMinAggregateOutputType = {
   childUserId: string | null
   childRole: string | null
   serviceType: string | null
+  relationshipKey: string | null
+  activeScopeKey: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -43,6 +45,8 @@ export type CommissionHierarchyMaxAggregateOutputType = {
   childUserId: string | null
   childRole: string | null
   serviceType: string | null
+  relationshipKey: string | null
+  activeScopeKey: string | null
   isActive: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -55,6 +59,8 @@ export type CommissionHierarchyCountAggregateOutputType = {
   childUserId: number
   childRole: number
   serviceType: number
+  relationshipKey: number
+  activeScopeKey: number
   isActive: number
   createdAt: number
   updatedAt: number
@@ -69,6 +75,8 @@ export type CommissionHierarchyMinAggregateInputType = {
   childUserId?: true
   childRole?: true
   serviceType?: true
+  relationshipKey?: true
+  activeScopeKey?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -81,6 +89,8 @@ export type CommissionHierarchyMaxAggregateInputType = {
   childUserId?: true
   childRole?: true
   serviceType?: true
+  relationshipKey?: true
+  activeScopeKey?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -93,6 +103,8 @@ export type CommissionHierarchyCountAggregateInputType = {
   childUserId?: true
   childRole?: true
   serviceType?: true
+  relationshipKey?: true
+  activeScopeKey?: true
   isActive?: true
   createdAt?: true
   updatedAt?: true
@@ -178,6 +190,8 @@ export type CommissionHierarchyGroupByOutputType = {
   childUserId: string
   childRole: string
   serviceType: string | null
+  relationshipKey: string
+  activeScopeKey: string | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -211,6 +225,8 @@ export type CommissionHierarchyWhereInput = {
   childUserId?: Prisma.StringFilter<"CommissionHierarchy"> | string
   childRole?: Prisma.StringFilter<"CommissionHierarchy"> | string
   serviceType?: Prisma.StringNullableFilter<"CommissionHierarchy"> | string | null
+  relationshipKey?: Prisma.StringFilter<"CommissionHierarchy"> | string
+  activeScopeKey?: Prisma.StringNullableFilter<"CommissionHierarchy"> | string | null
   isActive?: Prisma.BoolFilter<"CommissionHierarchy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"CommissionHierarchy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CommissionHierarchy"> | Date | string
@@ -223,6 +239,8 @@ export type CommissionHierarchyOrderByWithRelationInput = {
   childUserId?: Prisma.SortOrder
   childRole?: Prisma.SortOrder
   serviceType?: Prisma.SortOrderInput | Prisma.SortOrder
+  relationshipKey?: Prisma.SortOrder
+  activeScopeKey?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -230,7 +248,8 @@ export type CommissionHierarchyOrderByWithRelationInput = {
 
 export type CommissionHierarchyWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  parentUserId_childUserId_serviceType?: Prisma.CommissionHierarchyParentUserIdChildUserIdServiceTypeCompoundUniqueInput
+  relationshipKey?: string
+  activeScopeKey?: string
   AND?: Prisma.CommissionHierarchyWhereInput | Prisma.CommissionHierarchyWhereInput[]
   OR?: Prisma.CommissionHierarchyWhereInput[]
   NOT?: Prisma.CommissionHierarchyWhereInput | Prisma.CommissionHierarchyWhereInput[]
@@ -242,7 +261,7 @@ export type CommissionHierarchyWhereUniqueInput = Prisma.AtLeast<{
   isActive?: Prisma.BoolFilter<"CommissionHierarchy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"CommissionHierarchy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CommissionHierarchy"> | Date | string
-}, "id" | "parentUserId_childUserId_serviceType">
+}, "id" | "relationshipKey" | "activeScopeKey">
 
 export type CommissionHierarchyOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -251,6 +270,8 @@ export type CommissionHierarchyOrderByWithAggregationInput = {
   childUserId?: Prisma.SortOrder
   childRole?: Prisma.SortOrder
   serviceType?: Prisma.SortOrderInput | Prisma.SortOrder
+  relationshipKey?: Prisma.SortOrder
+  activeScopeKey?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -269,6 +290,8 @@ export type CommissionHierarchyScalarWhereWithAggregatesInput = {
   childUserId?: Prisma.StringWithAggregatesFilter<"CommissionHierarchy"> | string
   childRole?: Prisma.StringWithAggregatesFilter<"CommissionHierarchy"> | string
   serviceType?: Prisma.StringNullableWithAggregatesFilter<"CommissionHierarchy"> | string | null
+  relationshipKey?: Prisma.StringWithAggregatesFilter<"CommissionHierarchy"> | string
+  activeScopeKey?: Prisma.StringNullableWithAggregatesFilter<"CommissionHierarchy"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"CommissionHierarchy"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"CommissionHierarchy"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"CommissionHierarchy"> | Date | string
@@ -281,6 +304,8 @@ export type CommissionHierarchyCreateInput = {
   childUserId: string
   childRole: string
   serviceType?: string | null
+  relationshipKey: string
+  activeScopeKey?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -293,6 +318,8 @@ export type CommissionHierarchyUncheckedCreateInput = {
   childUserId: string
   childRole: string
   serviceType?: string | null
+  relationshipKey: string
+  activeScopeKey?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -305,6 +332,8 @@ export type CommissionHierarchyUpdateInput = {
   childUserId?: Prisma.StringFieldUpdateOperationsInput | string
   childRole?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  relationshipKey?: Prisma.StringFieldUpdateOperationsInput | string
+  activeScopeKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -317,6 +346,8 @@ export type CommissionHierarchyUncheckedUpdateInput = {
   childUserId?: Prisma.StringFieldUpdateOperationsInput | string
   childRole?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  relationshipKey?: Prisma.StringFieldUpdateOperationsInput | string
+  activeScopeKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -329,6 +360,8 @@ export type CommissionHierarchyCreateManyInput = {
   childUserId: string
   childRole: string
   serviceType?: string | null
+  relationshipKey: string
+  activeScopeKey?: string | null
   isActive?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -341,6 +374,8 @@ export type CommissionHierarchyUpdateManyMutationInput = {
   childUserId?: Prisma.StringFieldUpdateOperationsInput | string
   childRole?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  relationshipKey?: Prisma.StringFieldUpdateOperationsInput | string
+  activeScopeKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -353,15 +388,11 @@ export type CommissionHierarchyUncheckedUpdateManyInput = {
   childUserId?: Prisma.StringFieldUpdateOperationsInput | string
   childRole?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  relationshipKey?: Prisma.StringFieldUpdateOperationsInput | string
+  activeScopeKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type CommissionHierarchyParentUserIdChildUserIdServiceTypeCompoundUniqueInput = {
-  parentUserId: string
-  childUserId: string
-  serviceType: string
 }
 
 export type CommissionHierarchyCountOrderByAggregateInput = {
@@ -371,6 +402,8 @@ export type CommissionHierarchyCountOrderByAggregateInput = {
   childUserId?: Prisma.SortOrder
   childRole?: Prisma.SortOrder
   serviceType?: Prisma.SortOrder
+  relationshipKey?: Prisma.SortOrder
+  activeScopeKey?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -383,6 +416,8 @@ export type CommissionHierarchyMaxOrderByAggregateInput = {
   childUserId?: Prisma.SortOrder
   childRole?: Prisma.SortOrder
   serviceType?: Prisma.SortOrder
+  relationshipKey?: Prisma.SortOrder
+  activeScopeKey?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -395,6 +430,8 @@ export type CommissionHierarchyMinOrderByAggregateInput = {
   childUserId?: Prisma.SortOrder
   childRole?: Prisma.SortOrder
   serviceType?: Prisma.SortOrder
+  relationshipKey?: Prisma.SortOrder
+  activeScopeKey?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -409,6 +446,8 @@ export type CommissionHierarchySelect<ExtArgs extends runtime.Types.Extensions.I
   childUserId?: boolean
   childRole?: boolean
   serviceType?: boolean
+  relationshipKey?: boolean
+  activeScopeKey?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -421,6 +460,8 @@ export type CommissionHierarchySelectCreateManyAndReturn<ExtArgs extends runtime
   childUserId?: boolean
   childRole?: boolean
   serviceType?: boolean
+  relationshipKey?: boolean
+  activeScopeKey?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -433,6 +474,8 @@ export type CommissionHierarchySelectUpdateManyAndReturn<ExtArgs extends runtime
   childUserId?: boolean
   childRole?: boolean
   serviceType?: boolean
+  relationshipKey?: boolean
+  activeScopeKey?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -445,12 +488,14 @@ export type CommissionHierarchySelectScalar = {
   childUserId?: boolean
   childRole?: boolean
   serviceType?: boolean
+  relationshipKey?: boolean
+  activeScopeKey?: boolean
   isActive?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CommissionHierarchyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentUserId" | "parentRole" | "childUserId" | "childRole" | "serviceType" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["commissionHierarchy"]>
+export type CommissionHierarchyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "parentUserId" | "parentRole" | "childUserId" | "childRole" | "serviceType" | "relationshipKey" | "activeScopeKey" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["commissionHierarchy"]>
 
 export type $CommissionHierarchyPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "CommissionHierarchy"
@@ -461,7 +506,39 @@ export type $CommissionHierarchyPayload<ExtArgs extends runtime.Types.Extensions
     parentRole: string
     childUserId: string
     childRole: string
+    /**
+     * *
+     *    * null = global/default hierarchy
+     *    * Example:
+     *    * RETAILER → DISTRIBUTOR
+     *    * all AEPS services ke liye.
+     */
     serviceType: string | null
+    /**
+     * *
+     *    * Exact relationship identity.
+     *    * Backend generated SHA256:
+     *    * parent + child + service scope
+     *    * Inactive same relationship ko
+     *    * duplicate CREATE se protect karega.
+     */
+    relationshipKey: string
+    /**
+     * *
+     *    * Only ACTIVE relationship ke liye set.
+     *    * SHA256:
+     *    * child + service scope
+     *    * Guarantees:
+     *    * one child
+     *    * +
+     *    * one scope
+     *    * =
+     *    * only one ACTIVE parent.
+     *    * Inactive rows = null.
+     *    * PostgreSQL multiple NULL allow karta hai,
+     *    * jo yahan intentional hai.
+     */
+    activeScopeKey: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -894,6 +971,8 @@ export interface CommissionHierarchyFieldRefs {
   readonly childUserId: Prisma.FieldRef<"CommissionHierarchy", 'String'>
   readonly childRole: Prisma.FieldRef<"CommissionHierarchy", 'String'>
   readonly serviceType: Prisma.FieldRef<"CommissionHierarchy", 'String'>
+  readonly relationshipKey: Prisma.FieldRef<"CommissionHierarchy", 'String'>
+  readonly activeScopeKey: Prisma.FieldRef<"CommissionHierarchy", 'String'>
   readonly isActive: Prisma.FieldRef<"CommissionHierarchy", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"CommissionHierarchy", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"CommissionHierarchy", 'DateTime'>

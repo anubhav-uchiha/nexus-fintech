@@ -42,6 +42,7 @@ export type CommissionRuleSumAggregateOutputType = {
 
 export type CommissionRuleMinAggregateOutputType = {
   id: string | null
+  ruleKey: string | null
   serviceType: string | null
   operator: string | null
   role: string | null
@@ -57,6 +58,7 @@ export type CommissionRuleMinAggregateOutputType = {
 
 export type CommissionRuleMaxAggregateOutputType = {
   id: string | null
+  ruleKey: string | null
   serviceType: string | null
   operator: string | null
   role: string | null
@@ -72,6 +74,7 @@ export type CommissionRuleMaxAggregateOutputType = {
 
 export type CommissionRuleCountAggregateOutputType = {
   id: number
+  ruleKey: number
   serviceType: number
   operator: number
   role: number
@@ -103,6 +106,7 @@ export type CommissionRuleSumAggregateInputType = {
 
 export type CommissionRuleMinAggregateInputType = {
   id?: true
+  ruleKey?: true
   serviceType?: true
   operator?: true
   role?: true
@@ -118,6 +122,7 @@ export type CommissionRuleMinAggregateInputType = {
 
 export type CommissionRuleMaxAggregateInputType = {
   id?: true
+  ruleKey?: true
   serviceType?: true
   operator?: true
   role?: true
@@ -133,6 +138,7 @@ export type CommissionRuleMaxAggregateInputType = {
 
 export type CommissionRuleCountAggregateInputType = {
   id?: true
+  ruleKey?: true
   serviceType?: true
   operator?: true
   role?: true
@@ -235,6 +241,7 @@ export type CommissionRuleGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 
 export type CommissionRuleGroupByOutputType = {
   id: string
+  ruleKey: string
   serviceType: string
   operator: string | null
   role: string
@@ -273,6 +280,7 @@ export type CommissionRuleWhereInput = {
   OR?: Prisma.CommissionRuleWhereInput[]
   NOT?: Prisma.CommissionRuleWhereInput | Prisma.CommissionRuleWhereInput[]
   id?: Prisma.StringFilter<"CommissionRule"> | string
+  ruleKey?: Prisma.StringFilter<"CommissionRule"> | string
   serviceType?: Prisma.StringFilter<"CommissionRule"> | string
   operator?: Prisma.StringNullableFilter<"CommissionRule"> | string | null
   role?: Prisma.StringFilter<"CommissionRule"> | string
@@ -290,6 +298,7 @@ export type CommissionRuleWhereInput = {
 
 export type CommissionRuleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  ruleKey?: Prisma.SortOrder
   serviceType?: Prisma.SortOrder
   operator?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -307,6 +316,7 @@ export type CommissionRuleOrderByWithRelationInput = {
 
 export type CommissionRuleWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  ruleKey?: string
   AND?: Prisma.CommissionRuleWhereInput | Prisma.CommissionRuleWhereInput[]
   OR?: Prisma.CommissionRuleWhereInput[]
   NOT?: Prisma.CommissionRuleWhereInput | Prisma.CommissionRuleWhereInput[]
@@ -323,10 +333,11 @@ export type CommissionRuleWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"CommissionRule"> | Date | string
   commissions?: Prisma.CommissionListRelationFilter
   distributions?: Prisma.CommissionDistributionListRelationFilter
-}, "id">
+}, "id" | "ruleKey">
 
 export type CommissionRuleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  ruleKey?: Prisma.SortOrder
   serviceType?: Prisma.SortOrder
   operator?: Prisma.SortOrderInput | Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -350,6 +361,7 @@ export type CommissionRuleScalarWhereWithAggregatesInput = {
   OR?: Prisma.CommissionRuleScalarWhereWithAggregatesInput[]
   NOT?: Prisma.CommissionRuleScalarWhereWithAggregatesInput | Prisma.CommissionRuleScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"CommissionRule"> | string
+  ruleKey?: Prisma.StringWithAggregatesFilter<"CommissionRule"> | string
   serviceType?: Prisma.StringWithAggregatesFilter<"CommissionRule"> | string
   operator?: Prisma.StringNullableWithAggregatesFilter<"CommissionRule"> | string | null
   role?: Prisma.StringWithAggregatesFilter<"CommissionRule"> | string
@@ -365,6 +377,7 @@ export type CommissionRuleScalarWhereWithAggregatesInput = {
 
 export type CommissionRuleCreateInput = {
   id?: string
+  ruleKey: string
   serviceType: string
   operator?: string | null
   role: string
@@ -382,6 +395,7 @@ export type CommissionRuleCreateInput = {
 
 export type CommissionRuleUncheckedCreateInput = {
   id?: string
+  ruleKey: string
   serviceType: string
   operator?: string | null
   role: string
@@ -399,6 +413,7 @@ export type CommissionRuleUncheckedCreateInput = {
 
 export type CommissionRuleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleKey?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   operator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
@@ -416,6 +431,7 @@ export type CommissionRuleUpdateInput = {
 
 export type CommissionRuleUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleKey?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   operator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
@@ -433,6 +449,7 @@ export type CommissionRuleUncheckedUpdateInput = {
 
 export type CommissionRuleCreateManyInput = {
   id?: string
+  ruleKey: string
   serviceType: string
   operator?: string | null
   role: string
@@ -448,6 +465,7 @@ export type CommissionRuleCreateManyInput = {
 
 export type CommissionRuleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleKey?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   operator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
@@ -463,6 +481,7 @@ export type CommissionRuleUpdateManyMutationInput = {
 
 export type CommissionRuleUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleKey?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   operator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
@@ -478,6 +497,7 @@ export type CommissionRuleUncheckedUpdateManyInput = {
 
 export type CommissionRuleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  ruleKey?: Prisma.SortOrder
   serviceType?: Prisma.SortOrder
   operator?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -500,6 +520,7 @@ export type CommissionRuleAvgOrderByAggregateInput = {
 
 export type CommissionRuleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  ruleKey?: Prisma.SortOrder
   serviceType?: Prisma.SortOrder
   operator?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -515,6 +536,7 @@ export type CommissionRuleMaxOrderByAggregateInput = {
 
 export type CommissionRuleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  ruleKey?: Prisma.SortOrder
   serviceType?: Prisma.SortOrder
   operator?: Prisma.SortOrder
   role?: Prisma.SortOrder
@@ -621,6 +643,7 @@ export type CommissionRuleUpdateOneRequiredWithoutDistributionsNestedInput = {
 
 export type CommissionRuleCreateWithoutCommissionsInput = {
   id?: string
+  ruleKey: string
   serviceType: string
   operator?: string | null
   role: string
@@ -637,6 +660,7 @@ export type CommissionRuleCreateWithoutCommissionsInput = {
 
 export type CommissionRuleUncheckedCreateWithoutCommissionsInput = {
   id?: string
+  ruleKey: string
   serviceType: string
   operator?: string | null
   role: string
@@ -669,6 +693,7 @@ export type CommissionRuleUpdateToOneWithWhereWithoutCommissionsInput = {
 
 export type CommissionRuleUpdateWithoutCommissionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleKey?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   operator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
@@ -685,6 +710,7 @@ export type CommissionRuleUpdateWithoutCommissionsInput = {
 
 export type CommissionRuleUncheckedUpdateWithoutCommissionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleKey?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   operator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
@@ -701,6 +727,7 @@ export type CommissionRuleUncheckedUpdateWithoutCommissionsInput = {
 
 export type CommissionRuleCreateWithoutDistributionsInput = {
   id?: string
+  ruleKey: string
   serviceType: string
   operator?: string | null
   role: string
@@ -717,6 +744,7 @@ export type CommissionRuleCreateWithoutDistributionsInput = {
 
 export type CommissionRuleUncheckedCreateWithoutDistributionsInput = {
   id?: string
+  ruleKey: string
   serviceType: string
   operator?: string | null
   role: string
@@ -749,6 +777,7 @@ export type CommissionRuleUpdateToOneWithWhereWithoutDistributionsInput = {
 
 export type CommissionRuleUpdateWithoutDistributionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleKey?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   operator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
@@ -765,6 +794,7 @@ export type CommissionRuleUpdateWithoutDistributionsInput = {
 
 export type CommissionRuleUncheckedUpdateWithoutDistributionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  ruleKey?: Prisma.StringFieldUpdateOperationsInput | string
   serviceType?: Prisma.StringFieldUpdateOperationsInput | string
   operator?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role?: Prisma.StringFieldUpdateOperationsInput | string
@@ -821,6 +851,7 @@ export type CommissionRuleCountOutputTypeCountDistributionsArgs<ExtArgs extends 
 
 export type CommissionRuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  ruleKey?: boolean
   serviceType?: boolean
   operator?: boolean
   role?: boolean
@@ -839,6 +870,7 @@ export type CommissionRuleSelect<ExtArgs extends runtime.Types.Extensions.Intern
 
 export type CommissionRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  ruleKey?: boolean
   serviceType?: boolean
   operator?: boolean
   role?: boolean
@@ -854,6 +886,7 @@ export type CommissionRuleSelectCreateManyAndReturn<ExtArgs extends runtime.Type
 
 export type CommissionRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  ruleKey?: boolean
   serviceType?: boolean
   operator?: boolean
   role?: boolean
@@ -869,6 +902,7 @@ export type CommissionRuleSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
 
 export type CommissionRuleSelectScalar = {
   id?: boolean
+  ruleKey?: boolean
   serviceType?: boolean
   operator?: boolean
   role?: boolean
@@ -882,7 +916,7 @@ export type CommissionRuleSelectScalar = {
   updatedAt?: boolean
 }
 
-export type CommissionRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "serviceType" | "operator" | "role" | "commissionType" | "commissionValue" | "minAmount" | "maxAmount" | "priority" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["commissionRule"]>
+export type CommissionRuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ruleKey" | "serviceType" | "operator" | "role" | "commissionType" | "commissionValue" | "minAmount" | "maxAmount" | "priority" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["commissionRule"]>
 export type CommissionRuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   commissions?: boolean | Prisma.CommissionRule$commissionsArgs<ExtArgs>
   distributions?: boolean | Prisma.CommissionRule$distributionsArgs<ExtArgs>
@@ -899,6 +933,7 @@ export type $CommissionRulePayload<ExtArgs extends runtime.Types.Extensions.Inte
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    ruleKey: string
     serviceType: string
     operator: string | null
     role: string
@@ -1336,6 +1371,7 @@ export interface Prisma__CommissionRuleClient<T, Null = never, ExtArgs extends r
  */
 export interface CommissionRuleFieldRefs {
   readonly id: Prisma.FieldRef<"CommissionRule", 'String'>
+  readonly ruleKey: Prisma.FieldRef<"CommissionRule", 'String'>
   readonly serviceType: Prisma.FieldRef<"CommissionRule", 'String'>
   readonly operator: Prisma.FieldRef<"CommissionRule", 'String'>
   readonly role: Prisma.FieldRef<"CommissionRule", 'String'>

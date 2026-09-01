@@ -16,3 +16,4 @@ export const KAFKA_TOPICS = {
   TRANSACTION_FAILD: 'transaction.failed',
   COMMISSION_CREATED: 'commission.created',
 } as const;
+

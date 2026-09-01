@@ -52,7 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Transaction: 'Transaction',
-  ProviderTransaction: 'ProviderTransaction'
+  ProviderTransaction: 'ProviderTransaction',
+  ProviderTransactionReversal: 'ProviderTransactionReversal'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -120,10 +121,49 @@ export const ProviderTransactionScalarFieldEnum = {
   providerCalledAt: 'providerCalledAt',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  needsReconciliation: 'needsReconciliation',
+  reconciliationReason: 'reconciliationReason',
+  reconciledAt: 'reconciledAt',
+  reconciledBy: 'reconciledBy',
+  reconciliationNote: 'reconciliationNote',
+  reversedAt: 'reversedAt',
+  settlementStatus: 'settlementStatus',
+  settlementTransactionReference: 'settlementTransactionReference',
+  compensationTransactionReference: 'compensationTransactionReference',
+  settlementFailureReason: 'settlementFailureReason',
+  reservedAt: 'reservedAt',
+  settledAt: 'settledAt',
+  compensatedAt: 'compensatedAt',
+  commissionStatus: 'commissionStatus',
+  commissionReferenceId: 'commissionReferenceId',
+  commissionWalletTransactionReference: 'commissionWalletTransactionReference',
+  commissionAmount: 'commissionAmount',
+  commissionFailureReason: 'commissionFailureReason',
+  commissionSettledAt: 'commissionSettledAt'
 } as const
 
 export type ProviderTransactionScalarFieldEnum = (typeof ProviderTransactionScalarFieldEnum)[keyof typeof ProviderTransactionScalarFieldEnum]
+
+
+export const ProviderTransactionReversalScalarFieldEnum = {
+  id: 'id',
+  referenceId: 'referenceId',
+  providerTransactionId: 'providerTransactionId',
+  idempotencyKey: 'idempotencyKey',
+  amount: 'amount',
+  status: 'status',
+  reason: 'reason',
+  requestedBy: 'requestedBy',
+  compensationReferenceId: 'compensationReferenceId',
+  processingAt: 'processingAt',
+  completedAt: 'completedAt',
+  failedReason: 'failedReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderTransactionReversalScalarFieldEnum = (typeof ProviderTransactionReversalScalarFieldEnum)[keyof typeof ProviderTransactionReversalScalarFieldEnum]
 
 
 export const SortOrder = {

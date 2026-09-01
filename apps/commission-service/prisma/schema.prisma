@@ -21,6 +21,7 @@ enum CommissionStatus {
 
 model CommissionRule {
   id              String                   @id @default(uuid())
+  ruleKey         String                   @unique @db.VarChar(64)
   serviceType     String
   operator        String?
   role            String
@@ -64,6 +65,14 @@ model Commission {
   createdAt                DateTime                            @default(now())
   updatedAt                DateTime                            @updatedAt
 
+  walletTransactionId String? @map("wallet_transaction_id")
+
+  walletTransactionReference String? @map("wallet_transaction_reference")
+
+  creditedAt DateTime? @map("credited_at")
+
+  failureReason String? @map("failure_reason") @db.VarChar(500)
+
   @@index([transactionId])
   @@index([userId])
   @@index([role])
@@ -75,8 +84,8 @@ model Commission {
 }
 
 model CommissionDistribution {
-  id String @id @default(uuid())
-
+  id                       String                              @id @default(uuid())
+  distributionKey          String                              @unique @db.VarChar(64)
   commissionRuleId         String
   commissionRule           CommissionRule                      @relation(fields: [commissionRuleId], references: [id], onDelete: Cascade)
   recipientRole            String
@@ -122,6 +131,12 @@ model CommissionDistributionTransaction {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  transactionReference String? @map("transaction_reference")
+
+  creditedAt DateTime? @map("credited_at")
+
+  failureReason String? @map("failure_reason") @db.VarChar(500)
+
   @@index([commissionId])
   @@index([distributionId])
   @@index([sourceUserId])
@@ -133,17 +148,52 @@ model CommissionDistributionTransaction {
 }
 
 model CommissionHierarchy {
-  id           String   @id @default(uuid())
+  id String @id @default(uuid())
+
   parentUserId String
   parentRole   String
-  childUserId  String
-  childRole    String
-  serviceType  String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
 
-  @@unique([parentUserId, childUserId, serviceType])
+  childUserId String
+  childRole   String
+
+  /**
+   * null = global/default hierarchy
+   * Example:
+   * RETAILER → DISTRIBUTOR
+   * all AEPS services ke liye.
+   */
+  serviceType String?
+
+  /**
+   * Exact relationship identity.
+   * Backend generated SHA256:
+   * parent + child + service scope
+   * Inactive same relationship ko
+   * duplicate CREATE se protect karega.
+   */
+  relationshipKey String @unique @db.VarChar(64)
+
+  /**
+   * Only ACTIVE relationship ke liye set.
+   * SHA256:
+   * child + service scope
+   * Guarantees:
+   * one child
+   * +
+   * one scope
+   * =
+   * only one ACTIVE parent.
+   * Inactive rows = null.
+   * PostgreSQL multiple NULL allow karta hai,
+   * jo yahan intentional hai.
+   */
+  activeScopeKey String? @unique @db.VarChar(64)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([parentUserId])
   @@index([parentRole])
   @@index([childUserId])

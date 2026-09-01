@@ -147,4 +147,15 @@ export class AuthKafkaController {
   logout(@Payload() dto: LogoutDto) {
     return this.authService.logout(dto);
   }
+
+  @MessagePattern(AUTH_PATTERNS.RESOLVE_COMMISSION_RECIPIENT_ELIGIBILITY)
+  resolveCommissionRecipientEligibility(
+    @Payload()
+    dto: {
+      identityId: string;
+      expectedRole: string;
+    },
+  ) {
+    return this.authService.resolveCommissionRecipientEligibility(dto);
+  }
 }

@@ -13,6 +13,14 @@ import { COMMISSION_PATTERNS } from '@nexus/common/commission/commission.pattern
 import { CalculateCommissionDto } from '@nexus/common/commission/dto/calculate-commission.dto';
 import { AUTH_PATTERNS } from '@nexus/common';
 import { isPeerTransferRole } from '@nexus/common/wallet/peer-transfer.constants';
+import { SettleAepsPrincipalDto } from '@nexus/common/wallet/dto/settle-aeps-principal.dto';
+import {
+  CompensateAepsCashDepositDto,
+  ConfirmAepsCashDepositDto,
+  PrepareAepsCashDepositDto,
+} from '@nexus/common/wallet/dto/aeps-cash-deposit-settlement.dto';
+import { CreditAepsCommissionDto } from '@nexus/common/wallet/dto/credit-aeps-commission.dto';
+import { CreditCommissionDistributionDto } from '@nexus/common/wallet/dto/credit-commission-distribution.dto';
 
 type PeerTransferParticipants = {
   sender: {
@@ -54,10 +62,22 @@ export class WalletService implements OnModuleInit {
       TRANSACTION_PATTERNS.CREATE_COMMISSION,
     );
 
+    this.transactionClient.subscribeToResponseOf(
+      TRANSACTION_PATTERNS.POST_PROVIDER_WALLET_ENTRY,
+    );
+
     this.commissionClient.subscribeToResponseOf(COMMISSION_PATTERNS.CALCULATE);
 
     this.authClient.subscribeToResponseOf(
       AUTH_PATTERNS.RESOLVE_PEER_TRANSFER_PARTICIPANTS,
+    );
+
+    this.transactionClient.subscribeToResponseOf(
+      TRANSACTION_PATTERNS.PREPARE_PROVIDER_WALLET_DEBIT,
+    );
+
+    this.transactionClient.subscribeToResponseOf(
+      TRANSACTION_PATTERNS.CONFIRM_PROVIDER_WALLET_RESERVATION,
     );
 
     await Promise.all([
@@ -84,7 +104,7 @@ export class WalletService implements OnModuleInit {
       const netAmount = Number((dto.amount - commissionAmount).toFixed(2));
       if (netAmount <= 0) {
         throw new RpcException({
-          status: 400,
+          statusCode: 400,
           message:
             'Commission cannot be greater than or equal to transaction amount',
         });
@@ -149,7 +169,7 @@ export class WalletService implements OnModuleInit {
         Number(rpcError?.status) || Number(rpcError?.statusCode) || 500;
       const message = rpcError?.message || error?.message || 'Add money failed';
       throw new RpcException({
-        status,
+        statusCode: status,
         message,
       });
     }
@@ -204,14 +224,14 @@ export class WalletService implements OnModuleInit {
 
       if (!isPeerTransferRole(senderRole)) {
         throw new RpcException({
-          status: 403,
+          statusCode: 403,
           message: 'Your role is not allowed to perform peer transfers',
         });
       }
 
       if (senderRole !== receiverRole) {
         throw new RpcException({
-          status: 403,
+          statusCode: 403,
           message:
             'Wallet transfers are allowed only between users with the same role',
         });
@@ -255,7 +275,7 @@ export class WalletService implements OnModuleInit {
       const message = rpcError?.message || error?.message || 'Transfer failed';
 
       throw new RpcException({
-        status,
+        statusCode: status,
         message,
       });
     }
@@ -285,9 +305,374 @@ export class WalletService implements OnModuleInit {
         rpcError?.message || error?.message || 'Commission calculation failed';
 
       throw new RpcException({
-        status,
+        statusCode: status,
         message,
       });
     }
+  }
+
+  async settleAepsPrincipal(dto: SettleAepsPrincipalDto) {
+    /*
+     * =====================================================
+     * 1. VALIDATION
+     * =====================================================
+     */
+
+    if (!dto.userId?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'User ID is required',
+      });
+    }
+
+    if (!dto.providerTransactionReference?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Provider transaction reference is required',
+      });
+    }
+
+    if (!Number.isFinite(dto.grossAmount) || dto.grossAmount <= 0) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Gross settlement amount must be greater than 0',
+      });
+    }
+
+    if (!Number.isFinite(dto.netAmount) || dto.netAmount <= 0) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Net settlement amount must be greater than 0',
+      });
+    }
+
+    if (dto.netAmount > dto.grossAmount) {
+      throw new RpcException({
+        statusCode: 409,
+        message: 'Net principal cannot exceed gross transaction amount',
+      });
+    }
+
+    /*
+     * =====================================================
+     * 2. OPERATION → SERVICE TYPE
+     * =====================================================
+     *
+     * CW SUCCESS → AEPS CREDIT
+     * AP SUCCESS → AEPS CREDIT
+     *
+     * Wallet amount will be NET principal.
+     */
+
+    let serviceType: string;
+
+    switch (dto.operation) {
+      case 'CW':
+        serviceType = 'AEPS_CASH_WITHDRAWAL';
+        break;
+
+      case 'AP':
+        serviceType = 'AEPS_AADHAAR_PAY';
+        break;
+
+      default:
+        throw new RpcException({
+          statusCode: 400,
+          message: `Unsupported AEPS settlement operation: ${dto.operation}`,
+        });
+    }
+
+    /*
+     * =====================================================
+     * 3. ACCOUNTING SAFETY
+     * =====================================================
+     *
+     * Example:
+     *
+     * Gross      = ₹150
+     * Commission = ₹10
+     * Net        = ₹140
+     *
+     * This method only settles ₹140
+     * into AEPS wallet.
+     */
+
+    const grossPaise = Math.round(dto.grossAmount * 100);
+
+    const netPaise = Math.round(dto.netAmount * 100);
+
+    if (netPaise > grossPaise) {
+      throw new RpcException({
+        statusCode: 409,
+        message: 'Net principal cannot exceed gross transaction amount',
+      });
+    }
+
+    /*
+     * =====================================================
+     * 4. DERIVED IDEMPOTENCY KEY
+     * =====================================================
+     *
+     * Frontend does not control this.
+     */
+
+    const idempotencyKey = `AEPS:${dto.providerTransactionReference}:PRINCIPAL`;
+
+    /*
+     * =====================================================
+     * 5. SETTLE NET PRINCIPAL
+     * =====================================================
+     *
+     * providerAmount:
+     * Canonical ProviderTransaction gross amount.
+     *
+     * amount:
+     * Actual AEPS wallet movement.
+     */
+
+    return firstValueFrom(
+      this.transactionClient.send(
+        TRANSACTION_PATTERNS.POST_PROVIDER_WALLET_ENTRY,
+
+        {
+          userId: dto.userId,
+
+          providerTransactionReference: dto.providerTransactionReference,
+
+          walletType: 'AEPS',
+
+          type: 'CREDIT',
+
+          /*
+           * AEPS wallet receives NET.
+           */
+          amount: dto.netAmount,
+
+          /*
+           * ProviderTransaction remains GROSS.
+           */
+          providerAmount: dto.grossAmount,
+
+          serviceType,
+
+          description: `${dto.operation} AEPS net principal settlement`,
+
+          idempotencyKey,
+
+          action: 'SETTLE',
+        },
+      ),
+    );
+  }
+
+  async prepareAepsCashDeposit(dto: PrepareAepsCashDepositDto) {
+    return firstValueFrom(
+      this.transactionClient.send(
+        TRANSACTION_PATTERNS.PREPARE_PROVIDER_WALLET_DEBIT,
+
+        {
+          userId: dto.userId,
+
+          provider: 'VIMOPAY',
+
+          serviceType: 'AEPS',
+
+          operation: 'CD',
+
+          amount: dto.amount,
+
+          idempotencyKey: dto.providerTransactionIdempotencyKey,
+
+          merchantProfileId: dto.merchantProfileId,
+
+          providerMerchantId: dto.providerMerchantId,
+
+          bankIIN: dto.bankIIN,
+
+          aadhaarLast4: dto.aadhaarLast4,
+
+          walletType: 'AEPS',
+
+          walletServiceType: 'AEPS_CASH_DEPOSIT',
+
+          walletDescription: 'AEPS Cash Deposit principal reservation',
+        },
+      ),
+    );
+  }
+
+  async confirmAepsCashDeposit(dto: ConfirmAepsCashDepositDto) {
+    return firstValueFrom(
+      this.transactionClient.send(
+        TRANSACTION_PATTERNS.CONFIRM_PROVIDER_WALLET_RESERVATION,
+
+        {
+          userId: dto.userId,
+
+          providerTransactionReference: dto.providerTransactionReference,
+        },
+      ),
+    );
+  }
+
+  async compensateAepsCashDeposit(dto: CompensateAepsCashDepositDto) {
+    const idempotencyKey = `AEPS:${dto.providerTransactionReference}:CD:COMPENSATE`;
+
+    return firstValueFrom(
+      this.transactionClient.send(
+        TRANSACTION_PATTERNS.POST_PROVIDER_WALLET_ENTRY,
+
+        {
+          userId: dto.userId,
+
+          providerTransactionReference: dto.providerTransactionReference,
+
+          walletType: 'AEPS',
+
+          /*
+           * Original was DEBIT.
+           * Compensation is CREDIT.
+           */
+          type: 'CREDIT',
+
+          amount: dto.amount,
+
+          serviceType: 'AEPS_CASH_DEPOSIT_COMPENSATION',
+
+          description: 'AEPS Cash Deposit failed - principal compensation',
+
+          idempotencyKey,
+
+          action: 'COMPENSATE',
+        },
+      ),
+    );
+  }
+
+  async creditAepsCommission(dto: CreditAepsCommissionDto) {
+    if (!dto.userId?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+
+        message: 'User ID is required',
+      });
+    }
+
+    if (!Number.isFinite(dto.amount) || dto.amount <= 0) {
+      throw new RpcException({
+        statusCode: 400,
+
+        message: 'Commission amount must be greater than 0',
+      });
+    }
+
+    /*
+     * Derived idempotency key.
+     */
+    const idempotencyKey = `PROFIT:${dto.commissionReference}:CREDIT`;
+
+    /*
+     * Existing Transaction.create
+     * already:
+     *
+     * - wallet advisory lock
+     * - idempotency
+     * - opening/closing balance
+     *
+     * handle karta hai.
+     */
+    return firstValueFrom(
+      this.transactionClient.send(
+        TRANSACTION_PATTERNS.CREATE,
+
+        {
+          userId: dto.userId,
+
+          walletType: 'PROFIT',
+
+          serviceType: dto.serviceType,
+
+          type: 'CREDIT',
+
+          amount: dto.amount,
+
+          description: 'AEPS commission credit',
+
+          externalReference: dto.commissionReference,
+
+          idempotencyKey,
+        },
+      ),
+    );
+  }
+
+  async creditCommissionDistribution(dto: CreditCommissionDistributionDto) {
+    if (!dto.recipientUserId?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Commission recipient user ID is required',
+      });
+    }
+
+    if (!dto.distributionTransactionId?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Distribution transaction ID is required',
+      });
+    }
+
+    if (!Number.isFinite(dto.amount) || dto.amount <= 0) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Commission distribution amount must be greater than 0',
+      });
+    }
+
+    if (!dto.idempotencyKey?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Commission distribution idempotency key is required',
+      });
+    }
+
+    /*
+     * IMPORTANT:
+     *
+     * Every distribution gets its OWN
+     * PROFIT wallet ledger entry.
+     *
+     * Same recipient ko multiple dynamic
+     * distributions ho sakti hain.
+     *
+     * Each allocation ki idempotency key
+     * different hogi.
+     */
+
+    return firstValueFrom(
+      this.transactionClient.send(TRANSACTION_PATTERNS.CREATE, {
+        userId: dto.recipientUserId,
+
+        walletType: 'PROFIT',
+
+        type: 'CREDIT',
+
+        amount: dto.amount,
+
+        serviceType: dto.serviceType,
+
+        description: `AEPS commission distribution for ${dto.recipientRole}`,
+
+        /*
+         * Individual allocation trace.
+         */
+        externalReference: dto.distributionTransactionId,
+
+        /*
+         * Already commission DB mein
+         * generated unique key.
+         */
+        idempotencyKey: dto.idempotencyKey,
+      }),
+    );
   }
 }

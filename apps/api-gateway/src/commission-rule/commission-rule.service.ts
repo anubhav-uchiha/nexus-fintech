@@ -85,7 +85,7 @@ export class CommissionRuleService implements OnModuleInit {
         'Commission rule operation failed';
 
       throw new RpcException({
-        status,
+        statusCode: status,
         message,
       });
     }

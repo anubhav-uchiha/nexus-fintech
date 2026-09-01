@@ -3,6 +3,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TransactionGatewayService } from './transaction.gateway.service';
 import { TransactionController } from './transaction.controller';
+import { ProviderTransactionAdminController } from './provider-transaction-admin.controller';
 
 @Module({
   imports: [
@@ -33,7 +34,7 @@ import { TransactionController } from './transaction.controller';
     ]),
   ],
 
-  controllers: [TransactionController],
+  controllers: [TransactionController, ProviderTransactionAdminController],
 
   providers: [TransactionGatewayService],
 

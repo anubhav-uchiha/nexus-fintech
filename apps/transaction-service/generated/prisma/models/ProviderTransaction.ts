@@ -28,10 +28,12 @@ export type AggregateProviderTransaction = {
 
 export type ProviderTransactionAvgAggregateOutputType = {
   amount: runtime.Decimal | null
+  commissionAmount: runtime.Decimal | null
 }
 
 export type ProviderTransactionSumAggregateOutputType = {
   amount: runtime.Decimal | null
+  commissionAmount: runtime.Decimal | null
 }
 
 export type ProviderTransactionMinAggregateOutputType = {
@@ -59,6 +61,25 @@ export type ProviderTransactionMinAggregateOutputType = {
   completedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  needsReconciliation: boolean | null
+  reconciliationReason: string | null
+  reconciledAt: Date | null
+  reconciledBy: string | null
+  reconciliationNote: string | null
+  reversedAt: Date | null
+  settlementStatus: $Enums.ProviderSettlementStatus | null
+  settlementTransactionReference: string | null
+  compensationTransactionReference: string | null
+  settlementFailureReason: string | null
+  reservedAt: Date | null
+  settledAt: Date | null
+  compensatedAt: Date | null
+  commissionStatus: $Enums.ProviderCommissionStatus | null
+  commissionReferenceId: string | null
+  commissionWalletTransactionReference: string | null
+  commissionAmount: runtime.Decimal | null
+  commissionFailureReason: string | null
+  commissionSettledAt: Date | null
 }
 
 export type ProviderTransactionMaxAggregateOutputType = {
@@ -86,6 +107,25 @@ export type ProviderTransactionMaxAggregateOutputType = {
   completedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  needsReconciliation: boolean | null
+  reconciliationReason: string | null
+  reconciledAt: Date | null
+  reconciledBy: string | null
+  reconciliationNote: string | null
+  reversedAt: Date | null
+  settlementStatus: $Enums.ProviderSettlementStatus | null
+  settlementTransactionReference: string | null
+  compensationTransactionReference: string | null
+  settlementFailureReason: string | null
+  reservedAt: Date | null
+  settledAt: Date | null
+  compensatedAt: Date | null
+  commissionStatus: $Enums.ProviderCommissionStatus | null
+  commissionReferenceId: string | null
+  commissionWalletTransactionReference: string | null
+  commissionAmount: runtime.Decimal | null
+  commissionFailureReason: string | null
+  commissionSettledAt: Date | null
 }
 
 export type ProviderTransactionCountAggregateOutputType = {
@@ -114,16 +154,37 @@ export type ProviderTransactionCountAggregateOutputType = {
   completedAt: number
   createdAt: number
   updatedAt: number
+  needsReconciliation: number
+  reconciliationReason: number
+  reconciledAt: number
+  reconciledBy: number
+  reconciliationNote: number
+  reversedAt: number
+  settlementStatus: number
+  settlementTransactionReference: number
+  compensationTransactionReference: number
+  settlementFailureReason: number
+  reservedAt: number
+  settledAt: number
+  compensatedAt: number
+  commissionStatus: number
+  commissionReferenceId: number
+  commissionWalletTransactionReference: number
+  commissionAmount: number
+  commissionFailureReason: number
+  commissionSettledAt: number
   _all: number
 }
 
 
 export type ProviderTransactionAvgAggregateInputType = {
   amount?: true
+  commissionAmount?: true
 }
 
 export type ProviderTransactionSumAggregateInputType = {
   amount?: true
+  commissionAmount?: true
 }
 
 export type ProviderTransactionMinAggregateInputType = {
@@ -151,6 +212,25 @@ export type ProviderTransactionMinAggregateInputType = {
   completedAt?: true
   createdAt?: true
   updatedAt?: true
+  needsReconciliation?: true
+  reconciliationReason?: true
+  reconciledAt?: true
+  reconciledBy?: true
+  reconciliationNote?: true
+  reversedAt?: true
+  settlementStatus?: true
+  settlementTransactionReference?: true
+  compensationTransactionReference?: true
+  settlementFailureReason?: true
+  reservedAt?: true
+  settledAt?: true
+  compensatedAt?: true
+  commissionStatus?: true
+  commissionReferenceId?: true
+  commissionWalletTransactionReference?: true
+  commissionAmount?: true
+  commissionFailureReason?: true
+  commissionSettledAt?: true
 }
 
 export type ProviderTransactionMaxAggregateInputType = {
@@ -178,6 +258,25 @@ export type ProviderTransactionMaxAggregateInputType = {
   completedAt?: true
   createdAt?: true
   updatedAt?: true
+  needsReconciliation?: true
+  reconciliationReason?: true
+  reconciledAt?: true
+  reconciledBy?: true
+  reconciliationNote?: true
+  reversedAt?: true
+  settlementStatus?: true
+  settlementTransactionReference?: true
+  compensationTransactionReference?: true
+  settlementFailureReason?: true
+  reservedAt?: true
+  settledAt?: true
+  compensatedAt?: true
+  commissionStatus?: true
+  commissionReferenceId?: true
+  commissionWalletTransactionReference?: true
+  commissionAmount?: true
+  commissionFailureReason?: true
+  commissionSettledAt?: true
 }
 
 export type ProviderTransactionCountAggregateInputType = {
@@ -206,6 +305,25 @@ export type ProviderTransactionCountAggregateInputType = {
   completedAt?: true
   createdAt?: true
   updatedAt?: true
+  needsReconciliation?: true
+  reconciliationReason?: true
+  reconciledAt?: true
+  reconciledBy?: true
+  reconciliationNote?: true
+  reversedAt?: true
+  settlementStatus?: true
+  settlementTransactionReference?: true
+  compensationTransactionReference?: true
+  settlementFailureReason?: true
+  reservedAt?: true
+  settledAt?: true
+  compensatedAt?: true
+  commissionStatus?: true
+  commissionReferenceId?: true
+  commissionWalletTransactionReference?: true
+  commissionAmount?: true
+  commissionFailureReason?: true
+  commissionSettledAt?: true
   _all?: true
 }
 
@@ -321,6 +439,25 @@ export type ProviderTransactionGroupByOutputType = {
   completedAt: Date | null
   createdAt: Date
   updatedAt: Date
+  needsReconciliation: boolean
+  reconciliationReason: string | null
+  reconciledAt: Date | null
+  reconciledBy: string | null
+  reconciliationNote: string | null
+  reversedAt: Date | null
+  settlementStatus: $Enums.ProviderSettlementStatus
+  settlementTransactionReference: string | null
+  compensationTransactionReference: string | null
+  settlementFailureReason: string | null
+  reservedAt: Date | null
+  settledAt: Date | null
+  compensatedAt: Date | null
+  commissionStatus: $Enums.ProviderCommissionStatus
+  commissionReferenceId: string | null
+  commissionWalletTransactionReference: string | null
+  commissionAmount: runtime.Decimal | null
+  commissionFailureReason: string | null
+  commissionSettledAt: Date | null
   _count: ProviderTransactionCountAggregateOutputType | null
   _avg: ProviderTransactionAvgAggregateOutputType | null
   _sum: ProviderTransactionSumAggregateOutputType | null
@@ -372,6 +509,26 @@ export type ProviderTransactionWhereInput = {
   completedAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderTransaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProviderTransaction"> | Date | string
+  needsReconciliation?: Prisma.BoolFilter<"ProviderTransaction"> | boolean
+  reconciliationReason?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  reconciledAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  reconciledBy?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  reconciliationNote?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  reversedAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusFilter<"ProviderTransaction"> | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  compensationTransactionReference?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  settlementFailureReason?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  reservedAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  settledAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  compensatedAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusFilter<"ProviderTransaction"> | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  commissionWalletTransactionReference?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  commissionAmount?: Prisma.DecimalNullableFilter<"ProviderTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  commissionSettledAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  reversal?: Prisma.XOR<Prisma.ProviderTransactionReversalNullableScalarRelationFilter, Prisma.ProviderTransactionReversalWhereInput> | null
 }
 
 export type ProviderTransactionOrderByWithRelationInput = {
@@ -400,6 +557,26 @@ export type ProviderTransactionOrderByWithRelationInput = {
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  needsReconciliation?: Prisma.SortOrder
+  reconciliationReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  reconciledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  reconciledBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  reconciliationNote?: Prisma.SortOrderInput | Prisma.SortOrder
+  reversedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  settlementStatus?: Prisma.SortOrder
+  settlementTransactionReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  compensationTransactionReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  settlementFailureReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  reservedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  settledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  compensatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReferenceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionWalletTransactionReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionSettledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  reversal?: Prisma.ProviderTransactionReversalOrderByWithRelationInput
 }
 
 export type ProviderTransactionWhereUniqueInput = Prisma.AtLeast<{
@@ -431,6 +608,26 @@ export type ProviderTransactionWhereUniqueInput = Prisma.AtLeast<{
   completedAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderTransaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProviderTransaction"> | Date | string
+  needsReconciliation?: Prisma.BoolFilter<"ProviderTransaction"> | boolean
+  reconciliationReason?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  reconciledAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  reconciledBy?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  reconciliationNote?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  reversedAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusFilter<"ProviderTransaction"> | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  compensationTransactionReference?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  settlementFailureReason?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  reservedAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  settledAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  compensatedAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusFilter<"ProviderTransaction"> | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  commissionWalletTransactionReference?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  commissionAmount?: Prisma.DecimalNullableFilter<"ProviderTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.StringNullableFilter<"ProviderTransaction"> | string | null
+  commissionSettledAt?: Prisma.DateTimeNullableFilter<"ProviderTransaction"> | Date | string | null
+  reversal?: Prisma.XOR<Prisma.ProviderTransactionReversalNullableScalarRelationFilter, Prisma.ProviderTransactionReversalWhereInput> | null
 }, "id" | "referenceId" | "idempotencyKey">
 
 export type ProviderTransactionOrderByWithAggregationInput = {
@@ -459,6 +656,25 @@ export type ProviderTransactionOrderByWithAggregationInput = {
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  needsReconciliation?: Prisma.SortOrder
+  reconciliationReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  reconciledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  reconciledBy?: Prisma.SortOrderInput | Prisma.SortOrder
+  reconciliationNote?: Prisma.SortOrderInput | Prisma.SortOrder
+  reversedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  settlementStatus?: Prisma.SortOrder
+  settlementTransactionReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  compensationTransactionReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  settlementFailureReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  reservedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  settledAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  compensatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReferenceId?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionWalletTransactionReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionAmount?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionSettledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ProviderTransactionCountOrderByAggregateInput
   _avg?: Prisma.ProviderTransactionAvgOrderByAggregateInput
   _max?: Prisma.ProviderTransactionMaxOrderByAggregateInput
@@ -495,6 +711,25 @@ export type ProviderTransactionScalarWhereWithAggregatesInput = {
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProviderTransaction"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ProviderTransaction"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ProviderTransaction"> | Date | string
+  needsReconciliation?: Prisma.BoolWithAggregatesFilter<"ProviderTransaction"> | boolean
+  reconciliationReason?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  reconciledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProviderTransaction"> | Date | string | null
+  reconciledBy?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  reconciliationNote?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  reversedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProviderTransaction"> | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusWithAggregatesFilter<"ProviderTransaction"> | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  compensationTransactionReference?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  settlementFailureReason?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  reservedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProviderTransaction"> | Date | string | null
+  settledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProviderTransaction"> | Date | string | null
+  compensatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProviderTransaction"> | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusWithAggregatesFilter<"ProviderTransaction"> | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  commissionWalletTransactionReference?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  commissionAmount?: Prisma.DecimalNullableWithAggregatesFilter<"ProviderTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransaction"> | string | null
+  commissionSettledAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ProviderTransaction"> | Date | string | null
 }
 
 export type ProviderTransactionCreateInput = {
@@ -523,6 +758,26 @@ export type ProviderTransactionCreateInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  needsReconciliation?: boolean
+  reconciliationReason?: string | null
+  reconciledAt?: Date | string | null
+  reconciledBy?: string | null
+  reconciliationNote?: string | null
+  reversedAt?: Date | string | null
+  settlementStatus?: $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: string | null
+  compensationTransactionReference?: string | null
+  settlementFailureReason?: string | null
+  reservedAt?: Date | string | null
+  settledAt?: Date | string | null
+  compensatedAt?: Date | string | null
+  commissionStatus?: $Enums.ProviderCommissionStatus
+  commissionReferenceId?: string | null
+  commissionWalletTransactionReference?: string | null
+  commissionAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: string | null
+  commissionSettledAt?: Date | string | null
+  reversal?: Prisma.ProviderTransactionReversalCreateNestedOneWithoutProviderTransactionInput
 }
 
 export type ProviderTransactionUncheckedCreateInput = {
@@ -551,6 +806,26 @@ export type ProviderTransactionUncheckedCreateInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  needsReconciliation?: boolean
+  reconciliationReason?: string | null
+  reconciledAt?: Date | string | null
+  reconciledBy?: string | null
+  reconciliationNote?: string | null
+  reversedAt?: Date | string | null
+  settlementStatus?: $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: string | null
+  compensationTransactionReference?: string | null
+  settlementFailureReason?: string | null
+  reservedAt?: Date | string | null
+  settledAt?: Date | string | null
+  compensatedAt?: Date | string | null
+  commissionStatus?: $Enums.ProviderCommissionStatus
+  commissionReferenceId?: string | null
+  commissionWalletTransactionReference?: string | null
+  commissionAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: string | null
+  commissionSettledAt?: Date | string | null
+  reversal?: Prisma.ProviderTransactionReversalUncheckedCreateNestedOneWithoutProviderTransactionInput
 }
 
 export type ProviderTransactionUpdateInput = {
@@ -579,6 +854,26 @@ export type ProviderTransactionUpdateInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  needsReconciliation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reconciliationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reconciledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciliationNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusFieldUpdateOperationsInput | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  compensationTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  settlementFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reservedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  compensatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusFieldUpdateOperationsInput | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionWalletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionSettledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reversal?: Prisma.ProviderTransactionReversalUpdateOneWithoutProviderTransactionNestedInput
 }
 
 export type ProviderTransactionUncheckedUpdateInput = {
@@ -607,6 +902,26 @@ export type ProviderTransactionUncheckedUpdateInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  needsReconciliation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reconciliationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reconciledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciliationNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusFieldUpdateOperationsInput | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  compensationTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  settlementFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reservedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  compensatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusFieldUpdateOperationsInput | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionWalletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionSettledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reversal?: Prisma.ProviderTransactionReversalUncheckedUpdateOneWithoutProviderTransactionNestedInput
 }
 
 export type ProviderTransactionCreateManyInput = {
@@ -635,6 +950,25 @@ export type ProviderTransactionCreateManyInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  needsReconciliation?: boolean
+  reconciliationReason?: string | null
+  reconciledAt?: Date | string | null
+  reconciledBy?: string | null
+  reconciliationNote?: string | null
+  reversedAt?: Date | string | null
+  settlementStatus?: $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: string | null
+  compensationTransactionReference?: string | null
+  settlementFailureReason?: string | null
+  reservedAt?: Date | string | null
+  settledAt?: Date | string | null
+  compensatedAt?: Date | string | null
+  commissionStatus?: $Enums.ProviderCommissionStatus
+  commissionReferenceId?: string | null
+  commissionWalletTransactionReference?: string | null
+  commissionAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: string | null
+  commissionSettledAt?: Date | string | null
 }
 
 export type ProviderTransactionUpdateManyMutationInput = {
@@ -663,6 +997,25 @@ export type ProviderTransactionUpdateManyMutationInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  needsReconciliation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reconciliationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reconciledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciliationNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusFieldUpdateOperationsInput | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  compensationTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  settlementFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reservedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  compensatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusFieldUpdateOperationsInput | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionWalletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionSettledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type ProviderTransactionUncheckedUpdateManyInput = {
@@ -691,6 +1044,25 @@ export type ProviderTransactionUncheckedUpdateManyInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  needsReconciliation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reconciliationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reconciledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciliationNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusFieldUpdateOperationsInput | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  compensationTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  settlementFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reservedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  compensatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusFieldUpdateOperationsInput | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionWalletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionSettledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type ProviderTransactionCountOrderByAggregateInput = {
@@ -719,10 +1091,30 @@ export type ProviderTransactionCountOrderByAggregateInput = {
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  needsReconciliation?: Prisma.SortOrder
+  reconciliationReason?: Prisma.SortOrder
+  reconciledAt?: Prisma.SortOrder
+  reconciledBy?: Prisma.SortOrder
+  reconciliationNote?: Prisma.SortOrder
+  reversedAt?: Prisma.SortOrder
+  settlementStatus?: Prisma.SortOrder
+  settlementTransactionReference?: Prisma.SortOrder
+  compensationTransactionReference?: Prisma.SortOrder
+  settlementFailureReason?: Prisma.SortOrder
+  reservedAt?: Prisma.SortOrder
+  settledAt?: Prisma.SortOrder
+  compensatedAt?: Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReferenceId?: Prisma.SortOrder
+  commissionWalletTransactionReference?: Prisma.SortOrder
+  commissionAmount?: Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrder
+  commissionSettledAt?: Prisma.SortOrder
 }
 
 export type ProviderTransactionAvgOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  commissionAmount?: Prisma.SortOrder
 }
 
 export type ProviderTransactionMaxOrderByAggregateInput = {
@@ -750,6 +1142,25 @@ export type ProviderTransactionMaxOrderByAggregateInput = {
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  needsReconciliation?: Prisma.SortOrder
+  reconciliationReason?: Prisma.SortOrder
+  reconciledAt?: Prisma.SortOrder
+  reconciledBy?: Prisma.SortOrder
+  reconciliationNote?: Prisma.SortOrder
+  reversedAt?: Prisma.SortOrder
+  settlementStatus?: Prisma.SortOrder
+  settlementTransactionReference?: Prisma.SortOrder
+  compensationTransactionReference?: Prisma.SortOrder
+  settlementFailureReason?: Prisma.SortOrder
+  reservedAt?: Prisma.SortOrder
+  settledAt?: Prisma.SortOrder
+  compensatedAt?: Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReferenceId?: Prisma.SortOrder
+  commissionWalletTransactionReference?: Prisma.SortOrder
+  commissionAmount?: Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrder
+  commissionSettledAt?: Prisma.SortOrder
 }
 
 export type ProviderTransactionMinOrderByAggregateInput = {
@@ -777,10 +1188,35 @@ export type ProviderTransactionMinOrderByAggregateInput = {
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  needsReconciliation?: Prisma.SortOrder
+  reconciliationReason?: Prisma.SortOrder
+  reconciledAt?: Prisma.SortOrder
+  reconciledBy?: Prisma.SortOrder
+  reconciliationNote?: Prisma.SortOrder
+  reversedAt?: Prisma.SortOrder
+  settlementStatus?: Prisma.SortOrder
+  settlementTransactionReference?: Prisma.SortOrder
+  compensationTransactionReference?: Prisma.SortOrder
+  settlementFailureReason?: Prisma.SortOrder
+  reservedAt?: Prisma.SortOrder
+  settledAt?: Prisma.SortOrder
+  compensatedAt?: Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReferenceId?: Prisma.SortOrder
+  commissionWalletTransactionReference?: Prisma.SortOrder
+  commissionAmount?: Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrder
+  commissionSettledAt?: Prisma.SortOrder
 }
 
 export type ProviderTransactionSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+  commissionAmount?: Prisma.SortOrder
+}
+
+export type ProviderTransactionScalarRelationFilter = {
+  is?: Prisma.ProviderTransactionWhereInput
+  isNot?: Prisma.ProviderTransactionWhereInput
 }
 
 export type EnumProviderTransactionStatusFieldUpdateOperationsInput = {
@@ -789,6 +1225,244 @@ export type EnumProviderTransactionStatusFieldUpdateOperationsInput = {
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
+export type EnumProviderSettlementStatusFieldUpdateOperationsInput = {
+  set?: $Enums.ProviderSettlementStatus
+}
+
+export type EnumProviderCommissionStatusFieldUpdateOperationsInput = {
+  set?: $Enums.ProviderCommissionStatus
+}
+
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type ProviderTransactionCreateNestedOneWithoutReversalInput = {
+  create?: Prisma.XOR<Prisma.ProviderTransactionCreateWithoutReversalInput, Prisma.ProviderTransactionUncheckedCreateWithoutReversalInput>
+  connectOrCreate?: Prisma.ProviderTransactionCreateOrConnectWithoutReversalInput
+  connect?: Prisma.ProviderTransactionWhereUniqueInput
+}
+
+export type ProviderTransactionUpdateOneRequiredWithoutReversalNestedInput = {
+  create?: Prisma.XOR<Prisma.ProviderTransactionCreateWithoutReversalInput, Prisma.ProviderTransactionUncheckedCreateWithoutReversalInput>
+  connectOrCreate?: Prisma.ProviderTransactionCreateOrConnectWithoutReversalInput
+  upsert?: Prisma.ProviderTransactionUpsertWithoutReversalInput
+  connect?: Prisma.ProviderTransactionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProviderTransactionUpdateToOneWithWhereWithoutReversalInput, Prisma.ProviderTransactionUpdateWithoutReversalInput>, Prisma.ProviderTransactionUncheckedUpdateWithoutReversalInput>
+}
+
+export type ProviderTransactionCreateWithoutReversalInput = {
+  id?: string
+  referenceId: string
+  userId: string
+  serviceType: string
+  provider: string
+  operation: string
+  amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProviderTransactionStatus
+  idempotencyKey?: string | null
+  merchantProfileId?: string | null
+  providerMerchantId?: string | null
+  providerMerchantRefId?: string | null
+  providerTxnRefId?: string | null
+  rrn?: string | null
+  npciCode?: string | null
+  npciMessage?: string | null
+  providerStatusCode?: string | null
+  providerStatusMessage?: string | null
+  bankIIN?: string | null
+  aadhaarLast4?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  providerCalledAt?: Date | string | null
+  completedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  needsReconciliation?: boolean
+  reconciliationReason?: string | null
+  reconciledAt?: Date | string | null
+  reconciledBy?: string | null
+  reconciliationNote?: string | null
+  reversedAt?: Date | string | null
+  settlementStatus?: $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: string | null
+  compensationTransactionReference?: string | null
+  settlementFailureReason?: string | null
+  reservedAt?: Date | string | null
+  settledAt?: Date | string | null
+  compensatedAt?: Date | string | null
+  commissionStatus?: $Enums.ProviderCommissionStatus
+  commissionReferenceId?: string | null
+  commissionWalletTransactionReference?: string | null
+  commissionAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: string | null
+  commissionSettledAt?: Date | string | null
+}
+
+export type ProviderTransactionUncheckedCreateWithoutReversalInput = {
+  id?: string
+  referenceId: string
+  userId: string
+  serviceType: string
+  provider: string
+  operation: string
+  amount?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProviderTransactionStatus
+  idempotencyKey?: string | null
+  merchantProfileId?: string | null
+  providerMerchantId?: string | null
+  providerMerchantRefId?: string | null
+  providerTxnRefId?: string | null
+  rrn?: string | null
+  npciCode?: string | null
+  npciMessage?: string | null
+  providerStatusCode?: string | null
+  providerStatusMessage?: string | null
+  bankIIN?: string | null
+  aadhaarLast4?: string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  providerCalledAt?: Date | string | null
+  completedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  needsReconciliation?: boolean
+  reconciliationReason?: string | null
+  reconciledAt?: Date | string | null
+  reconciledBy?: string | null
+  reconciliationNote?: string | null
+  reversedAt?: Date | string | null
+  settlementStatus?: $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: string | null
+  compensationTransactionReference?: string | null
+  settlementFailureReason?: string | null
+  reservedAt?: Date | string | null
+  settledAt?: Date | string | null
+  compensatedAt?: Date | string | null
+  commissionStatus?: $Enums.ProviderCommissionStatus
+  commissionReferenceId?: string | null
+  commissionWalletTransactionReference?: string | null
+  commissionAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: string | null
+  commissionSettledAt?: Date | string | null
+}
+
+export type ProviderTransactionCreateOrConnectWithoutReversalInput = {
+  where: Prisma.ProviderTransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProviderTransactionCreateWithoutReversalInput, Prisma.ProviderTransactionUncheckedCreateWithoutReversalInput>
+}
+
+export type ProviderTransactionUpsertWithoutReversalInput = {
+  update: Prisma.XOR<Prisma.ProviderTransactionUpdateWithoutReversalInput, Prisma.ProviderTransactionUncheckedUpdateWithoutReversalInput>
+  create: Prisma.XOR<Prisma.ProviderTransactionCreateWithoutReversalInput, Prisma.ProviderTransactionUncheckedCreateWithoutReversalInput>
+  where?: Prisma.ProviderTransactionWhereInput
+}
+
+export type ProviderTransactionUpdateToOneWithWhereWithoutReversalInput = {
+  where?: Prisma.ProviderTransactionWhereInput
+  data: Prisma.XOR<Prisma.ProviderTransactionUpdateWithoutReversalInput, Prisma.ProviderTransactionUncheckedUpdateWithoutReversalInput>
+}
+
+export type ProviderTransactionUpdateWithoutReversalInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  referenceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  serviceType?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  operation?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProviderTransactionStatusFieldUpdateOperationsInput | $Enums.ProviderTransactionStatus
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  merchantProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantRefId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerTxnRefId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rrn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npciCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npciMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerStatusCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerStatusMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bankIIN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aadhaarLast4?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  providerCalledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  needsReconciliation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reconciliationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reconciledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciliationNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusFieldUpdateOperationsInput | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  compensationTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  settlementFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reservedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  compensatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusFieldUpdateOperationsInput | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionWalletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionSettledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type ProviderTransactionUncheckedUpdateWithoutReversalInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  referenceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  serviceType?: Prisma.StringFieldUpdateOperationsInput | string
+  provider?: Prisma.StringFieldUpdateOperationsInput | string
+  operation?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProviderTransactionStatusFieldUpdateOperationsInput | $Enums.ProviderTransactionStatus
+  idempotencyKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  merchantProfileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerMerchantRefId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerTxnRefId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rrn?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npciCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  npciMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerStatusCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerStatusMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bankIIN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aadhaarLast4?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  providerCalledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  needsReconciliation?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  reconciliationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reconciledBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reconciliationNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settlementStatus?: Prisma.EnumProviderSettlementStatusFieldUpdateOperationsInput | $Enums.ProviderSettlementStatus
+  settlementTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  compensationTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  settlementFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reservedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  settledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  compensatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  commissionStatus?: Prisma.EnumProviderCommissionStatusFieldUpdateOperationsInput | $Enums.ProviderCommissionStatus
+  commissionReferenceId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionWalletTransactionReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionSettledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -819,6 +1493,26 @@ export type ProviderTransactionSelect<ExtArgs extends runtime.Types.Extensions.I
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  needsReconciliation?: boolean
+  reconciliationReason?: boolean
+  reconciledAt?: boolean
+  reconciledBy?: boolean
+  reconciliationNote?: boolean
+  reversedAt?: boolean
+  settlementStatus?: boolean
+  settlementTransactionReference?: boolean
+  compensationTransactionReference?: boolean
+  settlementFailureReason?: boolean
+  reservedAt?: boolean
+  settledAt?: boolean
+  compensatedAt?: boolean
+  commissionStatus?: boolean
+  commissionReferenceId?: boolean
+  commissionWalletTransactionReference?: boolean
+  commissionAmount?: boolean
+  commissionFailureReason?: boolean
+  commissionSettledAt?: boolean
+  reversal?: boolean | Prisma.ProviderTransaction$reversalArgs<ExtArgs>
 }, ExtArgs["result"]["providerTransaction"]>
 
 export type ProviderTransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -847,6 +1541,25 @@ export type ProviderTransactionSelectCreateManyAndReturn<ExtArgs extends runtime
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  needsReconciliation?: boolean
+  reconciliationReason?: boolean
+  reconciledAt?: boolean
+  reconciledBy?: boolean
+  reconciliationNote?: boolean
+  reversedAt?: boolean
+  settlementStatus?: boolean
+  settlementTransactionReference?: boolean
+  compensationTransactionReference?: boolean
+  settlementFailureReason?: boolean
+  reservedAt?: boolean
+  settledAt?: boolean
+  compensatedAt?: boolean
+  commissionStatus?: boolean
+  commissionReferenceId?: boolean
+  commissionWalletTransactionReference?: boolean
+  commissionAmount?: boolean
+  commissionFailureReason?: boolean
+  commissionSettledAt?: boolean
 }, ExtArgs["result"]["providerTransaction"]>
 
 export type ProviderTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -875,6 +1588,25 @@ export type ProviderTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  needsReconciliation?: boolean
+  reconciliationReason?: boolean
+  reconciledAt?: boolean
+  reconciledBy?: boolean
+  reconciliationNote?: boolean
+  reversedAt?: boolean
+  settlementStatus?: boolean
+  settlementTransactionReference?: boolean
+  compensationTransactionReference?: boolean
+  settlementFailureReason?: boolean
+  reservedAt?: boolean
+  settledAt?: boolean
+  compensatedAt?: boolean
+  commissionStatus?: boolean
+  commissionReferenceId?: boolean
+  commissionWalletTransactionReference?: boolean
+  commissionAmount?: boolean
+  commissionFailureReason?: boolean
+  commissionSettledAt?: boolean
 }, ExtArgs["result"]["providerTransaction"]>
 
 export type ProviderTransactionSelectScalar = {
@@ -903,13 +1635,39 @@ export type ProviderTransactionSelectScalar = {
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  needsReconciliation?: boolean
+  reconciliationReason?: boolean
+  reconciledAt?: boolean
+  reconciledBy?: boolean
+  reconciliationNote?: boolean
+  reversedAt?: boolean
+  settlementStatus?: boolean
+  settlementTransactionReference?: boolean
+  compensationTransactionReference?: boolean
+  settlementFailureReason?: boolean
+  reservedAt?: boolean
+  settledAt?: boolean
+  compensatedAt?: boolean
+  commissionStatus?: boolean
+  commissionReferenceId?: boolean
+  commissionWalletTransactionReference?: boolean
+  commissionAmount?: boolean
+  commissionFailureReason?: boolean
+  commissionSettledAt?: boolean
 }
 
-export type ProviderTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "userId" | "serviceType" | "provider" | "operation" | "amount" | "status" | "idempotencyKey" | "merchantProfileId" | "providerMerchantId" | "providerMerchantRefId" | "providerTxnRefId" | "rrn" | "npciCode" | "npciMessage" | "providerStatusCode" | "providerStatusMessage" | "bankIIN" | "aadhaarLast4" | "metadata" | "providerCalledAt" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["providerTransaction"]>
+export type ProviderTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "userId" | "serviceType" | "provider" | "operation" | "amount" | "status" | "idempotencyKey" | "merchantProfileId" | "providerMerchantId" | "providerMerchantRefId" | "providerTxnRefId" | "rrn" | "npciCode" | "npciMessage" | "providerStatusCode" | "providerStatusMessage" | "bankIIN" | "aadhaarLast4" | "metadata" | "providerCalledAt" | "completedAt" | "createdAt" | "updatedAt" | "needsReconciliation" | "reconciliationReason" | "reconciledAt" | "reconciledBy" | "reconciliationNote" | "reversedAt" | "settlementStatus" | "settlementTransactionReference" | "compensationTransactionReference" | "settlementFailureReason" | "reservedAt" | "settledAt" | "compensatedAt" | "commissionStatus" | "commissionReferenceId" | "commissionWalletTransactionReference" | "commissionAmount" | "commissionFailureReason" | "commissionSettledAt", ExtArgs["result"]["providerTransaction"]>
+export type ProviderTransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  reversal?: boolean | Prisma.ProviderTransaction$reversalArgs<ExtArgs>
+}
+export type ProviderTransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type ProviderTransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $ProviderTransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ProviderTransaction"
-  objects: {}
+  objects: {
+    reversal: Prisma.$ProviderTransactionReversalPayload<ExtArgs> | null
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     /**
@@ -1012,6 +1770,25 @@ export type $ProviderTransactionPayload<ExtArgs extends runtime.Types.Extensions
     completedAt: Date | null
     createdAt: Date
     updatedAt: Date
+    needsReconciliation: boolean
+    reconciliationReason: string | null
+    reconciledAt: Date | null
+    reconciledBy: string | null
+    reconciliationNote: string | null
+    reversedAt: Date | null
+    settlementStatus: $Enums.ProviderSettlementStatus
+    settlementTransactionReference: string | null
+    compensationTransactionReference: string | null
+    settlementFailureReason: string | null
+    reservedAt: Date | null
+    settledAt: Date | null
+    compensatedAt: Date | null
+    commissionStatus: $Enums.ProviderCommissionStatus
+    commissionReferenceId: string | null
+    commissionWalletTransactionReference: string | null
+    commissionAmount: runtime.Decimal | null
+    commissionFailureReason: string | null
+    commissionSettledAt: Date | null
   }, ExtArgs["result"]["providerTransaction"]>
   composites: {}
 }
@@ -1406,6 +2183,7 @@ readonly fields: ProviderTransactionFieldRefs;
  */
 export interface Prisma__ProviderTransactionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  reversal<T extends Prisma.ProviderTransaction$reversalArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProviderTransaction$reversalArgs<ExtArgs>>): Prisma.Prisma__ProviderTransactionReversalClient<runtime.Types.Result.GetResult<Prisma.$ProviderTransactionReversalPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1460,6 +2238,25 @@ export interface ProviderTransactionFieldRefs {
   readonly completedAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
+  readonly needsReconciliation: Prisma.FieldRef<"ProviderTransaction", 'Boolean'>
+  readonly reconciliationReason: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly reconciledAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
+  readonly reconciledBy: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly reconciliationNote: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly reversedAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
+  readonly settlementStatus: Prisma.FieldRef<"ProviderTransaction", 'ProviderSettlementStatus'>
+  readonly settlementTransactionReference: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly compensationTransactionReference: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly settlementFailureReason: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly reservedAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
+  readonly settledAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
+  readonly compensatedAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
+  readonly commissionStatus: Prisma.FieldRef<"ProviderTransaction", 'ProviderCommissionStatus'>
+  readonly commissionReferenceId: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly commissionWalletTransactionReference: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly commissionAmount: Prisma.FieldRef<"ProviderTransaction", 'Decimal'>
+  readonly commissionFailureReason: Prisma.FieldRef<"ProviderTransaction", 'String'>
+  readonly commissionSettledAt: Prisma.FieldRef<"ProviderTransaction", 'DateTime'>
 }
     
 
@@ -1476,6 +2273,10 @@ export type ProviderTransactionFindUniqueArgs<ExtArgs extends runtime.Types.Exte
    * Omit specific fields from the ProviderTransaction
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
   /**
    * Filter, which ProviderTransaction to fetch.
    */
@@ -1495,6 +2296,10 @@ export type ProviderTransactionFindUniqueOrThrowArgs<ExtArgs extends runtime.Typ
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
+  /**
    * Filter, which ProviderTransaction to fetch.
    */
   where: Prisma.ProviderTransactionWhereUniqueInput
@@ -1512,6 +2317,10 @@ export type ProviderTransactionFindFirstArgs<ExtArgs extends runtime.Types.Exten
    * Omit specific fields from the ProviderTransaction
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
   /**
    * Filter, which ProviderTransaction to fetch.
    */
@@ -1561,6 +2370,10 @@ export type ProviderTransactionFindFirstOrThrowArgs<ExtArgs extends runtime.Type
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
+  /**
    * Filter, which ProviderTransaction to fetch.
    */
   where?: Prisma.ProviderTransactionWhereInput
@@ -1608,6 +2421,10 @@ export type ProviderTransactionFindManyArgs<ExtArgs extends runtime.Types.Extens
    * Omit specific fields from the ProviderTransaction
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
   /**
    * Filter, which ProviderTransactions to fetch.
    */
@@ -1657,6 +2474,10 @@ export type ProviderTransactionCreateArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
+  /**
    * The data needed to create a ProviderTransaction.
    */
   data: Prisma.XOR<Prisma.ProviderTransactionCreateInput, Prisma.ProviderTransactionUncheckedCreateInput>
@@ -1704,6 +2525,10 @@ export type ProviderTransactionUpdateArgs<ExtArgs extends runtime.Types.Extensio
    * Omit specific fields from the ProviderTransaction
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
   /**
    * The data needed to update a ProviderTransaction.
    */
@@ -1771,6 +2596,10 @@ export type ProviderTransactionUpsertArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
+  /**
    * The filter to search for the ProviderTransaction to update in case it exists.
    */
   where: Prisma.ProviderTransactionWhereUniqueInput
@@ -1797,6 +2626,10 @@ export type ProviderTransactionDeleteArgs<ExtArgs extends runtime.Types.Extensio
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
+  /**
    * Filter which ProviderTransaction to delete.
    */
   where: Prisma.ProviderTransactionWhereUniqueInput
@@ -1817,6 +2650,25 @@ export type ProviderTransactionDeleteManyArgs<ExtArgs extends runtime.Types.Exte
 }
 
 /**
+ * ProviderTransaction.reversal
+ */
+export type ProviderTransaction$reversalArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProviderTransactionReversal
+   */
+  select?: Prisma.ProviderTransactionReversalSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProviderTransactionReversal
+   */
+  omit?: Prisma.ProviderTransactionReversalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionReversalInclude<ExtArgs> | null
+  where?: Prisma.ProviderTransactionReversalWhereInput
+}
+
+/**
  * ProviderTransaction without action
  */
 export type ProviderTransactionDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1828,4 +2680,8 @@ export type ProviderTransactionDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Omit specific fields from the ProviderTransaction
    */
   omit?: Prisma.ProviderTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProviderTransactionInclude<ExtArgs> | null
 }

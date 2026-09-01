@@ -10,7 +10,8 @@ import { VimopayTransactionService } from './vimopay-transaction.service';
 
 import { VimopayTransactionDebugController } from './vimopay-transaction-debug.controller';
 import { VimopayIdempotencyService } from './vimopay-idempotency.service';
-
+import { AepsIntegrationsModule } from '../../../integrations/aeps-integrations.module';
+import { VimopayTxnAuthCleanupService } from './vimopay-txn-auth-cleanup.service';
 @Module({
   imports: [
     PrismaModule,
@@ -20,6 +21,7 @@ import { VimopayIdempotencyService } from './vimopay-idempotency.service';
      * VimoPay provider APIs.
      */
     VimopayModule,
+    AepsIntegrationsModule,
   ],
 
   controllers: [VimopayTransactionDebugController],
@@ -27,6 +29,7 @@ import { VimopayIdempotencyService } from './vimopay-idempotency.service';
   providers: [
     VimopayTransactionAccessService,
     VimopayIdempotencyService,
+    VimopayTxnAuthCleanupService,
     VimopayTransactionService,
   ],
 

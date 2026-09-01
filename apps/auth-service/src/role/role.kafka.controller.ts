@@ -5,6 +5,7 @@ import {
   CreateRoleDto,
   ROLE_PATTERNS,
   RoleIdDto,
+  RoleNameDto,
   UpdateRoleDto,
   UpdateRolePayloadDto,
   UpdateRoleStatusPayloadDto,
@@ -45,5 +46,13 @@ export class RoleKafkaController {
     return this.roleService.updateStatus(id, {
       isActive,
     });
+  }
+
+  @MessagePattern(ROLE_PATTERNS.FIND_BY_NAME)
+  async findByName(
+    @Payload()
+    dto: RoleNameDto,
+  ) {
+    return this.roleService.findByName(dto.name);
   }
 }

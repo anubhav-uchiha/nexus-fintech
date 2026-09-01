@@ -10,4 +10,5 @@
  */
 export type * from './models/Transaction'
 export type * from './models/ProviderTransaction'
+export type * from './models/ProviderTransactionReversal'
 export type * from './commonInputTypes'
