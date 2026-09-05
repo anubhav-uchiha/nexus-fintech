@@ -73,6 +73,10 @@ model Commission {
 
   failureReason String? @map("failure_reason") @db.VarChar(500)
 
+  reversedAt DateTime? @map("reversed_at")
+
+  reversalReason String? @map("reversal_reason") @db.VarChar(500)
+
   @@index([transactionId])
   @@index([userId])
   @@index([role])
@@ -136,6 +140,14 @@ model CommissionDistributionTransaction {
   creditedAt DateTime? @map("credited_at")
 
   failureReason String? @map("failure_reason") @db.VarChar(500)
+
+  reversalTransactionId String? @map("reversal_transaction_id")
+
+  reversalTransactionReference String? @map("reversal_transaction_reference")
+
+  reversedAt DateTime? @map("reversed_at")
+
+  reversalFailureReason String? @map("reversal_failure_reason") @db.VarChar(500)
 
   @@index([commissionId])
   @@index([distributionId])

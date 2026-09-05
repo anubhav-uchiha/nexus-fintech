@@ -266,13 +266,40 @@ export class CommissionService {
       this.throwRpc(400, 'Idempotency key is required');
     }
 
+    const grossAmount = Number(dto.transactionAmount.toFixed(2));
+
     /*
      * =====================================================
-     * 2. DUPLICATE CHECK
+     * PROVIDER FUNDED?
      * =====================================================
-     *
-     * Existing commission ke saath allocations
-     * bhi return honi chahiye.
+     */
+
+    const providerFunded = dto.commissionAmountSource === 'PROVIDER';
+
+    console.log('[COMMISSION] CREATE START', {
+      userId: dto.userId,
+
+      role: dto.role,
+
+      serviceType: dto.serviceType,
+
+      operator: dto.operator,
+
+      transactionAmount: grossAmount,
+
+      providerCommissionAmount: dto.providerCommissionAmount,
+
+      commissionAmountSource: dto.commissionAmountSource,
+
+      providerIncomeSource: dto.providerIncomeSource,
+
+      providerTransactionReference: dto.providerTransactionReference,
+    });
+
+    /*
+     * =====================================================
+     * 2. DUPLICATE
+     * =====================================================
      */
 
     const existing = await this.prisma.commission.findUnique({
@@ -286,13 +313,113 @@ export class CommissionService {
     });
 
     if (existing) {
-      const existingGrossAmount = Number(existing.transactionAmount);
+      const existingGross = Number(existing.transactionAmount);
 
-      const existingCommissionAmount = Number(existing.commissionAmount);
+      const existingCommission = Number(existing.commissionAmount);
 
-      const existingNetAmount = Number(
-        (existingGrossAmount - existingCommissionAmount).toFixed(2),
-      );
+      const metadata =
+        existing.metadata &&
+        typeof existing.metadata === 'object' &&
+        !Array.isArray(existing.metadata)
+          ? (existing.metadata as Record<string, unknown>)
+          : {};
+
+      const existingProviderFunded =
+        metadata.commissionAmountSource === 'PROVIDER';
+
+      /*
+       * Provider income principal ko
+       * reduce nahi karti.
+       */
+      const existingNet = existingProviderFunded
+        ? existingGross
+        : Number((existingGross - existingCommission).toFixed(2));
+
+      if (
+        dto.providerTransactionId &&
+        existing.transactionId !== dto.providerTransactionId
+      ) {
+        this.throwRpc(
+          409,
+          'Commission idempotency key belongs to another provider transaction',
+        );
+      }
+
+      if (
+        dto.providerTransactionReference &&
+        existing.transactionReference &&
+        existing.transactionReference !== dto.providerTransactionReference
+      ) {
+        this.throwRpc(
+          409,
+          'Commission idempotency key belongs to another provider transaction reference',
+        );
+      }
+
+      if (
+        existing.userId !== dto.userId ||
+        existing.role !== dto.role ||
+        existing.serviceType !== dto.serviceType
+      ) {
+        this.throwRpc(
+          409,
+          'Commission idempotency key was already used with different commission details',
+        );
+      }
+
+      /*
+       * Provider-funded retries MUST contain
+       * exactly same provider income amount.
+       */
+      if (providerFunded) {
+        const requestedIncome = Number(dto.providerCommissionAmount);
+
+        if (!Number.isFinite(requestedIncome) || requestedIncome < 0) {
+          this.throwRpc(400, 'Provider commission amount is invalid');
+        }
+
+        if (
+          Math.round(requestedIncome * 100) !==
+          Math.round(Number(existing.commissionAmount) * 100)
+        ) {
+          this.throwRpc(
+            409,
+            `Provider income mismatch for existing commission. Existing: ₹${Number(
+              existing.commissionAmount,
+            ).toFixed(2)}, requested: ₹${requestedIncome.toFixed(2)}`,
+          );
+        }
+
+        const existingMetadata =
+          existing.metadata &&
+          typeof existing.metadata === 'object' &&
+          !Array.isArray(existing.metadata)
+            ? (existing.metadata as Record<string, unknown>)
+            : {};
+
+        if (existingMetadata.commissionAmountSource !== 'PROVIDER') {
+          this.throwRpc(
+            409,
+            'Existing commission was not created from provider income',
+          );
+        }
+
+        const existingIncomeSource =
+          typeof existingMetadata.providerIncomeSource === 'string'
+            ? existingMetadata.providerIncomeSource
+            : null;
+
+        if (
+          dto.providerIncomeSource &&
+          existingIncomeSource &&
+          dto.providerIncomeSource !== existingIncomeSource
+        ) {
+          this.throwRpc(
+            409,
+            'Provider income source does not match existing commission',
+          );
+        }
+      }
 
       return {
         ...existing,
@@ -301,11 +428,13 @@ export class CommissionService {
 
         commissionAmount: existing.commissionAmount.toString(),
 
-        grossAmount: existingGrossAmount.toFixed(2),
+        grossAmount: existingGross.toFixed(2),
 
-        netAmount: existingNetAmount.toFixed(2),
+        netAmount: existingNet.toFixed(2),
 
-        commissionRequired: true,
+        commissionRequired: existingCommission > 0,
+
+        amountSource: existingProviderFunded ? 'PROVIDER' : 'RULE',
 
         duplicate: true,
 
@@ -341,23 +470,23 @@ export class CommissionService {
 
     /*
      * =====================================================
-     * 3. RESOLVE COMMISSION RULE
+     * 3. RULE / DISTRIBUTION PROFILE
      * =====================================================
+     *
+     * IMPORTANT:
+     *
+     * VimoPay case mein rule ki
+     * commissionValue actual commission
+     * calculate nahi karegi.
+     *
+     * Rule sirf distributions locate
+     * karne ke liye use hogi.
      */
-
-    console.log('[COMMISSION] CREATE START', {
-      userId: dto.userId,
-      role: dto.role,
-      serviceType: dto.serviceType,
-      operator: dto.operator,
-      amount: dto.transactionAmount,
-      providerTransactionReference: dto.providerTransactionReference,
-    });
 
     const rule = await this.resolveCommissionRule(
       dto.serviceType,
       dto.role,
-      dto.transactionAmount,
+      grossAmount,
       dto.operator,
     );
 
@@ -366,134 +495,189 @@ export class CommissionService {
       rule
         ? {
             id: rule.id,
+
             serviceType: rule.serviceType,
+
             role: rule.role,
+
             operator: rule.operator,
+
+            /*
+             * Sirf debug.
+             * Provider-funded flow mein
+             * actual pool nahi hai.
+             */
             commissionValue: rule.commissionValue.toString(),
           }
         : null,
     );
 
-    /*
-     * No configured rule:
-     * commission nahi lagegi.
-     */
     if (!rule) {
+      /*
+       * Actual provider income exists.
+       *
+       * Isko NOT_REQUIRED bol kar
+       * silently lose nahi kar sakte.
+       */
+      if (providerFunded && Number(dto.providerCommissionAmount) > 0) {
+        this.throwRpc(
+          409,
+          `Provider income exists but no distribution profile was found for service ${dto.serviceType}, role ${dto.role}`,
+        );
+      }
+
       return {
         commissionRequired: false,
 
-        grossAmount: dto.transactionAmount.toFixed(2),
+        grossAmount: grossAmount.toFixed(2),
 
         commissionAmount: '0.00',
 
-        netAmount: dto.transactionAmount.toFixed(2),
+        netAmount: grossAmount.toFixed(2),
 
-        reason: 'NO_COMMISSION_RULE',
+        reason: 'NO_DISTRIBUTION_PROFILE',
       };
     }
 
     /*
      * =====================================================
-     * 4. TOTAL COMMISSION POOL
+     * 4. ACTUAL COMMISSION POOL
      * =====================================================
      */
 
-    const commissionAmount = this.calculateCommissionAmount(
-      dto.transactionAmount,
+    let commissionAmount: number;
 
-      rule.commissionType,
+    let netAmount: number;
 
-      Number(rule.commissionValue),
-    );
+    if (providerFunded) {
+      /*
+       * ===================================================
+       * VIMOPAY INCOME
+       * ===================================================
+       *
+       * Current:
+       * dummy 2%
+       *
+       * Future:
+       * actual VimoPay MS income
+       */
 
-    if (commissionAmount <= 0) {
+      const providerCommissionAmount = Number(dto.providerCommissionAmount);
+
+      if (
+        !Number.isFinite(providerCommissionAmount) ||
+        providerCommissionAmount < 0
+      ) {
+        this.throwRpc(400, 'Provider commission amount is invalid');
+      }
+
+      commissionAmount = Number(providerCommissionAmount.toFixed(2));
+
+      /*
+       * CRITICAL:
+       *
+       * Provider income does NOT reduce
+       * principal.
+       *
+       * ₹100 transaction
+       * ₹2 income
+       *
+       * principal = ₹100
+       * commission = ₹2
+       */
+      netAmount = grossAmount;
+    } else {
+      /*
+       * Old model retained only
+       * for non-provider-funded flows.
+       */
+
+      commissionAmount = this.calculateCommissionAmount(
+        grossAmount,
+
+        rule.commissionType,
+
+        Number(rule.commissionValue),
+      );
+
+      if (commissionAmount >= grossAmount) {
+        this.throwRpc(409, 'Commission must be less than transaction amount');
+      }
+
+      netAmount = Number((grossAmount - commissionAmount).toFixed(2));
+    }
+
+    console.log('[COMMISSION] INCOME POOL', {
+      source: providerFunded ? 'PROVIDER' : 'RULE',
+
+      grossAmount,
+
+      commissionAmount,
+
+      netAmount,
+    });
+
+    /*
+     * Provider may return zero income.
+     */
+
+    if (commissionAmount === 0) {
       return {
         commissionRequired: false,
 
-        grossAmount: dto.transactionAmount.toFixed(2),
+        grossAmount: grossAmount.toFixed(2),
 
         commissionAmount: '0.00',
 
-        netAmount: dto.transactionAmount.toFixed(2),
+        netAmount: grossAmount.toFixed(2),
 
-        reason: 'ZERO_COMMISSION',
+        reason: providerFunded ? 'ZERO_PROVIDER_INCOME' : 'ZERO_COMMISSION',
       };
     }
 
-    /*
-     * Commission gross amount ke equal
-     * ya usse greater nahi ho sakti.
-     *
-     * Example:
-     * gross = 150
-     * commission = 150 ❌
-     */
-    if (commissionAmount >= dto.transactionAmount) {
-      this.throwRpc(409, 'Commission must be less than transaction amount');
+    if (commissionAmount < 0) {
+      this.throwRpc(409, 'Commission amount cannot be negative');
     }
 
     /*
-     * New business model:
-     *
-     * GROSS - COMMISSION = NET PRINCIPAL
-     *
-     * Example:
-     * 150 - 10 = 140
-     */
-
-    const netAmount = Number(
-      (dto.transactionAmount - commissionAmount).toFixed(2),
-    );
-
-    /*
      * =====================================================
-     * 5. BUILD DISTRIBUTION PLAN
+     * 5. DISTRIBUTION PLAN
      * =====================================================
-     *
-     * Example:
-     *
-     * total commission = 10
-     *
-     * merchant    = 7
-     * distributor = 2
-     * super dist  = 1
      */
 
     console.log('[COMMISSION] BEFORE DISTRIBUTION PLAN', {
       sourceUserId: dto.userId,
+
       sourceRole: dto.role,
+
       serviceType: dto.serviceType,
+
       ruleId: rule.id,
+
+      /*
+       * THIS MUST NOW BE PROVIDER INCOME.
+       */
       commissionAmount,
     });
 
-    let allocations;
+    const allocations = await this.buildDistributionPlan({
+      sourceUserId: dto.userId,
 
-    try {
-      allocations = await this.buildDistributionPlan({
-        sourceUserId: dto.userId,
+      sourceRole: dto.role,
 
-        sourceRole: dto.role,
+      serviceType: dto.serviceType,
 
-        serviceType: dto.serviceType,
+      ruleId: rule.id,
 
-        ruleId: rule.id,
+      commissionAmount,
+    });
 
-        commissionAmount,
-      });
-
-      console.log('[COMMISSION] DISTRIBUTION PLAN OK', allocations);
-    } catch (error) {
-      console.error('[COMMISSION] DISTRIBUTION PLAN FAILED', error);
-
-      throw error;
-    }
+    console.log('[COMMISSION] DISTRIBUTION PLAN OK', allocations);
 
     /*
-     * Extra accounting safety.
-     *
-     * Allocation sum exactly commission pool
-     * ke equal honi chahiye.
+     * =====================================================
+     * 6. MONEY CONSERVATION
+     * =====================================================
      */
 
     const allocatedPaise = allocations.reduce(
@@ -507,6 +691,7 @@ export class CommissionService {
     if (allocatedPaise !== commissionPaise) {
       this.throwRpc(
         409,
+
         `Commission allocation mismatch. Commission: ₹${commissionAmount.toFixed(
           2,
         )}, allocated: ₹${(allocatedPaise / 100).toFixed(2)}`,
@@ -515,22 +700,23 @@ export class CommissionService {
 
     /*
      * =====================================================
-     * 6. COMMISSION + DISTRIBUTIONS ATOMIC CREATE
+     * 7. ATOMIC CREATE
      * =====================================================
-     *
-     * Agar distribution creation fail hoti hai,
-     * Commission row bhi rollback hogi.
      */
+
     console.log('[COMMISSION] BEFORE DB CREATE', {
       allocationCount: allocations.length,
+
       commissionAmount,
     });
+
     try {
       const result = await this.prisma.$transaction(
         async (tx) => {
           /*
-           * Concurrent duplicate safety.
+           * Concurrent idempotency.
            */
+
           const duplicate = await tx.commission.findUnique({
             where: {
               idempotencyKey: dto.idempotencyKey,
@@ -552,15 +738,13 @@ export class CommissionService {
           }
 
           /*
-           * Main commission record.
+           * Main commission/income record.
            */
+
           const commission = await tx.commission.create({
             data: {
               referenceId: this.generateReference(),
 
-              /*
-               * ProviderTransaction UUID.
-               */
               transactionId: dto.providerTransactionId,
 
               transactionReference: dto.providerTransactionReference,
@@ -574,45 +758,54 @@ export class CommissionService {
               operator: dto.operator,
 
               /*
-               * Gross transaction amount.
+               * Full provider transaction.
                */
-              transactionAmount: dto.transactionAmount,
+              transactionAmount: grossAmount,
 
               /*
-               * Entire commission pool.
+               * Provider-generated income.
                */
               commissionAmount,
 
+              /*
+               * Legacy DB field.
+               *
+               * Provider amount DOES NOT
+               * come from this type/value.
+               */
               commissionType: rule.commissionType,
 
               ruleId: rule.id,
 
-              /*
-               * Wallet distributions pending.
-               */
               status: 'PENDING',
 
               idempotencyKey: dto.idempotencyKey,
 
               metadata: {
-                source: 'PROVIDER_TRANSACTION',
+                source: providerFunded
+                  ? 'VIMOPAY_PROVIDER_INCOME'
+                  : 'RULE_CALCULATED_COMMISSION',
 
-                grossAmount: dto.transactionAmount,
+                commissionAmountSource: providerFunded ? 'PROVIDER' : 'RULE',
+
+                providerIncomeSource: dto.providerIncomeSource ?? null,
+
+                transactionAmount: grossAmount,
+
+                /*
+                 * Full principal.
+                 */
+                principalAmount: netAmount,
 
                 commissionAmount,
-
-                netAmount,
               },
             },
           });
 
           /*
-           * Snapshot all recipients.
-           *
-           * Future hierarchy/rule changes
-           * existing transaction ko affect nahi
-           * karenge.
+           * Freeze all distributions.
            */
+
           const distributionTransactions = [];
 
           for (const allocation of allocations) {
@@ -649,21 +842,21 @@ export class CommissionService {
             duplicate: false,
           };
         },
+
         {
           isolationLevel: 'Serializable',
         },
       );
+
       console.log('[COMMISSION] DB CREATE SUCCESS', {
         commissionId: result.commission.id,
-        referenceId: result.commission.referenceId,
-        allocations: result.distributionTransactions.length,
-      });
 
-      /*
-       * =====================================================
-       * 7. RESPONSE
-       * =====================================================
-       */
+        referenceId: result.commission.referenceId,
+
+        allocations: result.distributionTransactions.length,
+
+        commissionAmount: result.commission.commissionAmount.toString(),
+      });
 
       return {
         ...result.commission,
@@ -672,12 +865,17 @@ export class CommissionService {
 
         commissionAmount: result.commission.commissionAmount.toString(),
 
-        /*
-         * New accounting information.
-         */
-        grossAmount: dto.transactionAmount.toFixed(2),
+        grossAmount: grossAmount.toFixed(2),
 
+        /*
+         * Provider funded:
+         * FULL principal.
+         */
         netAmount: netAmount.toFixed(2),
+
+        amountSource: providerFunded ? 'PROVIDER' : 'RULE',
+
+        providerIncomeSource: dto.providerIncomeSource ?? null,
 
         commissionRequired: true,
 
@@ -685,6 +883,8 @@ export class CommissionService {
 
         allocations: result.distributionTransactions.map((item) => ({
           id: item.id,
+
+          distributionId: item.distributionId,
 
           recipientUserId: item.recipientUserId,
 
@@ -695,6 +895,16 @@ export class CommissionService {
           walletType: item.walletType,
 
           status: item.status,
+
+          transactionId: item.transactionId,
+
+          transactionReference: item.transactionReference,
+
+          idempotencyKey: item.idempotencyKey,
+
+          failureReason: item.failureReason,
+
+          creditedAt: item.creditedAt,
 
           isSource: item.recipientUserId === dto.userId,
         })),
@@ -718,12 +928,25 @@ export class CommissionService {
         });
 
         if (duplicate) {
-          const duplicateNetAmount = Number(
-            (
-              Number(duplicate.transactionAmount) -
-              Number(duplicate.commissionAmount)
-            ).toFixed(2),
-          );
+          const duplicateGross = Number(duplicate.transactionAmount);
+
+          const metadata =
+            duplicate.metadata &&
+            typeof duplicate.metadata === 'object' &&
+            !Array.isArray(duplicate.metadata)
+              ? (duplicate.metadata as Record<string, unknown>)
+              : {};
+
+          const duplicateProviderFunded =
+            metadata.commissionAmountSource === 'PROVIDER';
+
+          const duplicateNet = duplicateProviderFunded
+            ? duplicateGross
+            : Number(
+                (duplicateGross - Number(duplicate.commissionAmount)).toFixed(
+                  2,
+                ),
+              );
 
           return {
             ...duplicate,
@@ -732,9 +955,11 @@ export class CommissionService {
 
             commissionAmount: duplicate.commissionAmount.toString(),
 
-            grossAmount: duplicate.transactionAmount.toString(),
+            grossAmount: duplicateGross.toFixed(2),
 
-            netAmount: duplicateNetAmount.toFixed(2),
+            netAmount: duplicateNet.toFixed(2),
+
+            amountSource: duplicateProviderFunded ? 'PROVIDER' : 'RULE',
 
             commissionRequired: true,
 
@@ -742,6 +967,8 @@ export class CommissionService {
 
             allocations: duplicate.distributionTransactions.map((item) => ({
               id: item.id,
+
+              distributionId: item.distributionId,
 
               recipientUserId: item.recipientUserId,
 
@@ -753,6 +980,14 @@ export class CommissionService {
 
               status: item.status,
 
+              transactionId: item.transactionId,
+
+              transactionReference: item.transactionReference,
+
+              failureReason: item.failureReason,
+
+              creditedAt: item.creditedAt,
+
               isSource: item.recipientUserId === dto.userId,
             })),
           };
@@ -760,22 +995,17 @@ export class CommissionService {
       }
 
       if (error?.code === 'P2034') {
-        throw new RpcException({
-          statusCode: 409,
-
-          message: 'Commission creation conflict. Please retry.',
-        });
+        this.throwRpc(409, 'Commission creation conflict. Please retry.');
       }
 
       if (error instanceof RpcException) {
         throw error;
       }
 
-      throw new RpcException({
-        statusCode: 500,
-
-        message: error?.message ?? 'Provider commission creation failed',
-      });
+      this.throwRpc(
+        500,
+        error?.message ?? 'Provider commission creation failed',
+      );
     }
   }
 
@@ -1560,5 +1790,190 @@ export class CommissionService {
         },
       });
     });
+  }
+
+  async markDistributionReversed(dto: {
+    distributionTransactionId: string;
+
+    reversalWalletTransactionId: string;
+
+    reversalWalletTransactionReference: string;
+  }) {
+    if (!dto.distributionTransactionId?.trim()) {
+      this.throwRpc(400, 'Distribution transaction ID is required');
+    }
+
+    if (!dto.reversalWalletTransactionId?.trim()) {
+      this.throwRpc(400, 'Reversal wallet transaction ID is required');
+    }
+
+    if (!dto.reversalWalletTransactionReference?.trim()) {
+      this.throwRpc(400, 'Reversal wallet transaction reference is required');
+    }
+
+    const allocation =
+      await this.prisma.commissionDistributionTransaction.findUnique({
+        where: {
+          id: dto.distributionTransactionId,
+        },
+      });
+
+    if (!allocation) {
+      this.throwRpc(404, 'Commission distribution transaction not found');
+    }
+
+    /*
+     * Already reversed.
+     * Idempotent replay.
+     */
+    if (allocation.status === 'REVERSED') {
+      if (
+        allocation.reversalTransactionReference &&
+        allocation.reversalTransactionReference !==
+          dto.reversalWalletTransactionReference
+      ) {
+        this.throwRpc(
+          409,
+          'Commission distribution was already reversed using another wallet transaction',
+        );
+      }
+
+      return allocation;
+    }
+
+    /*
+     * Only an actually credited
+     * allocation can be reversed.
+     */
+    if (allocation.status !== 'SUCCESS') {
+      this.throwRpc(
+        409,
+        `Commission distribution cannot be reversed from ${allocation.status} state`,
+      );
+    }
+
+    return this.prisma.commissionDistributionTransaction.update({
+      where: {
+        id: allocation.id,
+      },
+
+      data: {
+        status: 'REVERSED',
+
+        reversalTransactionId: dto.reversalWalletTransactionId,
+
+        reversalTransactionReference: dto.reversalWalletTransactionReference,
+
+        reversedAt: new Date(),
+
+        reversalFailureReason: null,
+      },
+    });
+  }
+
+  async finalizeProviderCommissionReversal(
+    commissionReference: string,
+    reason: string,
+  ) {
+    if (!commissionReference?.trim()) {
+      this.throwRpc(400, 'Commission reference is required');
+    }
+
+    if (!reason?.trim()) {
+      this.throwRpc(400, 'Commission reversal reason is required');
+    }
+
+    const commission = await this.prisma.commission.findUnique({
+      where: {
+        referenceId: commissionReference,
+      },
+
+      include: {
+        distributionTransactions: true,
+      },
+    });
+
+    if (!commission) {
+      this.throwRpc(404, 'Commission not found');
+    }
+
+    /*
+     * Idempotent.
+     */
+    if (commission.status === 'REVERSED') {
+      return {
+        status: 'REVERSED',
+
+        commissionReference: commission.referenceId,
+
+        commissionAmount: commission.commissionAmount.toString(),
+
+        remainingAllocations: 0,
+      };
+    }
+
+    /*
+     * Any original successful allocation
+     * still not reversed?
+     */
+    const remaining = commission.distributionTransactions.filter(
+      (allocation) => allocation.status === 'SUCCESS',
+    );
+
+    if (remaining.length > 0) {
+      return {
+        status: 'PENDING',
+
+        commissionReference: commission.referenceId,
+
+        commissionAmount: commission.commissionAmount.toString(),
+
+        remainingAllocations: remaining.length,
+      };
+    }
+
+    /*
+     * PENDING/FAILED allocations were
+     * never credited.
+     *
+     * They don't require debit reversal.
+     */
+    await this.prisma.commissionDistributionTransaction.updateMany({
+      where: {
+        commissionId: commission.id,
+
+        status: {
+          in: ['PENDING', 'FAILED'],
+        },
+      },
+
+      data: {
+        failureReason: 'Cancelled because provider transaction was reversed',
+      },
+    });
+
+    const updated = await this.prisma.commission.update({
+      where: {
+        id: commission.id,
+      },
+
+      data: {
+        status: 'REVERSED',
+
+        reversedAt: new Date(),
+
+        reversalReason: reason.trim().slice(0, 500),
+      },
+    });
+
+    return {
+      status: 'REVERSED',
+
+      commissionReference: updated.referenceId,
+
+      commissionAmount: updated.commissionAmount.toString(),
+
+      remainingAllocations: 0,
+    };
   }
 }

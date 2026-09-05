@@ -1,3 +1,4 @@
+// ⏸ WAITING FOR VIMOPAY PRODUCTION DETAILS
 export const VIMOPAY_ENDPOINTS = {
   AUTHORIZE: '/aepsapi/api/signature/authorizeuat',
 

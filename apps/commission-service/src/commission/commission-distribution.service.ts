@@ -99,66 +99,220 @@ export class CommissionDistributionService {
    */
 
   async createDistribution(dto: CreateCommissionDistributionDto) {
+    /*
+     * =====================================================
+     * 1. BASIC VALIDATION
+     * =====================================================
+     */
+
     if (!dto.commissionRuleId?.trim()) {
       this.throwRpc(400, 'Commission rule ID is required');
     }
 
     const recipientRole = this.normalizeRole(dto.recipientRole);
-    /*
-     * =====================================================
-     * AUTH ROLE VALIDATION
-     * =====================================================
-     *
-     * Distribution sirf valid + ACTIVE
-     * role ke against create hogi.
-     */
-
-    await this.roleValidationService.assertActiveRole(recipientRole);
 
     this.validateDistribution(dto.distributionType, dto.distributionValue);
 
     /*
-     * Rule must exist.
+     * =====================================================
+     * 2. ROLE VALIDATION
+     * =====================================================
      */
 
-    const rule = await this.prisma.commissionRule.findUnique({
-      where: {
-        id: dto.commissionRuleId,
-      },
-    });
+    console.log('[DIST] BEFORE ROLE VALIDATION', recipientRole);
+
+    await this.roleValidationService.assertActiveRole(recipientRole);
+
+    console.log('[DIST] ROLE VALIDATION SUCCESS', recipientRole);
+
+    /*
+     * =====================================================
+     * 3. COMMISSION RULE LOOKUP
+     * =====================================================
+     */
+
+    console.log('[DIST] BEFORE RULE LOOKUP', dto.commissionRuleId);
+
+    let rule;
+
+    try {
+      rule = await this.prisma.commissionRule.findUnique({
+        where: {
+          id: dto.commissionRuleId,
+        },
+      });
+    } catch (error) {
+      console.error('[DIST] RULE LOOKUP FAILED', error);
+
+      throw new RpcException({
+        statusCode: 500,
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Commission rule lookup failed',
+      });
+    }
+
+    console.log(
+      '[DIST] RULE LOOKUP RESULT',
+      rule
+        ? {
+            id: rule.id,
+            serviceType: rule.serviceType,
+            operator: rule.operator,
+            role: rule.role,
+            isActive: rule.isActive,
+          }
+        : null,
+    );
 
     if (!rule) {
       this.throwRpc(404, 'Commission rule not found');
     }
 
+    if (!rule.isActive) {
+      this.throwRpc(409, 'Commission rule is inactive');
+    }
+
+    /*
+     * =====================================================
+     * 4. DISTRIBUTION UNIQUE KEY
+     * =====================================================
+     */
+
     const distributionKey = this.createDistributionKey(rule.id, recipientRole);
 
     /*
-     * Fast duplicate check.
+     * =====================================================
+     * 5. DUPLICATE CHECK
+     * =====================================================
+     *
+     * distributionKey already represents:
+     *
+     * ruleId + recipientRole
+     *
+     * so findUnique is enough.
      */
 
-    const existing = await this.prisma.commissionDistribution.findUnique({
-      where: {
-        distributionKey,
-      },
+    console.log('[DIST] BEFORE DUPLICATE CHECK', {
+      commissionRuleId: rule.id,
+
+      recipientRole,
+
+      distributionKey,
     });
 
-    if (existing) {
-      if (!existing.isActive) {
-        this.throwRpc(
-          409,
-          `An inactive distribution already exists for role ${recipientRole}. Update/reactivate distribution ${existing.id} instead of creating another one.`,
-        );
-      }
+    let existing;
 
+    try {
+      existing = await this.prisma.commissionDistribution.findUnique({
+        where: {
+          distributionKey,
+        },
+      });
+    } catch (error) {
+      console.error('[DIST] DUPLICATE CHECK FAILED', error);
+
+      throw new RpcException({
+        statusCode: 500,
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Commission distribution lookup failed',
+      });
+    }
+
+    console.log(
+      '[DIST] DUPLICATE CHECK RESULT',
+      existing
+        ? {
+            id: existing.id,
+
+            recipientRole: existing.recipientRole,
+
+            isActive: existing.isActive,
+          }
+        : null,
+    );
+
+    /*
+     * Existing active distribution.
+     */
+    if (existing && existing.isActive) {
       this.throwRpc(
         409,
         `Commission distribution already exists for role ${recipientRole}. Existing distribution: ${existing.id}`,
       );
     }
 
+    /*
+     * Existing inactive distribution:
+     *
+     * new row create nahi karenge.
+     * Same configuration reactivate/update.
+     */
+    if (existing && !existing.isActive) {
+      console.log('[DIST] REACTIVATING EXISTING DISTRIBUTION', existing.id);
+
+      try {
+        const reactivated = await this.prisma.commissionDistribution.update({
+          where: {
+            id: existing.id,
+          },
+
+          data: {
+            recipientRole,
+
+            distributionType: dto.distributionType,
+
+            distributionValue: dto.distributionValue,
+
+            priority: dto.priority ?? existing.priority,
+
+            isActive: dto.isActive ?? true,
+          },
+        });
+
+        console.log('[DIST] DISTRIBUTION REACTIVATED', {
+          id: reactivated.id,
+
+          recipientRole: reactivated.recipientRole,
+        });
+
+        return reactivated;
+      } catch (error: any) {
+        console.error('[DIST] REACTIVATION FAILED', error);
+
+        throw new RpcException({
+          statusCode: 500,
+          message:
+            error?.message ?? 'Unable to reactivate commission distribution',
+        });
+      }
+    }
+
+    /*
+     * =====================================================
+     * 6. CREATE NEW DISTRIBUTION
+     * =====================================================
+     */
+
+    console.log('[DIST] BEFORE DB CREATE', {
+      commissionRuleId: rule.id,
+
+      recipientRole,
+
+      distributionType: dto.distributionType,
+
+      distributionValue: dto.distributionValue,
+
+      priority: dto.priority ?? 0,
+
+      isActive: dto.isActive ?? true,
+    });
+
     try {
-      return await this.prisma.commissionDistribution.create({
+      const created = await this.prisma.commissionDistribution.create({
         data: {
           distributionKey,
 
@@ -175,9 +329,25 @@ export class CommissionDistributionService {
           isActive: dto.isActive ?? true,
         },
       });
+
+      console.log('[DIST] DB CREATE SUCCESS', {
+        id: created.id,
+
+        commissionRuleId: created.commissionRuleId,
+
+        recipientRole: created.recipientRole,
+
+        distributionType: created.distributionType,
+
+        distributionValue: created.distributionValue.toString(),
+      });
+
+      return created;
     } catch (error: any) {
+      console.error('[DIST] DB CREATE FAILED', error);
+
       /*
-       * Concurrent duplicate protection.
+       * Concurrent duplicate.
        */
       if (error?.code === 'P2002') {
         const duplicate = await this.prisma.commissionDistribution.findUnique({

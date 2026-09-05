@@ -399,7 +399,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Transaction: 'Transaction',
   ProviderTransaction: 'ProviderTransaction',
-  ProviderTransactionReversal: 'ProviderTransactionReversal'
+  ProviderTransactionReversal: 'ProviderTransactionReversal',
+  ProviderTransactionReconciliation: 'ProviderTransactionReconciliation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "transaction" | "providerTransaction" | "providerTransactionReversal"
+    modelProps: "transaction" | "providerTransaction" | "providerTransactionReversal" | "providerTransactionReconciliation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -641,6 +642,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProviderTransactionReconciliation: {
+      payload: Prisma.$ProviderTransactionReconciliationPayload<ExtArgs>
+      fields: Prisma.ProviderTransactionReconciliationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProviderTransactionReconciliationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProviderTransactionReconciliationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>
+        }
+        findFirst: {
+          args: Prisma.ProviderTransactionReconciliationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProviderTransactionReconciliationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>
+        }
+        findMany: {
+          args: Prisma.ProviderTransactionReconciliationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>[]
+        }
+        create: {
+          args: Prisma.ProviderTransactionReconciliationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>
+        }
+        createMany: {
+          args: Prisma.ProviderTransactionReconciliationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProviderTransactionReconciliationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>[]
+        }
+        delete: {
+          args: Prisma.ProviderTransactionReconciliationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>
+        }
+        update: {
+          args: Prisma.ProviderTransactionReconciliationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProviderTransactionReconciliationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProviderTransactionReconciliationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProviderTransactionReconciliationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProviderTransactionReconciliationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderTransactionReconciliationPayload>
+        }
+        aggregate: {
+          args: Prisma.ProviderTransactionReconciliationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProviderTransactionReconciliation>
+        }
+        groupBy: {
+          args: Prisma.ProviderTransactionReconciliationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderTransactionReconciliationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProviderTransactionReconciliationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderTransactionReconciliationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -748,7 +823,12 @@ export const ProviderTransactionScalarFieldEnum = {
   commissionWalletTransactionReference: 'commissionWalletTransactionReference',
   commissionAmount: 'commissionAmount',
   commissionFailureReason: 'commissionFailureReason',
-  commissionSettledAt: 'commissionSettledAt'
+  commissionSettledAt: 'commissionSettledAt',
+  sourceRole: 'sourceRole',
+  providerIncomeSource: 'providerIncomeSource',
+  providerIncomeExternalReference: 'providerIncomeExternalReference',
+  providerIncomeReconciledAt: 'providerIncomeReconciledAt',
+  providerIncomeReconciledBy: 'providerIncomeReconciledBy'
 } as const
 
 export type ProviderTransactionScalarFieldEnum = (typeof ProviderTransactionScalarFieldEnum)[keyof typeof ProviderTransactionScalarFieldEnum]
@@ -768,10 +848,43 @@ export const ProviderTransactionReversalScalarFieldEnum = {
   completedAt: 'completedAt',
   failedReason: 'failedReason',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  principalStatus: 'principalStatus',
+  principalCompensationReference: 'principalCompensationReference',
+  principalFailureReason: 'principalFailureReason',
+  commissionStatus: 'commissionStatus',
+  commissionReversalReference: 'commissionReversalReference',
+  commissionFailureReason: 'commissionFailureReason',
+  processedBy: 'processedBy'
 } as const
 
 export type ProviderTransactionReversalScalarFieldEnum = (typeof ProviderTransactionReversalScalarFieldEnum)[keyof typeof ProviderTransactionReversalScalarFieldEnum]
+
+
+export const ProviderTransactionReconciliationScalarFieldEnum = {
+  id: 'id',
+  referenceId: 'referenceId',
+  providerTransactionId: 'providerTransactionId',
+  originalStatus: 'originalStatus',
+  resolution: 'resolution',
+  status: 'status',
+  action: 'action',
+  resolvedBy: 'resolvedBy',
+  note: 'note',
+  providerTxnRefId: 'providerTxnRefId',
+  rrn: 'rrn',
+  npciCode: 'npciCode',
+  npciMessage: 'npciMessage',
+  walletTransactionReference: 'walletTransactionReference',
+  attemptCount: 'attemptCount',
+  failureReason: 'failureReason',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderTransactionReconciliationScalarFieldEnum = (typeof ProviderTransactionReconciliationScalarFieldEnum)[keyof typeof ProviderTransactionReconciliationScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -997,6 +1110,62 @@ export type ListEnumProviderTransactionReversalStatusFieldRefInput<$PrismaModel>
 
 
 /**
+ * Reference to a field of type 'ProviderReversalComponentStatus'
+ */
+export type EnumProviderReversalComponentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderReversalComponentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderReversalComponentStatus[]'
+ */
+export type ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderReversalComponentStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderReconciliationResolution'
+ */
+export type EnumProviderReconciliationResolutionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderReconciliationResolution'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderReconciliationResolution[]'
+ */
+export type ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderReconciliationResolution[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderReconciliationStatus'
+ */
+export type EnumProviderReconciliationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderReconciliationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderReconciliationStatus[]'
+ */
+export type ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderReconciliationStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderReconciliationAction'
+ */
+export type EnumProviderReconciliationActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderReconciliationAction'>
+    
+
+
+/**
+ * Reference to a field of type 'ProviderReconciliationAction[]'
+ */
+export type ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProviderReconciliationAction[]'>
+    
+
+
+/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -1177,6 +1346,7 @@ export type GlobalOmitConfig = {
   transaction?: Prisma.TransactionOmit
   providerTransaction?: Prisma.ProviderTransactionOmit
   providerTransactionReversal?: Prisma.ProviderTransactionReversalOmit
+  providerTransactionReconciliation?: Prisma.ProviderTransactionReconciliationOmit
 }
 
 /* Types for Logging */

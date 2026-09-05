@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Inject,
+  OnModuleInit,
+} from '@nestjs/common';
 
 import { PrismaService } from '../database/prisma.service';
 
@@ -8,7 +13,10 @@ import {
   TransactionType,
   WalletType,
 } from 'apps/transaction-service/generated/prisma/enums';
-import { RpcException } from '@nestjs/microservices';
+import { ClientKafka, RpcException } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+import { COMMISSION_PATTERNS } from '@nexus/common/commission/commission.patterns';
+import { TRANSACTION_COMMISSION_CLIENT } from './transaction.constants';
 import { TransferMoneyDto } from '@nexus/common/transaction/dto/transfer-money.dto';
 import { CreateCommissionTransactionDto } from '@nexus/common/transaction/dto/create-commission-transaction.dto';
 import { createHash, randomUUID } from 'crypto';
@@ -29,10 +37,45 @@ import { PostProviderWalletEntryDto } from '@nexus/common/transaction/dto/post-p
 import { PrepareProviderWalletDebitDto } from '@nexus/common/transaction/dto/prepare-provider-wallet-debit.dto';
 import { ConfirmProviderWalletReservationDto } from '@nexus/common/transaction/dto/confirm-provider-wallet-reservation.dto';
 import { UpdateProviderCommissionStateDto } from '@nexus/common/transaction/dto/update-provider-commission-state.dto';
+import { CreditCommissionDistributionDto } from '@nexus/common/wallet/dto/credit-commission-distribution.dto';
+
+import {
+  AdminListProviderTransactionsDto,
+  ListProviderReversalsDto,
+} from '@nexus/common/transaction/dto/admin-provider-transactions.dto';
 
 @Injectable()
-export class TransactionService {
-  constructor(private readonly prisma: PrismaService) {}
+export class TransactionService implements OnModuleInit {
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(TRANSACTION_COMMISSION_CLIENT)
+    private readonly commissionClient: ClientKafka,
+  ) {}
+
+  async onModuleInit() {
+    /*
+     * Reversal processor ko commission
+     * snapshot/read operations chahiye.
+     */
+
+    this.commissionClient.subscribeToResponseOf(
+      COMMISSION_PATTERNS.GET_PROVIDER_COMMISSION_EXECUTION,
+    );
+
+    /*
+     * Ye next steps mein add hone wale
+     * reversal patterns hain.
+     */
+    this.commissionClient.subscribeToResponseOf(
+      COMMISSION_PATTERNS.MARK_DISTRIBUTION_REVERSED,
+    );
+
+    this.commissionClient.subscribeToResponseOf(
+      COMMISSION_PATTERNS.FINALIZE_PROVIDER_COMMISSION_REVERSAL,
+    );
+
+    await this.commissionClient.connect();
+  }
 
   private serializeTransaction(transaction: any) {
     return {
@@ -89,6 +132,300 @@ export class TransactionService {
 
   private generateReference(prefix = 'TXN'): string {
     return `${prefix}-${randomUUID()}`;
+  }
+
+  private async createReversalWalletEntry(input: {
+    userId: string;
+
+    providerTransactionReference: string;
+
+    walletType: WalletType;
+
+    serviceType: string;
+
+    type: TransactionType;
+
+    amount: number;
+
+    idempotencyKey: string;
+
+    description: string;
+
+    metadata: Record<string, unknown>;
+  }) {
+    if (!Number.isFinite(input.amount) || input.amount <= 0) {
+      this.throwRpc(400, 'Reversal amount must be greater than 0');
+    }
+
+    return this.prisma.$transaction(
+      async (tx) => {
+        /*
+         * Same wallet balance mutations serialize.
+         */
+        await tx.$executeRaw`
+        SELECT pg_advisory_xact_lock(
+          hashtextextended(
+            ${`${input.userId}:${input.walletType}`},
+            0
+          )
+        )
+      `;
+
+        /*
+         * Idempotent replay.
+         */
+        const duplicate = await tx.transaction.findUnique({
+          where: {
+            userId_idempotencyKey: {
+              userId: input.userId,
+
+              idempotencyKey: input.idempotencyKey,
+            },
+          },
+        });
+
+        if (duplicate) {
+          if (
+            duplicate.externalReference !==
+              input.providerTransactionReference ||
+            duplicate.walletType !== input.walletType ||
+            duplicate.type !== input.type ||
+            Number(duplicate.amount) !== input.amount
+          ) {
+            this.throwRpc(409, 'Reversal wallet idempotency conflict');
+          }
+
+          return duplicate;
+        }
+
+        const lastTransaction = await tx.transaction.findFirst({
+          where: {
+            userId: input.userId,
+
+            walletType: input.walletType,
+
+            status: 'SUCCESS',
+          },
+
+          orderBy: {
+            sequence: 'desc',
+          },
+        });
+
+        const openingBalance = lastTransaction
+          ? Number(lastTransaction.closingBalance)
+          : 0;
+
+        let closingBalance: number;
+
+        if (input.type === TransactionType.CREDIT) {
+          closingBalance = Number((openingBalance + input.amount).toFixed(2));
+        } else {
+          /*
+           * Important:
+           *
+           * Negative wallet silently allow
+           * nahi karenge.
+           */
+          if (input.amount > openingBalance) {
+            this.throwRpc(
+              409,
+              `Insufficient ${input.walletType} wallet balance for reversal. Required: ₹${input.amount.toFixed(
+                2,
+              )}, available: ₹${openingBalance.toFixed(2)}`,
+            );
+          }
+
+          closingBalance = Number((openingBalance - input.amount).toFixed(2));
+        }
+
+        return tx.transaction.create({
+          data: {
+            referenceId: this.generateReference('REV-TXN'),
+
+            userId: input.userId,
+
+            walletType: input.walletType,
+
+            serviceType: input.serviceType,
+
+            type: input.type,
+
+            amount: input.amount,
+
+            openingBalance,
+
+            closingBalance,
+
+            status: 'SUCCESS',
+
+            description: input.description,
+
+            /*
+             * Parent remains original PTXN.
+             */
+            externalReference: input.providerTransactionReference,
+
+            idempotencyKey: input.idempotencyKey,
+
+            metadata: input.metadata as Prisma.InputJsonValue,
+          },
+        });
+      },
+
+      {
+        isolationLevel: 'Serializable',
+      },
+    );
+  }
+
+  private async createReconciliationWalletEntry(
+    tx: Prisma.TransactionClient,
+    input: {
+      userId: string;
+
+      providerTransactionReference: string;
+
+      walletType: WalletType;
+
+      serviceType: string;
+
+      type: TransactionType;
+
+      amount: number;
+
+      idempotencyKey: string;
+
+      description: string;
+
+      metadata?: Record<string, unknown>;
+    },
+  ) {
+    /*
+     * Wallet mutations on same identity/wallet
+     * must remain serialized.
+     */
+    await tx.$executeRaw`
+    SELECT pg_advisory_xact_lock(
+      hashtextextended(
+        ${`${input.userId}:${input.walletType}`},
+        0
+      )
+    )
+  `;
+
+    /*
+     * =====================================================
+     * IDEMPOTENCY
+     * =====================================================
+     */
+
+    const duplicate = await tx.transaction.findUnique({
+      where: {
+        userId_idempotencyKey: {
+          userId: input.userId,
+
+          idempotencyKey: input.idempotencyKey,
+        },
+      },
+    });
+
+    if (duplicate) {
+      if (
+        duplicate.externalReference !== input.providerTransactionReference ||
+        duplicate.walletType !== input.walletType ||
+        duplicate.type !== input.type ||
+        Number(duplicate.amount) !== input.amount
+      ) {
+        this.throwRpc(
+          409,
+          'Reconciliation wallet idempotency key has already been used for another transaction',
+        );
+      }
+
+      return duplicate;
+    }
+
+    /*
+     * =====================================================
+     * CURRENT WALLET BALANCE
+     * =====================================================
+     */
+
+    const lastTransaction = await tx.transaction.findFirst({
+      where: {
+        userId: input.userId,
+
+        walletType: input.walletType,
+
+        status: 'SUCCESS',
+      },
+
+      orderBy: {
+        sequence: 'desc',
+      },
+    });
+
+    const openingBalance = lastTransaction
+      ? Number(lastTransaction.closingBalance)
+      : 0;
+
+    let closingBalance: number;
+
+    if (input.type === TransactionType.CREDIT) {
+      closingBalance = Number((openingBalance + input.amount).toFixed(2));
+    } else {
+      if (input.amount > openingBalance) {
+        this.throwRpc(
+          409,
+          `Insufficient ${input.walletType} wallet balance. Available balance: ₹${openingBalance.toFixed(
+            2,
+          )}`,
+        );
+      }
+
+      closingBalance = Number((openingBalance - input.amount).toFixed(2));
+    }
+
+    /*
+     * =====================================================
+     * NEW LEDGER ENTRY
+     * =====================================================
+     */
+
+    return tx.transaction.create({
+      data: {
+        referenceId: this.generateReference('TXN'),
+
+        userId: input.userId,
+
+        walletType: input.walletType,
+
+        serviceType: input.serviceType,
+
+        type: input.type,
+
+        amount: input.amount,
+
+        openingBalance,
+
+        closingBalance,
+
+        status: 'SUCCESS',
+
+        description: input.description,
+
+        externalReference: input.providerTransactionReference,
+
+        idempotencyKey: input.idempotencyKey,
+
+        ...(input.metadata
+          ? {
+              metadata: input.metadata as Prisma.InputJsonValue,
+            }
+          : {}),
+      },
+    });
   }
 
   async getTransactionByReference(referenceId: string) {
@@ -858,7 +1195,7 @@ export class TransactionService {
           aadhaarLast4: dto.aadhaarLast4,
 
           settlementStatus: dto.settlementRequired ? 'PENDING' : 'NOT_REQUIRED',
-
+          sourceRole: dto.sourceRole?.trim() || null,
           ...(dto.metadata !== undefined
             ? {
                 metadata: dto.metadata as Prisma.InputJsonValue,
@@ -879,7 +1216,10 @@ export class TransactionService {
             existing.userId !== dto.userId ||
             existing.provider !== dto.provider ||
             existing.operation !== dto.operation ||
-            Number(existing.amount) !== dto.amount
+            Number(existing.amount) !== dto.amount ||
+            (dto.sourceRole &&
+              existing.sourceRole &&
+              existing.sourceRole !== dto.sourceRole)
           ) {
             this.throwRpc(
               409,
@@ -1058,9 +1398,21 @@ export class TransactionService {
   }
 
   async getProviderTransaction(referenceId: string, userId?: string) {
+    /*
+     * =====================================================
+     * 1. VALIDATION
+     * =====================================================
+     */
+
     if (!referenceId?.trim()) {
       this.throwRpc(400, 'Provider transaction reference is required');
     }
+
+    /*
+     * =====================================================
+     * 2. FIND CANONICAL PROVIDER TRANSACTION
+     * =====================================================
+     */
 
     const transaction = await this.prisma.providerTransaction.findUnique({
       where: {
@@ -1073,17 +1425,65 @@ export class TransactionService {
     }
 
     /*
-     * Public/user call mein ownership
-     * verify hogi.
+     * =====================================================
+     * 3. OPTIONAL OWNERSHIP CHECK
+     * =====================================================
+     *
+     * Public/user-facing request mein
+     * userId provide hoti hai.
+     *
+     * Internal/admin calls userId omit
+     * kar sakti hain.
      */
+
     if (userId && transaction.userId !== userId) {
       this.throwRpc(404, 'Provider transaction not found');
     }
 
+    /*
+     * =====================================================
+     * 4. RESPONSE
+     * =====================================================
+     *
+     * IMPORTANT:
+     *
+     * Reconciliation / provider-income
+     * processor ko important financial
+     * states TOP LEVEL par bhi chahiye.
+     *
+     * Nested settlement / commission
+     * objects backward compatibility
+     * ke liye retain kar rahe hain.
+     */
+
     return {
+      /*
+       * ===============================================
+       * CANONICAL IDENTITY
+       * ===============================================
+       */
+
       id: transaction.id,
 
       referenceId: transaction.referenceId,
+
+      userId: transaction.userId,
+
+      /*
+       * Original authenticated role.
+       *
+       * Delayed provider-income reconciliation
+       * ke liye mandatory.
+       */
+      sourceRole: transaction.sourceRole,
+
+      idempotencyKey: transaction.idempotencyKey,
+
+      /*
+       * ===============================================
+       * PROVIDER
+       * ===============================================
+       */
 
       serviceType: transaction.serviceType,
 
@@ -1094,6 +1494,14 @@ export class TransactionService {
       amount: transaction.amount.toString(),
 
       status: transaction.status,
+
+      /*
+       * ===============================================
+       * PROVIDER REFERENCES
+       * ===============================================
+       */
+
+      providerMerchantId: transaction.providerMerchantId,
 
       providerMerchantRefId: transaction.providerMerchantRefId,
 
@@ -1109,13 +1517,190 @@ export class TransactionService {
 
       providerStatusMessage: transaction.providerStatusMessage,
 
+      /*
+       * ===============================================
+       * SAFE CUSTOMER/BANK DATA
+       * ===============================================
+       */
+
       bankIIN: transaction.bankIIN,
 
       aadhaarLast4: transaction.aadhaarLast4,
 
+      /*
+       * ===============================================
+       * SETTLEMENT STATE — TOP LEVEL
+       * ===============================================
+       *
+       * Provider-income reconciliation checks:
+       *
+       * transaction.settlementStatus
+       */
+
+      settlementStatus: transaction.settlementStatus,
+
+      settlementTransactionReference:
+        transaction.settlementTransactionReference,
+
+      compensationTransactionReference:
+        transaction.compensationTransactionReference,
+
+      settlementFailureReason: transaction.settlementFailureReason,
+
+      /*
+       * ===============================================
+       * COMMISSION STATE — TOP LEVEL
+       * ===============================================
+       *
+       * Provider-income reconciliation checks:
+       *
+       * WAITING_PROVIDER_INCOME
+       * PENDING
+       * SETTLED
+       */
+
+      commissionStatus: transaction.commissionStatus,
+
+      commissionReferenceId: transaction.commissionReferenceId,
+
+      commissionWalletTransactionReference:
+        transaction.commissionWalletTransactionReference,
+
+      commissionAmount:
+        transaction.commissionAmount !== null
+          ? transaction.commissionAmount.toString()
+          : null,
+
+      commissionFailureReason: transaction.commissionFailureReason,
+
+      commissionSettledAt: transaction.commissionSettledAt,
+
+      /*
+       * ===============================================
+       * PROVIDER INCOME RECONCILIATION AUDIT
+       * ===============================================
+       */
+
+      providerIncomeSource: transaction.providerIncomeSource,
+
+      providerIncomeExternalReference:
+        transaction.providerIncomeExternalReference,
+
+      providerIncomeReconciledAt: transaction.providerIncomeReconciledAt,
+
+      providerIncomeReconciledBy: transaction.providerIncomeReconciledBy,
+
+      /*
+       * ===============================================
+       * RECONCILIATION — TOP LEVEL
+       * ===============================================
+       */
+
+      needsReconciliation: transaction.needsReconciliation,
+
+      reconciliationReason: transaction.reconciliationReason,
+
+      reconciledAt: transaction.reconciledAt,
+
+      reconciledBy: transaction.reconciledBy,
+
+      reconciliationNote: transaction.reconciliationNote,
+
+      /*
+       * ===============================================
+       * REVERSAL
+       * ===============================================
+       */
+
+      reversedAt: transaction.reversedAt,
+
+      /*
+       * ===============================================
+       * TIMESTAMPS
+       * ===============================================
+       */
+
+      providerCalledAt: transaction.providerCalledAt,
+
       createdAt: transaction.createdAt,
 
+      updatedAt: transaction.updatedAt,
+
       completedAt: transaction.completedAt,
+
+      /*
+       * ===============================================
+       * BACKWARD-COMPATIBLE NESTED SETTLEMENT
+       * ===============================================
+       */
+
+      settlement: {
+        status: transaction.settlementStatus,
+
+        transactionReference: transaction.settlementTransactionReference,
+
+        compensationTransactionReference:
+          transaction.compensationTransactionReference,
+
+        failureReason: transaction.settlementFailureReason,
+
+        reservedAt: transaction.reservedAt,
+
+        settledAt: transaction.settledAt,
+
+        compensatedAt: transaction.compensatedAt,
+      },
+
+      /*
+       * ===============================================
+       * BACKWARD-COMPATIBLE NESTED COMMISSION
+       * ===============================================
+       */
+
+      commission: {
+        status: transaction.commissionStatus,
+
+        referenceId: transaction.commissionReferenceId,
+
+        walletTransactionReference:
+          transaction.commissionWalletTransactionReference,
+
+        amount:
+          transaction.commissionAmount !== null
+            ? transaction.commissionAmount.toString()
+            : null,
+
+        failureReason: transaction.commissionFailureReason,
+
+        settledAt: transaction.commissionSettledAt,
+
+        providerIncomeSource: transaction.providerIncomeSource,
+
+        providerIncomeExternalReference:
+          transaction.providerIncomeExternalReference,
+
+        providerIncomeReconciledAt: transaction.providerIncomeReconciledAt,
+
+        providerIncomeReconciledBy: transaction.providerIncomeReconciledBy,
+      },
+
+      /*
+       * ===============================================
+       * BACKWARD-COMPATIBLE RECONCILIATION OBJECT
+       * ===============================================
+       */
+
+      reconciliation: {
+        required: transaction.needsReconciliation,
+
+        reason: transaction.reconciliationReason,
+
+        reconciledAt: transaction.reconciledAt,
+
+        reconciledBy: transaction.reconciledBy,
+
+        note: transaction.reconciliationNote,
+      },
     };
   }
 
@@ -1128,9 +1713,11 @@ export class TransactionService {
 
     const limit = Math.min(Math.max(Number(dto.limit) || 20, 1), 100);
 
-    const skip = (page - 1) * limit;
+    const fromDate = this.parseOptionalDate(dto.fromDate, 'fromDate');
 
-    const where = {
+    const toDate = this.parseOptionalDate(dto.toDate, 'toDate');
+
+    const where: Prisma.ProviderTransactionWhereInput = {
       userId: dto.userId,
 
       ...(dto.provider
@@ -1156,6 +1743,36 @@ export class TransactionService {
             status: dto.status,
           }
         : {}),
+
+      ...(dto.settlementStatus
+        ? {
+            settlementStatus: dto.settlementStatus,
+          }
+        : {}),
+
+      ...(dto.commissionStatus
+        ? {
+            commissionStatus: dto.commissionStatus,
+          }
+        : {}),
+
+      ...(fromDate || toDate
+        ? {
+            createdAt: {
+              ...(fromDate
+                ? {
+                    gte: fromDate,
+                  }
+                : {}),
+
+              ...(toDate
+                ? {
+                    lte: toDate,
+                  }
+                : {}),
+            },
+          }
+        : {}),
     };
 
     const [transactions, total] = await this.prisma.$transaction([
@@ -1166,48 +1783,9 @@ export class TransactionService {
           createdAt: 'desc',
         },
 
-        skip,
+        skip: (page - 1) * limit,
 
         take: limit,
-
-        select: {
-          id: true,
-
-          referenceId: true,
-
-          serviceType: true,
-
-          provider: true,
-
-          operation: true,
-
-          amount: true,
-
-          status: true,
-
-          providerMerchantRefId: true,
-
-          providerTxnRefId: true,
-
-          rrn: true,
-
-          npciCode: true,
-
-          npciMessage: true,
-
-          providerStatusCode: true,
-
-          providerStatusMessage: true,
-
-          bankIIN: true,
-
-          aadhaarLast4: true,
-
-          createdAt: true,
-
-          completedAt: true,
-          needsReconciliation: true,
-        },
       }),
 
       this.prisma.providerTransaction.count({
@@ -1225,9 +1803,35 @@ export class TransactionService {
       totalPages: Math.ceil(total / limit),
 
       data: transactions.map((transaction) => ({
-        ...transaction,
+        referenceId: transaction.referenceId,
+
+        provider: transaction.provider,
+
+        operation: transaction.operation,
 
         amount: transaction.amount.toString(),
+
+        status: transaction.status,
+
+        settlementStatus: transaction.settlementStatus,
+
+        commissionStatus: transaction.commissionStatus,
+
+        providerTxnRefId: transaction.providerTxnRefId,
+
+        merchantRefId: transaction.providerMerchantRefId,
+
+        rrn: transaction.rrn,
+
+        npciCode: transaction.npciCode,
+
+        npciMessage: transaction.npciMessage,
+
+        createdAt: transaction.createdAt,
+
+        completedAt: transaction.completedAt,
+
+        reversedAt: transaction.reversedAt,
       })),
     };
   }
@@ -1237,15 +1841,7 @@ export class TransactionService {
 
     const limit = Math.min(Math.max(Number(dto.limit) || 20, 1), 100);
 
-    const where = {
-      needsReconciliation: true,
-
-      status: {
-        in: dto.status
-          ? [dto.status]
-          : ['PENDING' as const, 'UNKNOWN' as const],
-      },
-
+    const baseFilters: Prisma.ProviderTransactionWhereInput = {
       ...(dto.provider
         ? {
             provider: dto.provider,
@@ -1263,6 +1859,69 @@ export class TransactionService {
             operation: dto.operation,
           }
         : {}),
+    };
+
+    const providerUnresolved: Prisma.ProviderTransactionWhereInput = {
+      needsReconciliation: true,
+
+      status: {
+        in: dto.status ? [dto.status] : ['PENDING', 'UNKNOWN'],
+      },
+    };
+
+    const internalFinancialRecovery: Prisma.ProviderTransactionWhereInput[] =
+      dto.status
+        ? []
+        : [
+            /*
+             * CW/AP provider succeeded,
+             * principal credit missing.
+             */
+            {
+              status: 'SUCCESS',
+
+              operation: {
+                in: ['CW', 'AP'],
+              },
+
+              settlementStatus: {
+                in: ['PENDING', 'UNKNOWN'],
+              },
+            },
+
+            /*
+             * CD provider succeeded but
+             * reservation wasn't confirmed.
+             */
+            {
+              status: 'SUCCESS',
+
+              operation: 'CD',
+
+              settlementStatus: 'RESERVED',
+            },
+
+            /*
+             * CD provider failed but
+             * reserved debit wasn't refunded.
+             */
+            {
+              status: 'FAILED',
+
+              operation: 'CD',
+
+              settlementStatus: 'RESERVED',
+            },
+          ];
+
+    const where: Prisma.ProviderTransactionWhereInput = {
+      AND: [
+        baseFilters,
+
+        {
+          OR: [providerUnresolved, ...internalFinancialRecovery],
+        },
+      ],
     };
 
     const [transactions, total] = await this.prisma.$transaction([
@@ -1319,6 +1978,16 @@ export class TransactionService {
           createdAt: true,
 
           updatedAt: true,
+
+          settlementStatus: true,
+
+          settlementTransactionReference: true,
+
+          compensationTransactionReference: true,
+
+          commissionStatus: true,
+
+          commissionAmount: true,
         },
       }),
 
@@ -1345,6 +2014,12 @@ export class TransactionService {
   }
 
   async resolveProviderTransaction(dto: ResolveProviderTransactionDto) {
+    /*
+     * =====================================================
+     * 1. VALIDATION
+     * =====================================================
+     */
+
     if (!dto.referenceId?.trim()) {
       this.throwRpc(400, 'Transaction reference is required');
     }
@@ -1353,65 +2028,715 @@ export class TransactionService {
       this.throwRpc(400, 'resolvedBy is required');
     }
 
-    const transaction = await this.prisma.providerTransaction.findUnique({
-      where: {
-        referenceId: dto.referenceId,
-      },
-    });
-
-    if (!transaction) {
-      this.throwRpc(404, 'Provider transaction not found');
+    if (dto.resolution !== 'SUCCESS' && dto.resolution !== 'FAILED') {
+      this.throwRpc(400, 'Invalid reconciliation resolution');
     }
 
     /*
-     * Manual reconciliation sirf unresolved
-     * transactions par allowed hai.
+     * =====================================================
+     * 2. CLAIM / CREATE RECONCILIATION
+     * =====================================================
      */
-    if (
-      !transaction.needsReconciliation ||
-      !['PENDING', 'UNKNOWN'].includes(transaction.status)
-    ) {
-      this.throwRpc(409, 'Transaction does not require reconciliation');
+
+    let reconciliationId: string;
+
+    try {
+      const claim = await this.prisma.$transaction(
+        async (tx) => {
+          /*
+           * Same provider transaction
+           * reconciliation serialize.
+           */
+
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(
+              hashtextextended(
+                ${`PTXN:${dto.referenceId}:RECONCILIATION`},
+                0
+              )
+            )
+          `;
+
+          const transaction = await tx.providerTransaction.findUnique({
+            where: {
+              referenceId: dto.referenceId,
+            },
+
+            include: {
+              reconciliation: true,
+            },
+          });
+
+          if (!transaction) {
+            this.throwRpc(404, 'Provider transaction not found');
+          }
+
+          /*
+           * Already successfully reconciled.
+           */
+          if (transaction.reconciliation?.status === 'COMPLETED') {
+            if (transaction.reconciliation.resolution !== dto.resolution) {
+              this.throwRpc(
+                409,
+                `Transaction was already reconciled as ${transaction.reconciliation.resolution}`,
+              );
+            }
+
+            return {
+              reconciliation: transaction.reconciliation,
+
+              duplicate: true,
+            };
+          }
+
+          /*
+           * Reconciliation only unresolved
+           * PTXN states par.
+           */
+          if (
+            !transaction.needsReconciliation ||
+            !['PENDING', 'UNKNOWN'].includes(transaction.status)
+          ) {
+            this.throwRpc(409, 'Transaction does not require reconciliation');
+          }
+
+          /*
+           * Previous failed reconciliation
+           * same resolution ke saath retryable.
+           */
+          if (transaction.reconciliation) {
+            if (transaction.reconciliation.resolution !== dto.resolution) {
+              this.throwRpc(
+                409,
+                `Existing reconciliation resolution is ${transaction.reconciliation.resolution}`,
+              );
+            }
+
+            const updated = await tx.providerTransactionReconciliation.update({
+              where: {
+                id: transaction.reconciliation.id,
+              },
+
+              data: {
+                status: 'PROCESSING',
+
+                resolvedBy: dto.resolvedBy,
+
+                note: dto.note?.trim().slice(0, 500),
+
+                providerTxnRefId:
+                  dto.providerTxnRefId ?? transaction.providerTxnRefId,
+
+                rrn: dto.rrn ?? transaction.rrn,
+
+                npciCode: dto.npciCode ?? transaction.npciCode,
+
+                npciMessage: dto.npciMessage ?? transaction.npciMessage,
+
+                failureReason: null,
+
+                completedAt: null,
+
+                attemptCount: {
+                  increment: 1,
+                },
+              },
+            });
+
+            return {
+              reconciliation: updated,
+
+              duplicate: false,
+            };
+          }
+
+          const reconciliation =
+            await tx.providerTransactionReconciliation.create({
+              data: {
+                referenceId: this.generateReference('RECON'),
+
+                providerTransactionId: transaction.id,
+
+                originalStatus: transaction.status,
+
+                resolution: dto.resolution,
+
+                status: 'PROCESSING',
+
+                action: 'NONE',
+
+                resolvedBy: dto.resolvedBy,
+
+                note: dto.note?.trim().slice(0, 500),
+
+                providerTxnRefId:
+                  dto.providerTxnRefId ?? transaction.providerTxnRefId,
+
+                rrn: dto.rrn ?? transaction.rrn,
+
+                npciCode: dto.npciCode ?? transaction.npciCode,
+
+                npciMessage: dto.npciMessage ?? transaction.npciMessage,
+              },
+            });
+
+          return {
+            reconciliation,
+
+            duplicate: false,
+          };
+        },
+
+        {
+          isolationLevel: 'Serializable',
+        },
+      );
+
+      if (claim.duplicate) {
+        const transaction = await this.prisma.providerTransaction.findUnique({
+          where: {
+            referenceId: dto.referenceId,
+          },
+
+          include: {
+            reconciliation: true,
+          },
+        });
+
+        return {
+          transaction: transaction
+            ? {
+                ...transaction,
+
+                amount: transaction.amount.toString(),
+              }
+            : null,
+
+          reconciliation: claim.reconciliation,
+
+          walletTransaction: null,
+
+          duplicate: true,
+        };
+      }
+
+      reconciliationId = claim.reconciliation.id;
+    } catch (error: any) {
+      if (error instanceof RpcException) {
+        throw error;
+      }
+
+      if (error?.code === 'P2034') {
+        this.throwRpc(409, 'Reconciliation claim conflict. Please retry.');
+      }
+
+      this.throwRpc(
+        500,
+        error?.message ?? 'Unable to start provider reconciliation',
+      );
     }
 
     /*
-     * We are NOT automatically modifying
-     * wallet balances here.
-     *
-     * Ye sirf provider transaction status
-     * resolve karta hai.
+     * =====================================================
+     * 3. APPLY FINANCIAL EFFECT
+     * =====================================================
      */
-    return this.prisma.providerTransaction.update({
-      where: {
-        referenceId: dto.referenceId,
-      },
 
-      data: {
-        status: dto.resolution,
+    try {
+      const result = await this.prisma.$transaction(
+        async (tx) => {
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(
+              hashtextextended(
+                ${`PTXN:${dto.referenceId}:RECONCILIATION`},
+                0
+              )
+            )
+          `;
 
-        needsReconciliation: false,
+          const transaction = await tx.providerTransaction.findUnique({
+            where: {
+              referenceId: dto.referenceId,
+            },
+          });
 
-        reconciliationReason: null,
+          if (!transaction) {
+            this.throwRpc(404, 'Provider transaction not found');
+          }
 
-        reconciliationNote: dto.note?.slice(0, 500),
+          const reconciliation =
+            await tx.providerTransactionReconciliation.findUnique({
+              where: {
+                id: reconciliationId,
+              },
+            });
 
-        reconciledBy: dto.resolvedBy,
+          if (!reconciliation) {
+            this.throwRpc(404, 'Provider reconciliation record not found');
+          }
 
-        reconciledAt: new Date(),
+          if (reconciliation.status === 'COMPLETED') {
+            return {
+              transaction,
 
-        providerTxnRefId: dto.providerTxnRefId ?? transaction.providerTxnRefId,
+              reconciliation,
 
-        rrn: dto.rrn ?? transaction.rrn,
+              walletTransaction: null,
 
-        npciCode: dto.npciCode ?? transaction.npciCode,
+              duplicate: true,
+            };
+          }
 
-        npciMessage: dto.npciMessage ?? transaction.npciMessage,
+          if (reconciliation.status !== 'PROCESSING') {
+            this.throwRpc(
+              409,
+              `Reconciliation cannot continue from ${reconciliation.status} state`,
+            );
+          }
 
-        completedAt: new Date(),
-      },
-    });
+          const amount = Number(transaction.amount);
+
+          let action:
+            | 'NONE'
+            | 'SETTLE_PRINCIPAL'
+            | 'CONFIRM_RESERVATION'
+            | 'COMPENSATE_RESERVATION' = 'NONE';
+
+          let walletTransaction: any = null;
+
+          const isFinancial = ['CW', 'AP', 'CD'].includes(
+            transaction.operation,
+          );
+
+          /*
+           * =================================================
+           * SUCCESS RESOLUTION
+           * =================================================
+           */
+
+          if (dto.resolution === 'SUCCESS') {
+            /*
+             * CW / AP
+             *
+             * Provider actually succeeded.
+             * Full principal credit required.
+             */
+            if (
+              transaction.operation === 'CW' ||
+              transaction.operation === 'AP'
+            ) {
+              action = 'SETTLE_PRINCIPAL';
+
+              if (transaction.settlementStatus === 'SETTLED') {
+                /*
+                 * Already financially settled.
+                 * Idempotent.
+                 */
+              } else if (
+                ['PENDING', 'UNKNOWN'].includes(transaction.settlementStatus)
+              ) {
+                walletTransaction = await this.createReconciliationWalletEntry(
+                  tx,
+                  {
+                    userId: transaction.userId,
+
+                    providerTransactionReference: transaction.referenceId,
+
+                    walletType: WalletType.AEPS,
+
+                    serviceType:
+                      transaction.operation === 'CW'
+                        ? 'AEPS_CASH_WITHDRAWAL'
+                        : 'AEPS_AADHAAR_PAY',
+
+                    type: TransactionType.CREDIT,
+
+                    /*
+                     * FULL principal.
+                     */
+                    amount,
+
+                    idempotencyKey: `RECON:${transaction.referenceId}:PRINCIPAL:SETTLE`,
+
+                    description: `${transaction.operation} principal settlement after provider reconciliation`,
+
+                    metadata: {
+                      entryKind: 'PROVIDER_RECONCILIATION_PRINCIPAL',
+
+                      providerTransactionReference: transaction.referenceId,
+
+                      reconciliationResolution: 'SUCCESS',
+                    },
+                  },
+                );
+
+                await tx.providerTransaction.update({
+                  where: {
+                    id: transaction.id,
+                  },
+
+                  data: {
+                    settlementStatus: 'SETTLED',
+
+                    settlementTransactionReference:
+                      walletTransaction.referenceId,
+
+                    settlementFailureReason: null,
+
+                    settledAt: new Date(),
+                  },
+                });
+              } else {
+                this.throwRpc(
+                  409,
+                  `${transaction.operation} cannot reconcile SUCCESS from ${transaction.settlementStatus} settlement state`,
+                );
+              }
+            }
+
+            /*
+             * CD
+             *
+             * Full debit already RESERVED.
+             * Successful provider result means
+             * simply confirm it.
+             */
+            if (transaction.operation === 'CD') {
+              action = 'CONFIRM_RESERVATION';
+
+              if (transaction.settlementStatus === 'RESERVED') {
+                await tx.providerTransaction.update({
+                  where: {
+                    id: transaction.id,
+                  },
+
+                  data: {
+                    settlementStatus: 'SETTLED',
+
+                    settlementFailureReason: null,
+
+                    settledAt: new Date(),
+                  },
+                });
+              } else if (transaction.settlementStatus !== 'SETTLED') {
+                this.throwRpc(
+                  409,
+                  `Cash Deposit cannot reconcile SUCCESS from ${transaction.settlementStatus} settlement state`,
+                );
+              }
+            }
+          }
+
+          /*
+           * =================================================
+           * FAILED RESOLUTION
+           * =================================================
+           */
+
+          if (dto.resolution === 'FAILED') {
+            /*
+             * CW / AP:
+             * no principal credit.
+             */
+            if (
+              transaction.operation === 'CW' ||
+              transaction.operation === 'AP'
+            ) {
+              /*
+               * Agar principal already credited hai,
+               * FAILED reconciliation se remove
+               * nahi karenge.
+               *
+               * Proper reversal required.
+               */
+              if (transaction.settlementStatus === 'SETTLED') {
+                this.throwRpc(
+                  409,
+                  'Principal is already settled. Use transaction reversal instead of FAILED reconciliation.',
+                );
+              }
+
+              await tx.providerTransaction.update({
+                where: {
+                  id: transaction.id,
+                },
+
+                data: {
+                  settlementStatus: 'NOT_REQUIRED',
+
+                  settlementFailureReason: null,
+                },
+              });
+            }
+
+            /*
+             * CD:
+             *
+             * Original AEPS debit exists.
+             * Provider actually FAILED.
+             * Full refund required.
+             */
+            if (transaction.operation === 'CD') {
+              action = 'COMPENSATE_RESERVATION';
+
+              if (transaction.settlementStatus === 'RESERVED') {
+                walletTransaction = await this.createReconciliationWalletEntry(
+                  tx,
+                  {
+                    userId: transaction.userId,
+
+                    providerTransactionReference: transaction.referenceId,
+
+                    walletType: WalletType.AEPS,
+
+                    serviceType: 'AEPS_CASH_DEPOSIT_COMPENSATION',
+
+                    type: TransactionType.CREDIT,
+
+                    amount,
+
+                    idempotencyKey: `RECON:${transaction.referenceId}:CD:COMPENSATE`,
+
+                    description:
+                      'Cash Deposit failed after provider reconciliation - full principal compensation',
+
+                    metadata: {
+                      entryKind: 'PROVIDER_RECONCILIATION_COMPENSATION',
+
+                      providerTransactionReference: transaction.referenceId,
+
+                      reconciliationResolution: 'FAILED',
+                    },
+                  },
+                );
+
+                await tx.providerTransaction.update({
+                  where: {
+                    id: transaction.id,
+                  },
+
+                  data: {
+                    settlementStatus: 'COMPENSATED',
+
+                    compensationTransactionReference:
+                      walletTransaction.referenceId,
+
+                    settlementFailureReason: null,
+
+                    compensatedAt: new Date(),
+                  },
+                });
+              } else if (transaction.settlementStatus !== 'COMPENSATED') {
+                this.throwRpc(
+                  409,
+                  `Cash Deposit cannot reconcile FAILED from ${transaction.settlementStatus} settlement state`,
+                );
+              }
+            }
+          }
+
+          /*
+           * =================================================
+           * FINAL PROVIDER TRANSACTION STATE
+           * =================================================
+           */
+
+          const now = new Date();
+
+          const updatedTransaction = await tx.providerTransaction.update({
+            where: {
+              id: transaction.id,
+            },
+
+            data: {
+              status: dto.resolution,
+
+              needsReconciliation: false,
+
+              reconciliationReason: null,
+
+              reconciliationNote: dto.note?.trim().slice(0, 500),
+
+              reconciledBy: dto.resolvedBy,
+
+              reconciledAt: now,
+
+              providerTxnRefId:
+                dto.providerTxnRefId ?? transaction.providerTxnRefId,
+
+              rrn: dto.rrn ?? transaction.rrn,
+
+              npciCode: dto.npciCode ?? transaction.npciCode,
+
+              npciMessage: dto.npciMessage ?? transaction.npciMessage,
+
+              completedAt: now,
+
+              /*
+               * Provider transaction SUCCESS:
+               *
+               * provider income is a separate
+               * reconciliation concern.
+               */
+              ...(isFinancial && dto.resolution === 'SUCCESS'
+                ? {
+                    commissionStatus: 'WAITING_PROVIDER_INCOME',
+
+                    commissionReferenceId: null,
+
+                    commissionWalletTransactionReference: null,
+
+                    commissionAmount: null,
+
+                    commissionFailureReason:
+                      'Waiting for provider income reconciliation',
+
+                    commissionSettledAt: null,
+                  }
+                : {}),
+
+              /*
+               * Definitive FAILED:
+               * no provider income.
+               */
+              ...(isFinancial && dto.resolution === 'FAILED'
+                ? {
+                    commissionStatus: 'NOT_REQUIRED',
+
+                    commissionReferenceId: null,
+
+                    commissionWalletTransactionReference: null,
+
+                    commissionAmount: null,
+
+                    commissionFailureReason: null,
+
+                    commissionSettledAt: null,
+                  }
+                : {}),
+            },
+          });
+
+          /*
+           * =================================================
+           * RECONCILIATION COMPLETE
+           * =================================================
+           */
+
+          const completed = await tx.providerTransactionReconciliation.update({
+            where: {
+              id: reconciliation.id,
+            },
+
+            data: {
+              status: 'COMPLETED',
+
+              action,
+
+              resolvedBy: dto.resolvedBy,
+
+              note: dto.note?.trim().slice(0, 500),
+
+              providerTxnRefId:
+                dto.providerTxnRefId ?? transaction.providerTxnRefId,
+
+              rrn: dto.rrn ?? transaction.rrn,
+
+              npciCode: dto.npciCode ?? transaction.npciCode,
+
+              npciMessage: dto.npciMessage ?? transaction.npciMessage,
+
+              walletTransactionReference:
+                walletTransaction?.referenceId ?? null,
+
+              failureReason: null,
+
+              completedAt: now,
+            },
+          });
+
+          return {
+            transaction: updatedTransaction,
+
+            reconciliation: completed,
+
+            walletTransaction,
+
+            duplicate: false,
+          };
+        },
+
+        {
+          isolationLevel: 'Serializable',
+        },
+      );
+
+      return {
+        transaction: {
+          ...result.transaction,
+
+          amount: result.transaction.amount.toString(),
+        },
+
+        reconciliation: result.reconciliation,
+
+        walletTransaction: result.walletTransaction
+          ? this.serializeTransaction(result.walletTransaction)
+          : null,
+
+        duplicate: result.duplicate,
+      };
+    } catch (error: any) {
+      /*
+       * =====================================================
+       * RECONCILIATION FAILED
+       * =====================================================
+       *
+       * Financial DB transaction rollback ho
+       * chuki hogi.
+       *
+       * Audit row ko FAILED mark karenge.
+       */
+
+      const message =
+        error instanceof RpcException
+          ? ((error as any).getError?.()?.message ?? error.message)
+          : (error?.message ?? 'Provider reconciliation failed');
+
+      try {
+        await this.prisma.providerTransactionReconciliation.update({
+          where: {
+            id: reconciliationId!,
+          },
+
+          data: {
+            status: 'FAILED',
+
+            failureReason: String(message).slice(0, 500),
+
+            completedAt: null,
+          },
+        });
+      } catch {
+        /*
+         * Preserve original error.
+         */
+      }
+
+      if (error instanceof RpcException) {
+        throw error;
+      }
+
+      if (error?.code === 'P2034') {
+        this.throwRpc(409, 'Reconciliation conflict. Please retry.');
+      }
+
+      this.throwRpc(
+        500,
+        error?.message ?? 'Provider transaction reconciliation failed',
+      );
+    }
   }
-
   async requestProviderTransactionReversal(
     dto: RequestProviderTransactionReversalDto,
   ) {
@@ -1456,8 +2781,28 @@ export class TransactionService {
       );
     }
 
+    if (!['CW', 'AP', 'CD'].includes(transaction.operation)) {
+      this.throwRpc(
+        409,
+        `Provider operation ${transaction.operation} does not support financial reversal`,
+      );
+    }
+
     /*
-     * Already reversal exist karti hai.
+     * Provider SUCCESS alone enough nahi.
+     *
+     * Original principal settlement bhi
+     * complete honi chahiye.
+     */
+    if (transaction.settlementStatus !== 'SETTLED') {
+      this.throwRpc(
+        409,
+        `Transaction principal is not settled. Current settlement status: ${transaction.settlementStatus}`,
+      );
+    }
+
+    /*
+     * Already reversal exists.
      */
     if (transaction.reversal) {
       if (transaction.reversal.idempotencyKey === dto.idempotencyKey) {
@@ -1491,6 +2836,15 @@ export class TransactionService {
           reason: dto.reason.trim().slice(0, 500),
 
           requestedBy: dto.requestedBy,
+
+          principalStatus: 'PENDING',
+
+          commissionStatus:
+            transaction.commissionReferenceId ||
+            transaction.commissionStatus === 'SETTLED' ||
+            transaction.commissionStatus === 'PENDING'
+              ? 'PENDING'
+              : 'NOT_REQUIRED',
         },
       });
 
@@ -1633,13 +2987,8 @@ export class TransactionService {
 
   async completeProviderTransactionReversal(
     reversalReferenceId: string,
-
     compensationReferenceId: string,
   ) {
-    if (!compensationReferenceId?.trim()) {
-      this.throwRpc(400, 'Compensation transaction reference is required');
-    }
-
     const reversal = await this.prisma.providerTransactionReversal.findUnique({
       where: {
         referenceId: reversalReferenceId,
@@ -1654,37 +3003,42 @@ export class TransactionService {
       this.throwRpc(404, 'Provider transaction reversal not found');
     }
 
-    /*
-     * Idempotent completion.
-     */
     if (reversal.status === 'COMPLETED') {
-      if (reversal.compensationReferenceId !== compensationReferenceId) {
-        this.throwRpc(
-          409,
-          'Reversal has already been completed using another compensation transaction',
-        );
-      }
-
       return reversal;
     }
 
-    if (reversal.status !== 'PROCESSING') {
+    const principalComplete =
+      reversal.principalStatus === 'COMPLETED' ||
+      reversal.principalStatus === 'NOT_REQUIRED';
+
+    const commissionComplete =
+      reversal.commissionStatus === 'COMPLETED' ||
+      reversal.commissionStatus === 'NOT_REQUIRED';
+
+    if (!principalComplete || !commissionComplete) {
       this.throwRpc(
         409,
-        `Reversal cannot be completed from ${reversal.status} state`,
+        'Reversal cannot be completed until principal and commission compensation are complete',
+      );
+    }
+
+    /*
+     * Never trust arbitrary compensation ref.
+     */
+    if (
+      reversal.principalCompensationReference &&
+      compensationReferenceId &&
+      reversal.principalCompensationReference !== compensationReferenceId
+    ) {
+      this.throwRpc(
+        409,
+        'Compensation reference does not match processed principal reversal',
       );
     }
 
     const now = new Date();
 
-    /*
-     * Same DB transaction:
-     *
-     * reversal COMPLETE
-     * +
-     * original provider transaction REVERSED
-     */
-    const result = await this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx) => {
       const updated = await tx.providerTransactionReversal.update({
         where: {
           id: reversal.id,
@@ -1693,7 +3047,7 @@ export class TransactionService {
         data: {
           status: 'COMPLETED',
 
-          compensationReferenceId,
+          compensationReferenceId: reversal.principalCompensationReference,
 
           completedAt: now,
 
@@ -1714,21 +3068,21 @@ export class TransactionService {
           needsReconciliation: false,
 
           reconciliationReason: null,
+
+          commissionStatus: 'REVERSED',
         },
       });
 
-      return updated;
+      return {
+        ...updated,
+
+        amount: updated.amount.toString(),
+
+        originalTransactionReference: reversal.providerTransaction.referenceId,
+
+        originalTransactionStatus: 'REVERSED',
+      };
     });
-
-    return {
-      ...result,
-
-      amount: result.amount.toString(),
-
-      originalTransactionReference: reversal.providerTransaction.referenceId,
-
-      originalTransactionStatus: 'REVERSED',
-    };
   }
 
   async failProviderTransactionReversal(
@@ -2196,6 +3550,8 @@ export class TransactionService {
 
               userId: dto.userId,
 
+              sourceRole: dto.sourceRole?.trim() || null,
+
               serviceType: dto.serviceType,
 
               provider: dto.provider,
@@ -2227,6 +3583,10 @@ export class TransactionService {
                 category: 'FINANCIAL',
 
                 settlementMode: 'PRE_DEBIT',
+
+                incomeModel: 'PROVIDER_INCOME',
+
+                principalAmount: dto.amount.toFixed(2),
               },
             },
           });
@@ -2388,10 +3748,21 @@ export class TransactionService {
       where: {
         referenceId: dto.referenceId,
       },
+
+      include: {
+        reversal: true,
+      },
     });
 
     if (!transaction) {
       this.throwRpc(404, 'Provider transaction not found');
+    }
+
+    if (transaction.reversal && dto.status !== 'REVERSED') {
+      this.throwRpc(
+        409,
+        'Commission state cannot move forward because a transaction reversal exists',
+      );
     }
 
     /*
@@ -2423,37 +3794,1910 @@ export class TransactionService {
 
     const now = new Date();
 
+    try {
+      return this.prisma.providerTransaction.update({
+        where: {
+          id: transaction.id,
+        },
+
+        data: {
+          commissionStatus: dto.status,
+
+          ...(dto.commissionReferenceId !== undefined
+            ? {
+                commissionReferenceId: dto.commissionReferenceId,
+              }
+            : {}),
+
+          ...(dto.commissionWalletTransactionReference !== undefined
+            ? {
+                commissionWalletTransactionReference:
+                  dto.commissionWalletTransactionReference,
+              }
+            : {}),
+
+          ...(dto.commissionAmount !== undefined
+            ? {
+                commissionAmount: dto.commissionAmount,
+              }
+            : {}),
+
+          commissionFailureReason: dto.failureReason?.slice(0, 500) ?? null,
+
+          commissionSettledAt: dto.status === 'SETTLED' ? now : null,
+
+          ...(dto.providerIncomeSource !== undefined
+            ? {
+                providerIncomeSource: dto.providerIncomeSource,
+              }
+            : {}),
+
+          ...(dto.providerIncomeExternalReference !== undefined
+            ? {
+                providerIncomeExternalReference:
+                  dto.providerIncomeExternalReference,
+              }
+            : {}),
+
+          ...(dto.providerIncomeReconciledBy !== undefined
+            ? {
+                providerIncomeReconciledBy: dto.providerIncomeReconciledBy,
+
+                providerIncomeReconciledAt: new Date(),
+              }
+            : {}),
+        },
+      });
+    } catch (error: any) {
+      if (error?.code === 'P2002') {
+        this.throwRpc(
+          409,
+          'Provider income external reference has already been reconciled with another transaction',
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  async creditProviderCommissionDistribution(
+    dto: CreditCommissionDistributionDto,
+  ) {
+    if (!dto.recipientUserId?.trim()) {
+      this.throwRpc(400, 'Commission recipient user ID is required');
+    }
+
+    if (!dto.providerTransactionReference?.trim()) {
+      this.throwRpc(400, 'Provider transaction reference is required');
+    }
+
+    if (!dto.commissionId?.trim()) {
+      this.throwRpc(400, 'Commission ID is required');
+    }
+
+    if (!dto.commissionReference?.trim()) {
+      this.throwRpc(400, 'Commission reference is required');
+    }
+
+    if (!dto.distributionTransactionId?.trim()) {
+      this.throwRpc(400, 'Commission distribution transaction ID is required');
+    }
+
+    if (!dto.idempotencyKey?.trim()) {
+      this.throwRpc(400, 'Commission distribution idempotency key is required');
+    }
+
+    this.validateAmount(dto.amount);
+
+    /*
+     * =====================================================
+     * FAST IDEMPOTENCY CHECK
+     * =====================================================
+     */
+
+    const existing = await this.prisma.transaction.findUnique({
+      where: {
+        userId_idempotencyKey: {
+          userId: dto.recipientUserId,
+
+          idempotencyKey: dto.idempotencyKey,
+        },
+      },
+    });
+
+    if (existing) {
+      if (
+        existing.walletType !== WalletType.PROFIT ||
+        existing.type !== TransactionType.CREDIT ||
+        Number(existing.amount) !== dto.amount
+      ) {
+        this.throwRpc(
+          409,
+          'Commission distribution idempotency key has already been used for another transaction',
+        );
+      }
+
+      return this.serializeTransaction(existing);
+    }
+
+    try {
+      const result = await this.prisma.$transaction(
+        async (tx) => {
+          /*
+           * =================================================
+           * 1. LOCK COMMISSION FUNDING POOL
+           * =================================================
+           *
+           * Same PTXN ke multiple distribution credits
+           * total commission pool se zyada nahi ja sakte.
+           */
+
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(
+              hashtextextended(
+                ${`PTXN:${dto.providerTransactionReference}:COMMISSION`},
+                0
+              )
+            )
+          `;
+
+          /*
+           * Recipient PROFIT wallet lock.
+           */
+
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(
+              hashtextextended(
+                ${`${dto.recipientUserId}:PROFIT`},
+                0
+              )
+            )
+          `;
+
+          /*
+           * =================================================
+           * 2. CANONICAL PROVIDER TRANSACTION
+           * =================================================
+           */
+
+          const providerTransaction = await tx.providerTransaction.findUnique({
+            where: {
+              referenceId: dto.providerTransactionReference,
+            },
+
+            include: {
+              reversal: true,
+            },
+          });
+
+          if (!providerTransaction) {
+            this.throwRpc(404, 'Provider transaction not found');
+          }
+
+          if (providerTransaction.reversal) {
+            this.throwRpc(
+              409,
+              `Commission distribution is blocked because reversal ${providerTransaction.reversal.referenceId} exists for this transaction`,
+            );
+          }
+          /*
+           * PROFIT distribution only provider
+           * SUCCESS hone ke baad.
+           */
+
+          if (providerTransaction.status !== 'SUCCESS') {
+            this.throwRpc(
+              409,
+              `Commission cannot be distributed while provider transaction is ${providerTransaction.status}`,
+            );
+          }
+
+          /*
+           * Commission snapshot PTXN se match.
+           */
+
+          if (
+            providerTransaction.commissionReferenceId &&
+            providerTransaction.commissionReferenceId !==
+              dto.commissionReference
+          ) {
+            this.throwRpc(
+              409,
+              'Commission reference does not match provider transaction',
+            );
+          }
+
+          const commissionPool = Number(
+            providerTransaction.commissionAmount ?? 0,
+          );
+
+          if (!Number.isFinite(commissionPool) || commissionPool <= 0) {
+            this.throwRpc(
+              409,
+              'Provider transaction has no commission funding pool',
+            );
+          }
+
+          /*
+           * =================================================
+           * 3. IDEMPOTENCY INSIDE LOCK
+           * =================================================
+           */
+
+          const duplicate = await tx.transaction.findUnique({
+            where: {
+              userId_idempotencyKey: {
+                userId: dto.recipientUserId,
+
+                idempotencyKey: dto.idempotencyKey,
+              },
+            },
+          });
+
+          if (duplicate) {
+            if (
+              duplicate.walletType !== WalletType.PROFIT ||
+              duplicate.type !== TransactionType.CREDIT ||
+              Number(duplicate.amount) !== dto.amount
+            ) {
+              this.throwRpc(
+                409,
+                'Commission distribution idempotency key has already been used for another transaction',
+              );
+            }
+
+            return duplicate;
+          }
+
+          /*
+           * =================================================
+           * 4. HOW MUCH OF THIS PTXN COMMISSION
+           *    HAS ALREADY BEEN DISTRIBUTED?
+           * =================================================
+           *
+           * New distribution transactions use
+           * externalReference = PTXN reference.
+           */
+
+          const alreadyDistributed = await tx.transaction.aggregate({
+            where: {
+              externalReference: providerTransaction.referenceId,
+
+              walletType: WalletType.PROFIT,
+
+              type: TransactionType.CREDIT,
+
+              status: 'SUCCESS',
+            },
+
+            _sum: {
+              amount: true,
+            },
+          });
+
+          const distributedAmount = Number(alreadyDistributed._sum.amount ?? 0);
+
+          const nextTotal = Number((distributedAmount + dto.amount).toFixed(2));
+
+          if (nextTotal > commissionPool) {
+            this.throwRpc(
+              409,
+              `Commission distribution exceeds funding pool. Pool: ₹${commissionPool.toFixed(
+                2,
+              )}, already distributed: ₹${distributedAmount.toFixed(2)}`,
+            );
+          }
+
+          /*
+           * =================================================
+           * 5. RECIPIENT PROFIT BALANCE
+           * =================================================
+           */
+
+          const lastTransaction = await tx.transaction.findFirst({
+            where: {
+              userId: dto.recipientUserId,
+
+              walletType: WalletType.PROFIT,
+
+              status: 'SUCCESS',
+            },
+
+            orderBy: {
+              sequence: 'desc',
+            },
+          });
+
+          const openingBalance = lastTransaction
+            ? Number(lastTransaction.closingBalance)
+            : 0;
+
+          const closingBalance = Number(
+            (openingBalance + dto.amount).toFixed(2),
+          );
+
+          /*
+           * =================================================
+           * 6. FUNDING SOURCE
+           * =================================================
+           */
+
+          const fundingSource =
+            providerTransaction.provider === 'VIMOPAY'
+              ? 'VIMOPAY_PROVIDER_INCOME'
+              : 'PROVIDER_COMMISSION';
+
+          /*
+           * =================================================
+           * 7. PROFIT CREDIT
+           * =================================================
+           */
+
+          const transaction = await tx.transaction.create({
+            data: {
+              referenceId: this.generateReference('TXN'),
+
+              userId: dto.recipientUserId,
+
+              walletType: WalletType.PROFIT,
+
+              serviceType: dto.serviceType,
+
+              type: TransactionType.CREDIT,
+
+              amount: dto.amount,
+
+              openingBalance,
+
+              closingBalance,
+
+              status: 'SUCCESS',
+
+              description: `AEPS commission distribution for ${dto.recipientRole}`,
+
+              /*
+               * IMPORTANT:
+               *
+               * Funding parent = PTXN.
+               */
+              externalReference: providerTransaction.referenceId,
+
+              idempotencyKey: dto.idempotencyKey,
+
+              metadata: {
+                entryKind: 'AEPS_COMMISSION_DISTRIBUTION',
+
+                fundingSource,
+
+                providerTransactionReference: providerTransaction.referenceId,
+
+                grossProviderAmount: providerTransaction.amount.toString(),
+
+                commissionPool: commissionPool.toFixed(2),
+
+                commissionId: dto.commissionId,
+
+                commissionReference: dto.commissionReference,
+
+                distributionTransactionId: dto.distributionTransactionId,
+
+                recipientRole: dto.recipientRole,
+              },
+            },
+          });
+
+          return transaction;
+        },
+        {
+          isolationLevel: 'Serializable',
+        },
+      );
+
+      return this.serializeTransaction(result);
+    } catch (error: any) {
+      if (error instanceof RpcException) {
+        throw error;
+      }
+
+      if (error?.code === 'P2002') {
+        const duplicate = await this.prisma.transaction.findUnique({
+          where: {
+            userId_idempotencyKey: {
+              userId: dto.recipientUserId,
+
+              idempotencyKey: dto.idempotencyKey,
+            },
+          },
+        });
+
+        if (duplicate) {
+          return this.serializeTransaction(duplicate);
+        }
+
+        this.throwRpc(409, 'Commission distribution already exists');
+      }
+
+      if (error?.code === 'P2034') {
+        this.throwRpc(409, 'Commission distribution conflict. Please retry.');
+      }
+
+      this.throwRpc(
+        500,
+        error?.message ?? 'Unable to credit commission distribution',
+      );
+    }
+  }
+
+  async processProviderTransactionReversal(
+    reversalReferenceId: string,
+    processedBy: string,
+  ) {
+    if (!reversalReferenceId?.trim()) {
+      this.throwRpc(400, 'Reversal reference is required');
+    }
+
+    if (!processedBy?.trim()) {
+      this.throwRpc(400, 'processedBy is required');
+    }
+
+    /*
+     * =====================================================
+     * 1. CLAIM REVERSAL
+     * =====================================================
+     */
+
+    let reversal = await this.prisma.providerTransactionReversal.findUnique({
+      where: {
+        referenceId: reversalReferenceId,
+      },
+
+      include: {
+        providerTransaction: true,
+      },
+    });
+
+    if (!reversal) {
+      this.throwRpc(404, 'Provider transaction reversal not found');
+    }
+
+    if (reversal.status === 'COMPLETED') {
+      return {
+        ...reversal,
+
+        amount: reversal.amount.toString(),
+
+        duplicate: true,
+      };
+    }
+
+    if (reversal.status === 'PROCESSING') {
+      this.throwRpc(409, 'Reversal is already being processed');
+    }
+
+    if (!['REQUESTED', 'FAILED'].includes(reversal.status)) {
+      this.throwRpc(
+        409,
+        `Reversal cannot be processed from ${reversal.status} state`,
+      );
+    }
+
+    if (
+      reversal.providerTransaction.status !== 'SUCCESS' &&
+      reversal.providerTransaction.status !== 'REVERSED'
+    ) {
+      this.throwRpc(
+        409,
+        `Original provider transaction cannot be reversed from ${reversal.providerTransaction.status} state`,
+      );
+    }
+
+    reversal = await this.prisma.providerTransactionReversal.update({
+      where: {
+        id: reversal.id,
+      },
+
+      data: {
+        status: 'PROCESSING',
+
+        processingAt: new Date(),
+
+        processedBy,
+
+        failedReason: null,
+
+        /*
+         * Completed component retry par
+         * dobara execute nahi hogi.
+         */
+        ...(reversal.principalStatus !== 'COMPLETED'
+          ? {
+              principalStatus: 'PROCESSING',
+            }
+          : {}),
+
+        ...(reversal.commissionStatus !== 'COMPLETED' &&
+        reversal.commissionStatus !== 'NOT_REQUIRED'
+          ? {
+              commissionStatus: 'PROCESSING',
+            }
+          : {}),
+      },
+
+      include: {
+        providerTransaction: true,
+      },
+    });
+
+    const providerTransaction = reversal.providerTransaction;
+
+    const amount = Number(providerTransaction.amount);
+
+    /*
+     * =====================================================
+     * 2. PRINCIPAL REVERSAL
+     * =====================================================
+     */
+
+    if (reversal.principalStatus !== 'COMPLETED') {
+      try {
+        let principalType: TransactionType;
+
+        let serviceType: string;
+
+        let description: string;
+
+        /*
+         * CW/AP originally CREDIT.
+         *
+         * Reversal = DEBIT.
+         */
+        if (
+          providerTransaction.operation === 'CW' ||
+          providerTransaction.operation === 'AP'
+        ) {
+          principalType = TransactionType.DEBIT;
+
+          serviceType =
+            providerTransaction.operation === 'CW'
+              ? 'AEPS_CASH_WITHDRAWAL_REVERSAL'
+              : 'AEPS_AADHAAR_PAY_REVERSAL';
+
+          description = `${providerTransaction.operation} provider reversal - principal debit`;
+        } else if (providerTransaction.operation === 'CD') {
+          /*
+           * CD originally DEBIT.
+           *
+           * Reversal = CREDIT.
+           */
+          principalType = TransactionType.CREDIT;
+
+          serviceType = 'AEPS_CASH_DEPOSIT_REVERSAL';
+
+          description = 'Cash Deposit provider reversal - principal credit';
+        } else {
+          this.throwRpc(
+            409,
+            `Unsupported reversal operation: ${providerTransaction.operation}`,
+          );
+        }
+
+        const principalTransaction = await this.createReversalWalletEntry({
+          userId: providerTransaction.userId,
+
+          providerTransactionReference: providerTransaction.referenceId,
+
+          walletType: WalletType.AEPS,
+
+          type: principalType,
+
+          amount,
+
+          serviceType,
+
+          description,
+
+          idempotencyKey: `REV:${reversal.referenceId}:PRINCIPAL`,
+
+          metadata: {
+            entryKind: 'PROVIDER_TRANSACTION_PRINCIPAL_REVERSAL',
+
+            reversalReference: reversal.referenceId,
+
+            providerTransactionReference: providerTransaction.referenceId,
+
+            originalSettlementTransactionReference:
+              providerTransaction.settlementTransactionReference,
+
+            operation: providerTransaction.operation,
+          },
+        });
+
+        /*
+         * Record principal reversal.
+         */
+        await this.prisma.$transaction(async (tx) => {
+          await tx.providerTransactionReversal.update({
+            where: {
+              id: reversal.id,
+            },
+
+            data: {
+              principalStatus: 'COMPLETED',
+
+              principalCompensationReference: principalTransaction.referenceId,
+
+              principalFailureReason: null,
+            },
+          });
+
+          /*
+           * Original settlement stays in ledger.
+           *
+           * New compensation reference separately.
+           */
+          await tx.providerTransaction.update({
+            where: {
+              id: providerTransaction.id,
+            },
+
+            data: {
+              settlementStatus: 'COMPENSATED',
+
+              compensationTransactionReference:
+                principalTransaction.referenceId,
+
+              settlementFailureReason: null,
+
+              compensatedAt: new Date(),
+            },
+          });
+        });
+      } catch (error: any) {
+        const message =
+          error?.message ??
+          error?.error?.message ??
+          'Principal reversal failed';
+
+        await this.prisma.providerTransactionReversal.update({
+          where: {
+            id: reversal.id,
+          },
+
+          data: {
+            status: 'FAILED',
+
+            principalStatus: 'FAILED',
+
+            principalFailureReason: String(message).slice(0, 500),
+
+            failedReason: String(message).slice(0, 500),
+          },
+        });
+
+        if (error instanceof RpcException) {
+          throw error;
+        }
+
+        this.throwRpc(500, message);
+      }
+    }
+
+    /*
+     * =====================================================
+     * 3. COMMISSION REVERSAL
+     * =====================================================
+     */
+
+    try {
+      /*
+       * No commission record ever created.
+       *
+       * Example:
+       * production transaction still waiting
+       * for VimoPay wallet income.
+       */
+      if (!providerTransaction.commissionReferenceId) {
+        await this.prisma.$transaction(async (tx) => {
+          await tx.providerTransactionReversal.update({
+            where: {
+              id: reversal.id,
+            },
+
+            data: {
+              commissionStatus: 'NOT_REQUIRED',
+
+              commissionFailureReason: null,
+            },
+          });
+
+          /*
+           * Prevent any future provider
+           * income distribution.
+           */
+          await tx.providerTransaction.update({
+            where: {
+              id: providerTransaction.id,
+            },
+
+            data: {
+              commissionStatus: 'REVERSED',
+
+              commissionFailureReason: null,
+
+              commissionSettledAt: null,
+            },
+          });
+        });
+      } else {
+        /*
+         * ===============================================
+         * READ FROZEN COMMISSION ALLOCATIONS
+         * ===============================================
+         */
+
+        const execution: any = await firstValueFrom(
+          this.commissionClient.send(
+            COMMISSION_PATTERNS.GET_PROVIDER_COMMISSION_EXECUTION,
+
+            {
+              commissionReference: providerTransaction.commissionReferenceId,
+            },
+          ),
+        );
+
+        const allocations: any[] = Array.isArray(execution?.allocations)
+          ? execution.allocations
+          : [];
+
+        /*
+         * ===============================================
+         * REVERSE EVERY ACTUAL SUCCESSFUL CREDIT
+         * ===============================================
+         */
+
+        for (const allocation of allocations) {
+          /*
+           * Already reversed.
+           */
+          if (allocation.status === 'REVERSED') {
+            continue;
+          }
+
+          /*
+           * PENDING/FAILED were never
+           * credited to wallet.
+           */
+          if (allocation.status !== 'SUCCESS') {
+            continue;
+          }
+
+          const allocationAmount = Number(allocation.amount);
+
+          if (!Number.isFinite(allocationAmount) || allocationAmount <= 0) {
+            throw new Error(
+              `Invalid commission allocation amount for ${allocation.id}`,
+            );
+          }
+
+          /*
+           * Original PROFIT CREDIT
+           * → reversal PROFIT DEBIT.
+           */
+          const reversalTransaction = await this.createReversalWalletEntry({
+            userId: allocation.recipientUserId,
+
+            providerTransactionReference: providerTransaction.referenceId,
+
+            walletType: WalletType.PROFIT,
+
+            type: TransactionType.DEBIT,
+
+            amount: allocationAmount,
+
+            serviceType: `${execution.serviceType}_COMMISSION_REVERSAL`,
+
+            description: `Commission reversal for ${allocation.recipientRole}`,
+
+            idempotencyKey: `REV:${reversal.referenceId}:COMM:${allocation.id}`,
+
+            metadata: {
+              entryKind: 'AEPS_COMMISSION_DISTRIBUTION_REVERSAL',
+
+              reversalReference: reversal.referenceId,
+
+              providerTransactionReference: providerTransaction.referenceId,
+
+              commissionReference: providerTransaction.commissionReferenceId,
+
+              distributionTransactionId: allocation.id,
+
+              originalWalletTransactionId: allocation.transactionId,
+
+              originalWalletTransactionReference:
+                allocation.transactionReference,
+
+              recipientRole: allocation.recipientRole,
+            },
+          });
+
+          /*
+           * Wallet debit successful.
+           *
+           * Commission DB allocation now
+           * REVERSED.
+           */
+          await firstValueFrom(
+            this.commissionClient.send(
+              COMMISSION_PATTERNS.MARK_DISTRIBUTION_REVERSED,
+
+              {
+                distributionTransactionId: allocation.id,
+
+                reversalWalletTransactionId: reversalTransaction.id,
+
+                reversalWalletTransactionReference:
+                  reversalTransaction.referenceId,
+              },
+            ),
+          );
+        }
+
+        /*
+         * ===============================================
+         * FINALIZE COMMISSION
+         * ===============================================
+         */
+
+        const finalized: any = await firstValueFrom(
+          this.commissionClient.send(
+            COMMISSION_PATTERNS.FINALIZE_PROVIDER_COMMISSION_REVERSAL,
+
+            {
+              commissionReference: providerTransaction.commissionReferenceId,
+
+              reason: reversal.reason,
+            },
+          ),
+        );
+
+        if (finalized?.status !== 'REVERSED') {
+          throw new Error(
+            `Commission reversal is incomplete. Remaining allocations: ${finalized?.remainingAllocations ?? 'unknown'}`,
+          );
+        }
+
+        await this.prisma.$transaction(async (tx) => {
+          await tx.providerTransactionReversal.update({
+            where: {
+              id: reversal.id,
+            },
+
+            data: {
+              commissionStatus: 'COMPLETED',
+
+              commissionReversalReference:
+                providerTransaction.commissionReferenceId,
+
+              commissionFailureReason: null,
+            },
+          });
+
+          await tx.providerTransaction.update({
+            where: {
+              id: providerTransaction.id,
+            },
+
+            data: {
+              commissionStatus: 'REVERSED',
+
+              commissionFailureReason: null,
+            },
+          });
+        });
+      }
+    } catch (error: any) {
+      const message =
+        error?.message ?? error?.error?.message ?? 'Commission reversal failed';
+
+      await this.prisma.providerTransactionReversal.update({
+        where: {
+          id: reversal.id,
+        },
+
+        data: {
+          status: 'FAILED',
+
+          commissionStatus: 'FAILED',
+
+          commissionFailureReason: String(message).slice(0, 500),
+
+          failedReason: String(message).slice(0, 500),
+        },
+      });
+
+      if (error instanceof RpcException) {
+        throw error;
+      }
+
+      this.throwRpc(500, message);
+    }
+
+    /*
+     * =====================================================
+     * 4. FINAL VERIFICATION
+     * =====================================================
+     */
+
+    const finalReversal =
+      await this.prisma.providerTransactionReversal.findUnique({
+        where: {
+          id: reversal.id,
+        },
+
+        include: {
+          providerTransaction: true,
+        },
+      });
+
+    if (!finalReversal) {
+      this.throwRpc(404, 'Reversal disappeared during processing');
+    }
+
+    const principalComplete =
+      finalReversal.principalStatus === 'COMPLETED' ||
+      finalReversal.principalStatus === 'NOT_REQUIRED';
+
+    const commissionComplete =
+      finalReversal.commissionStatus === 'COMPLETED' ||
+      finalReversal.commissionStatus === 'NOT_REQUIRED';
+
+    if (!principalComplete || !commissionComplete) {
+      await this.prisma.providerTransactionReversal.update({
+        where: {
+          id: finalReversal.id,
+        },
+
+        data: {
+          status: 'FAILED',
+
+          failedReason: 'Reversal components are incomplete',
+        },
+      });
+
+      this.throwRpc(409, 'Reversal components are incomplete');
+    }
+
+    /*
+     * =====================================================
+     * 5. MARK FINAL REVERSED
+     * =====================================================
+     */
+
+    const now = new Date();
+
+    const completed = await this.prisma.$transaction(async (tx) => {
+      const completedReversal = await tx.providerTransactionReversal.update({
+        where: {
+          id: finalReversal.id,
+        },
+
+        data: {
+          status: 'COMPLETED',
+
+          completedAt: now,
+
+          compensationReferenceId: finalReversal.principalCompensationReference,
+
+          failedReason: null,
+        },
+      });
+
+      await tx.providerTransaction.update({
+        where: {
+          id: finalReversal.providerTransactionId,
+        },
+
+        data: {
+          status: 'REVERSED',
+
+          reversedAt: now,
+
+          needsReconciliation: false,
+
+          reconciliationReason: null,
+
+          commissionStatus: 'REVERSED',
+        },
+      });
+
+      return completedReversal;
+    });
+
+    return {
+      ...completed,
+
+      amount: completed.amount.toString(),
+
+      originalTransactionReference: providerTransaction.referenceId,
+
+      originalTransactionStatus: 'REVERSED',
+
+      principalStatus: completed.principalStatus,
+
+      commissionStatus: completed.commissionStatus,
+
+      duplicate: false,
+    };
+  }
+
+  async markProviderFinancialRecoveryRequired(
+    referenceId: string,
+    reason: string,
+  ) {
+    if (!referenceId?.trim()) {
+      this.throwRpc(400, 'Provider transaction reference is required');
+    }
+
+    const transaction = await this.prisma.providerTransaction.findUnique({
+      where: {
+        referenceId,
+      },
+    });
+
+    if (!transaction) {
+      this.throwRpc(404, 'Provider transaction not found');
+    }
+
+    /*
+     * Provider result ko change nahi karna.
+     *
+     * SUCCESS remains SUCCESS.
+     * FAILED remains FAILED.
+     *
+     * Sirf internal financial recovery
+     * queue flag set kar rahe hain.
+     */
     return this.prisma.providerTransaction.update({
       where: {
         id: transaction.id,
       },
 
       data: {
-        commissionStatus: dto.status,
+        needsReconciliation: true,
 
-        ...(dto.commissionReferenceId !== undefined
-          ? {
-              commissionReferenceId: dto.commissionReferenceId,
-            }
-          : {}),
-
-        ...(dto.commissionWalletTransactionReference !== undefined
-          ? {
-              commissionWalletTransactionReference:
-                dto.commissionWalletTransactionReference,
-            }
-          : {}),
-
-        ...(dto.commissionAmount !== undefined
-          ? {
-              commissionAmount: dto.commissionAmount,
-            }
-          : {}),
-
-        commissionFailureReason: dto.failureReason?.slice(0, 500) ?? null,
-
-        commissionSettledAt: dto.status === 'SETTLED' ? now : null,
+        reconciliationReason: (
+          reason || 'Internal provider financial effect requires recovery'
+        ).slice(0, 500),
       },
     });
+  }
+
+  async recoverProviderFinancialEffects(
+    referenceId: string,
+    recoveredBy: string,
+  ) {
+    if (!referenceId?.trim()) {
+      this.throwRpc(400, 'Provider transaction reference is required');
+    }
+
+    if (!recoveredBy?.trim()) {
+      this.throwRpc(400, 'recoveredBy is required');
+    }
+
+    /*
+     * =====================================================
+     * 1. READ CANONICAL PTXN
+     * =====================================================
+     */
+
+    let providerTransaction = await this.prisma.providerTransaction.findUnique({
+      where: {
+        referenceId,
+      },
+
+      include: {
+        reversal: true,
+      },
+    });
+
+    if (!providerTransaction) {
+      this.throwRpc(404, 'Provider transaction not found');
+    }
+
+    if (providerTransaction.reversal) {
+      this.throwRpc(
+        409,
+        'Internal financial recovery is blocked because a reversal exists',
+      );
+    }
+
+    if (!['CW', 'AP', 'CD'].includes(providerTransaction.operation)) {
+      this.throwRpc(
+        409,
+        `Operation ${providerTransaction.operation} does not require financial recovery`,
+      );
+    }
+
+    if (!['SUCCESS', 'FAILED'].includes(providerTransaction.status)) {
+      this.throwRpc(
+        409,
+        `Provider transaction is still ${providerTransaction.status}. Resolve provider status first.`,
+      );
+    }
+
+    const principalRecoveryRequired =
+      /*
+       * CW / AP SUCCESS but principal credit missing.
+       */
+      (providerTransaction.status === 'SUCCESS' &&
+        ['CW', 'AP'].includes(providerTransaction.operation) &&
+        ['PENDING', 'UNKNOWN'].includes(
+          providerTransaction.settlementStatus,
+        )) ||
+      /*
+       * CD SUCCESS but reserved debit not confirmed.
+       */
+      (providerTransaction.status === 'SUCCESS' &&
+        providerTransaction.operation === 'CD' &&
+        providerTransaction.settlementStatus === 'RESERVED') ||
+      /*
+       * CD FAILED but reserved debit not refunded.
+       */
+      (providerTransaction.status === 'FAILED' &&
+        providerTransaction.operation === 'CD' &&
+        providerTransaction.settlementStatus === 'RESERVED') ||
+      /*
+       * CW/AP FAILED but settlement state
+       * still needs normalization.
+       */
+      (providerTransaction.status === 'FAILED' &&
+        ['CW', 'AP'].includes(providerTransaction.operation) &&
+        ['PENDING', 'UNKNOWN'].includes(providerTransaction.settlementStatus));
+
+    if (!principalRecoveryRequired) {
+      this.throwRpc(
+        409,
+        `No internal principal recovery is required. Provider status: ${providerTransaction.status}, settlement status: ${providerTransaction.settlementStatus}`,
+      );
+    }
+
+    const amount = Number(providerTransaction.amount);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      this.throwRpc(409, 'Canonical provider amount is invalid');
+    }
+
+    let walletTransaction: any = null;
+
+    /*
+     * =====================================================
+     * 2. PROVIDER SUCCESS
+     * =====================================================
+     */
+
+    if (providerTransaction.status === 'SUCCESS') {
+      /*
+       * ===============================================
+       * CW / AP
+       * ===============================================
+       *
+       * Provider succeeded but AEPS principal
+       * credit may be missing.
+       */
+      if (
+        providerTransaction.operation === 'CW' ||
+        providerTransaction.operation === 'AP'
+      ) {
+        if (providerTransaction.settlementStatus !== 'SETTLED') {
+          if (
+            !['PENDING', 'UNKNOWN'].includes(
+              providerTransaction.settlementStatus,
+            )
+          ) {
+            this.throwRpc(
+              409,
+              `${providerTransaction.operation} principal cannot be recovered from ${providerTransaction.settlementStatus} settlement state`,
+            );
+          }
+
+          /*
+           * IMPORTANT:
+           *
+           * SAME idempotency key normal
+           * settlement uses.
+           *
+           * If original settlement actually
+           * committed but response was lost,
+           * duplicate wallet credit impossible.
+           */
+
+          walletTransaction = await this.postProviderWalletEntry({
+            userId: providerTransaction.userId,
+
+            providerTransactionReference: providerTransaction.referenceId,
+
+            walletType: 'AEPS',
+
+            type: 'CREDIT',
+
+            /*
+             * FULL principal.
+             */
+            amount,
+
+            providerAmount: amount,
+
+            serviceType:
+              providerTransaction.operation === 'CW'
+                ? 'AEPS_CASH_WITHDRAWAL'
+                : 'AEPS_AADHAAR_PAY',
+
+            description: `${providerTransaction.operation} AEPS principal settlement recovery`,
+
+            idempotencyKey: `AEPS:${providerTransaction.referenceId}:PRINCIPAL`,
+
+            action: 'SETTLE',
+          });
+        }
+      }
+
+      /*
+       * ===============================================
+       * CASH DEPOSIT
+       * ===============================================
+       *
+       * Principal debit already happened.
+       *
+       * SUCCESS means reservation simply becomes
+       * SETTLED. No second debit.
+       */
+      if (providerTransaction.operation === 'CD') {
+        if (providerTransaction.settlementStatus === 'RESERVED') {
+          await this.confirmProviderWalletReservation({
+            userId: providerTransaction.userId,
+
+            providerTransactionReference: providerTransaction.referenceId,
+          });
+        } else if (providerTransaction.settlementStatus !== 'SETTLED') {
+          this.throwRpc(
+            409,
+            `Cash Deposit SUCCESS cannot be recovered from ${providerTransaction.settlementStatus} settlement state`,
+          );
+        }
+      }
+    }
+
+    /*
+     * =====================================================
+     * 3. PROVIDER FAILED
+     * =====================================================
+     */
+
+    if (providerTransaction.status === 'FAILED') {
+      /*
+       * CW/AP provider failed.
+       *
+       * No principal credit should exist.
+       */
+      if (
+        providerTransaction.operation === 'CW' ||
+        providerTransaction.operation === 'AP'
+      ) {
+        if (providerTransaction.settlementStatus === 'SETTLED') {
+          this.throwRpc(
+            409,
+            'Principal has already been settled. Use reversal instead of FAILED recovery.',
+          );
+        }
+
+        await this.prisma.providerTransaction.update({
+          where: {
+            id: providerTransaction.id,
+          },
+
+          data: {
+            settlementStatus: 'NOT_REQUIRED',
+
+            settlementFailureReason: null,
+          },
+        });
+      }
+
+      /*
+       * CD failed:
+       *
+       * original reservation DEBIT must
+       * be refunded completely.
+       */
+      if (providerTransaction.operation === 'CD') {
+        if (providerTransaction.settlementStatus === 'RESERVED') {
+          walletTransaction = await this.postProviderWalletEntry({
+            userId: providerTransaction.userId,
+
+            providerTransactionReference: providerTransaction.referenceId,
+
+            walletType: 'AEPS',
+
+            type: 'CREDIT',
+
+            amount,
+
+            providerAmount: amount,
+
+            serviceType: 'AEPS_CASH_DEPOSIT_COMPENSATION',
+
+            description:
+              'Cash Deposit provider failure - internal recovery compensation',
+
+            /*
+             * Same normal compensation key.
+             */
+            idempotencyKey: `AEPS:${providerTransaction.referenceId}:CD:COMPENSATE`,
+
+            action: 'COMPENSATE',
+          });
+        } else if (providerTransaction.settlementStatus !== 'COMPENSATED') {
+          this.throwRpc(
+            409,
+            `Cash Deposit FAILED cannot be recovered from ${providerTransaction.settlementStatus} settlement state`,
+          );
+        }
+      }
+    }
+
+    /*
+     * =====================================================
+     * 4. READ FRESH FINANCIAL STATE
+     * =====================================================
+     */
+
+    providerTransaction = await this.prisma.providerTransaction.findUnique({
+      where: {
+        referenceId,
+      },
+
+      include: {
+        reversal: true,
+      },
+    });
+
+    if (!providerTransaction) {
+      this.throwRpc(404, 'Provider transaction disappeared during recovery');
+    }
+
+    /*
+     * Verify expected final principal state.
+     */
+
+    if (providerTransaction.status === 'SUCCESS') {
+      if (providerTransaction.settlementStatus !== 'SETTLED') {
+        this.throwRpc(
+          409,
+          `Internal principal recovery is incomplete. Settlement status: ${providerTransaction.settlementStatus}`,
+        );
+      }
+    }
+
+    if (providerTransaction.status === 'FAILED') {
+      if (
+        providerTransaction.operation === 'CD' &&
+        providerTransaction.settlementStatus !== 'COMPENSATED'
+      ) {
+        this.throwRpc(409, 'Cash Deposit compensation recovery is incomplete');
+      }
+
+      if (
+        (providerTransaction.operation === 'CW' ||
+          providerTransaction.operation === 'AP') &&
+        providerTransaction.settlementStatus !== 'NOT_REQUIRED'
+      ) {
+        this.throwRpc(409, 'Failed transaction settlement state is incomplete');
+      }
+    }
+
+    /*
+     * =====================================================
+     * 5. COMMISSION NEXT STATE
+     * =====================================================
+     *
+     * SUCCESS:
+     * principal recovered.
+     *
+     * Actual/dummy provider income is a
+     * separate step.
+     */
+
+    const commissionUpdate: any = {};
+
+    if (
+      providerTransaction.status === 'SUCCESS' &&
+      providerTransaction.commissionStatus !== 'SETTLED' &&
+      providerTransaction.commissionStatus !== 'REVERSED' &&
+      !providerTransaction.commissionReferenceId
+    ) {
+      commissionUpdate.commissionStatus = 'WAITING_PROVIDER_INCOME';
+
+      commissionUpdate.commissionFailureReason =
+        'Principal recovered; waiting for provider income reconciliation';
+
+      commissionUpdate.commissionAmount = null;
+
+      commissionUpdate.commissionSettledAt = null;
+    }
+
+    /*
+     * Definitive failure:
+     * no provider income.
+     */
+    if (providerTransaction.status === 'FAILED') {
+      commissionUpdate.commissionStatus = 'NOT_REQUIRED';
+
+      commissionUpdate.commissionReferenceId = null;
+
+      commissionUpdate.commissionWalletTransactionReference = null;
+
+      commissionUpdate.commissionAmount = null;
+
+      commissionUpdate.commissionFailureReason = null;
+
+      commissionUpdate.commissionSettledAt = null;
+    }
+
+    /*
+     * =====================================================
+     * 6. CLEAR RECOVERY FLAG
+     * =====================================================
+     */
+
+    const recovered = await this.prisma.providerTransaction.update({
+      where: {
+        id: providerTransaction.id,
+      },
+
+      data: {
+        needsReconciliation: false,
+
+        reconciliationReason: null,
+
+        reconciledBy: recoveredBy,
+
+        reconciledAt: new Date(),
+
+        reconciliationNote: 'Internal provider financial effects recovered',
+
+        ...commissionUpdate,
+      },
+    });
+
+    return {
+      transaction: {
+        referenceId: recovered.referenceId,
+
+        status: recovered.status,
+
+        operation: recovered.operation,
+
+        amount: recovered.amount.toString(),
+      },
+
+      settlement: {
+        status: recovered.settlementStatus,
+
+        transactionReference: recovered.settlementTransactionReference,
+
+        compensationTransactionReference:
+          recovered.compensationTransactionReference,
+      },
+
+      commission: {
+        status: recovered.commissionStatus,
+
+        amount: recovered.commissionAmount
+          ? recovered.commissionAmount.toString()
+          : null,
+
+        referenceId: recovered.commissionReferenceId,
+      },
+
+      walletTransaction: walletTransaction
+        ? this.serializeTransaction(walletTransaction)
+        : null,
+    };
+  }
+
+  private parseOptionalDate(
+    value: string | undefined,
+    label: string,
+  ): Date | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      this.throwRpc(400, `${label} must be a valid date`);
+    }
+
+    return date;
+  }
+
+  async adminListProviderTransactions(dto: AdminListProviderTransactionsDto) {
+    const page = Math.max(Number(dto.page) || 1, 1);
+
+    const limit = Math.min(Math.max(Number(dto.limit) || 20, 1), 100);
+
+    const fromDate = this.parseOptionalDate(dto.fromDate, 'fromDate');
+
+    const toDate = this.parseOptionalDate(dto.toDate, 'toDate');
+
+    const where: Prisma.ProviderTransactionWhereInput = {
+      ...(dto.userId
+        ? {
+            userId: dto.userId,
+          }
+        : {}),
+
+      ...(dto.provider
+        ? {
+            provider: dto.provider,
+          }
+        : {}),
+
+      ...(dto.serviceType
+        ? {
+            serviceType: dto.serviceType,
+          }
+        : {}),
+
+      ...(dto.operation
+        ? {
+            operation: dto.operation,
+          }
+        : {}),
+
+      ...(dto.status
+        ? {
+            status: dto.status,
+          }
+        : {}),
+
+      ...(dto.settlementStatus
+        ? {
+            settlementStatus: dto.settlementStatus,
+          }
+        : {}),
+
+      ...(dto.commissionStatus
+        ? {
+            commissionStatus: dto.commissionStatus,
+          }
+        : {}),
+
+      ...(fromDate || toDate
+        ? {
+            createdAt: {
+              ...(fromDate
+                ? {
+                    gte: fromDate,
+                  }
+                : {}),
+
+              ...(toDate
+                ? {
+                    lte: toDate,
+                  }
+                : {}),
+            },
+          }
+        : {}),
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.providerTransaction.findMany({
+        where,
+
+        orderBy: {
+          createdAt: 'desc',
+        },
+
+        skip: (page - 1) * limit,
+
+        take: limit,
+      }),
+
+      this.prisma.providerTransaction.count({
+        where,
+      }),
+    ]);
+
+    return {
+      page,
+      limit,
+      total,
+
+      totalPages: Math.ceil(total / limit),
+
+      data: data.map((transaction) => ({
+        id: transaction.id,
+
+        referenceId: transaction.referenceId,
+
+        userId: transaction.userId,
+
+        sourceRole: transaction.sourceRole,
+
+        provider: transaction.provider,
+
+        serviceType: transaction.serviceType,
+
+        operation: transaction.operation,
+
+        amount: transaction.amount.toString(),
+
+        status: transaction.status,
+
+        settlementStatus: transaction.settlementStatus,
+
+        commissionStatus: transaction.commissionStatus,
+
+        commissionAmount:
+          transaction.commissionAmount !== null
+            ? transaction.commissionAmount.toString()
+            : null,
+
+        providerIncomeSource: transaction.providerIncomeSource,
+
+        providerTxnRefId: transaction.providerTxnRefId,
+
+        merchantRefId: transaction.providerMerchantRefId,
+
+        rrn: transaction.rrn,
+
+        needsReconciliation: transaction.needsReconciliation,
+
+        createdAt: transaction.createdAt,
+
+        completedAt: transaction.completedAt,
+
+        reversedAt: transaction.reversedAt,
+      })),
+    };
+  }
+
+  async listPendingProviderIncome(dto: AdminListProviderTransactionsDto) {
+    return this.adminListProviderTransactions({
+      ...dto,
+
+      status: 'SUCCESS',
+
+      settlementStatus: 'SETTLED',
+
+      commissionStatus: 'WAITING_PROVIDER_INCOME',
+    });
+  }
+
+  async listProviderReversals(dto: ListProviderReversalsDto) {
+    const page = Math.max(Number(dto.page) || 1, 1);
+
+    const limit = Math.min(Math.max(Number(dto.limit) || 20, 1), 100);
+
+    const where: Prisma.ProviderTransactionReversalWhereInput = {
+      ...(dto.status
+        ? {
+            status: dto.status,
+          }
+        : {}),
+
+      ...(dto.userId || dto.provider || dto.operation
+        ? {
+            providerTransaction: {
+              ...(dto.userId
+                ? {
+                    userId: dto.userId,
+                  }
+                : {}),
+
+              ...(dto.provider
+                ? {
+                    provider: dto.provider,
+                  }
+                : {}),
+
+              ...(dto.operation
+                ? {
+                    operation: dto.operation,
+                  }
+                : {}),
+            },
+          }
+        : {}),
+    };
+
+    const [reversals, total] = await this.prisma.$transaction([
+      this.prisma.providerTransactionReversal.findMany({
+        where,
+
+        include: {
+          providerTransaction: true,
+        },
+
+        orderBy: {
+          createdAt: 'desc',
+        },
+
+        skip: (page - 1) * limit,
+
+        take: limit,
+      }),
+
+      this.prisma.providerTransactionReversal.count({
+        where,
+      }),
+    ]);
+
+    return {
+      page,
+      limit,
+      total,
+
+      totalPages: Math.ceil(total / limit),
+
+      data: reversals.map((item) => ({
+        referenceId: item.referenceId,
+
+        providerTransactionReference: item.providerTransaction.referenceId,
+
+        provider: item.providerTransaction.provider,
+
+        operation: item.providerTransaction.operation,
+
+        userId: item.providerTransaction.userId,
+
+        amount: item.amount.toString(),
+
+        status: item.status,
+
+        principalStatus: item.principalStatus,
+
+        commissionStatus: item.commissionStatus,
+
+        reason: item.reason,
+
+        requestedBy: item.requestedBy,
+
+        processedBy: item.processedBy,
+
+        failedReason: item.failedReason,
+
+        createdAt: item.createdAt,
+
+        completedAt: item.completedAt,
+      })),
+    };
+  }
+
+  async getProviderReversal(referenceId: string) {
+    if (!referenceId?.trim()) {
+      this.throwRpc(400, 'Reversal reference is required');
+    }
+
+    const reversal = await this.prisma.providerTransactionReversal.findUnique({
+      where: {
+        referenceId,
+      },
+
+      include: {
+        providerTransaction: true,
+      },
+    });
+
+    if (!reversal) {
+      this.throwRpc(404, 'Provider transaction reversal not found');
+    }
+
+    return {
+      ...reversal,
+
+      amount: reversal.amount.toString(),
+
+      providerTransaction: {
+        ...reversal.providerTransaction,
+
+        amount: reversal.providerTransaction.amount.toString(),
+
+        commissionAmount:
+          reversal.providerTransaction.commissionAmount !== null
+            ? reversal.providerTransaction.commissionAmount.toString()
+            : null,
+      },
+    };
+  }
+
+  async getProviderReceipt(referenceId: string, userId?: string) {
+    const transaction = await this.prisma.providerTransaction.findUnique({
+      where: {
+        referenceId,
+      },
+    });
+
+    if (!transaction) {
+      this.throwRpc(404, 'Provider transaction not found');
+    }
+
+    if (userId && transaction.userId !== userId) {
+      this.throwRpc(404, 'Provider transaction not found');
+    }
+
+    const metadata =
+      transaction.metadata &&
+      typeof transaction.metadata === 'object' &&
+      !Array.isArray(transaction.metadata)
+        ? (transaction.metadata as Record<string, unknown>)
+        : {};
+
+    const operationLabels: Record<string, string> = {
+      BE: 'Balance Enquiry',
+
+      MS: 'Mini Statement',
+
+      CW: 'Cash Withdrawal',
+
+      AP: 'Aadhaar Pay',
+
+      CD: 'Cash Deposit',
+    };
+
+    return {
+      provider: transaction.provider,
+
+      transactionType: transaction.operation,
+
+      transactionTypeLabel:
+        operationLabels[transaction.operation] ?? transaction.operation,
+
+      status: transaction.status,
+
+      statusDescription: transaction.providerStatusMessage,
+
+      transactionReferenceId: transaction.referenceId,
+
+      /*
+       * Provider receipt references.
+       */
+      ackNo: transaction.providerTxnRefId,
+
+      rrn: transaction.rrn,
+
+      clientRefNo: transaction.providerMerchantRefId,
+
+      amount: transaction.amount.toString(),
+
+      transactionDateTime:
+        typeof metadata.providerTxnDateTime === 'string'
+          ? metadata.providerTxnDateTime
+          : (transaction.completedAt ??
+            transaction.providerCalledAt ??
+            transaction.createdAt),
+
+      bankIIN: transaction.bankIIN,
+
+      maskedAadhaar: transaction.aadhaarLast4
+        ? `XXXXXXXX${transaction.aadhaarLast4}`
+        : null,
+
+      npciCode: transaction.npciCode,
+
+      npciMessage: transaction.npciMessage,
+
+      availableBalance:
+        typeof metadata.availableBalance === 'string'
+          ? metadata.availableBalance
+          : null,
+
+      reversed: transaction.status === 'REVERSED',
+
+      reversedAt: transaction.reversedAt,
+    };
   }
 }

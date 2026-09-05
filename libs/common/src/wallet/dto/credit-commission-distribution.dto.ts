@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsString, IsUUID, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 
 export class CreditCommissionDistributionDto {
   @IsUUID()
@@ -20,6 +26,15 @@ export class CreditCommissionDistributionDto {
   @IsNotEmpty()
   distributionTransactionId!: string;
 
+  /*
+   * NEW:
+   * Exact PTXN whose gross amount
+   * funds this commission.
+   */
+  @IsString()
+  @IsNotEmpty()
+  providerTransactionReference!: string;
+
   @IsNumber()
   @Min(0.01)
   amount!: number;
@@ -28,10 +43,6 @@ export class CreditCommissionDistributionDto {
   @IsNotEmpty()
   serviceType!: string;
 
-  /*
-   * CommissionDistributionTransaction
-   * ka own unique idempotency key.
-   */
   @IsString()
   @IsNotEmpty()
   idempotencyKey!: string;

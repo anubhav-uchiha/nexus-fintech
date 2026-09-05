@@ -1,4 +1,5 @@
 import {
+  IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -38,4 +39,18 @@ export class CreateProviderCommissionDto {
   @IsString()
   @IsNotEmpty()
   idempotencyKey!: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  providerCommissionAmount?: number;
+
+  @IsOptional()
+  @IsIn(['RULE', 'PROVIDER'])
+  commissionAmountSource?: 'RULE' | 'PROVIDER';
+
+  @IsOptional()
+  @IsString()
+  providerIncomeSource?:
+    'DUMMY_VIMOPAY_2_PERCENT' | 'VIMOPAY_WALLET' | 'VIMOPAY_MS';
 }

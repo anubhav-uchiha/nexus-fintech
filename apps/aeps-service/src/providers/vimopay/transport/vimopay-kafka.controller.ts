@@ -409,4 +409,46 @@ export class VimopayKafkaController {
       payload.idempotencyKey,
     );
   }
+
+  @MessagePattern(VIMOPAY_AEPS_PATTERNS.RECONCILE_PROVIDER_INCOME)
+  reconcileProviderIncome(
+    @Payload()
+    payload: {
+      referenceId: string;
+
+      reconciledBy: string;
+
+      providerIncomeAmount?: number;
+
+      incomeSource?: 'VIMOPAY_WALLET' | 'VIMOPAY_MS';
+
+      externalReference?: string;
+    },
+  ) {
+    return this.vimopayTransactionService.reconcileProviderIncome(payload);
+  }
+
+  @MessagePattern(VIMOPAY_AEPS_PATTERNS.SYNC_IDEMPOTENCY_RECONCILIATION)
+  syncIdempotencyAfterReconciliation(
+    @Payload()
+    payload: {
+      identityId: string;
+
+      operation: 'CW' | 'AP' | 'CD';
+
+      resolution: 'SUCCESS' | 'FAILED';
+
+      idempotencyKey?: string;
+
+      providerMerchantRefId?: string;
+
+      providerTxnRefId?: string;
+
+      response: unknown;
+    },
+  ) {
+    return this.vimopayTransactionService.syncIdempotencyAfterReconciliation(
+      payload,
+    );
+  }
 }

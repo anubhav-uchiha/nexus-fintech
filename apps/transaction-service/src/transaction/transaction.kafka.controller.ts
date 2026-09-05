@@ -26,6 +26,9 @@ import { PostProviderWalletEntryDto } from '@nexus/common/transaction/dto/post-p
 import { PrepareProviderWalletDebitDto } from '@nexus/common/transaction/dto/prepare-provider-wallet-debit.dto';
 import { ConfirmProviderWalletReservationDto } from '@nexus/common/transaction/dto/confirm-provider-wallet-reservation.dto';
 import { UpdateProviderCommissionStateDto } from '@nexus/common/transaction/dto/update-provider-commission-state.dto';
+import { CreditCommissionDistributionDto } from '@nexus/common/wallet/dto/credit-commission-distribution.dto';
+import { ProcessProviderTransactionReversalDto } from '@nexus/common/transaction/dto/process-provider-transaction-reversal.dto';
+import { AdminListProviderTransactionsDto, ListProviderReversalsDto } from '@nexus/common/transaction/dto/admin-provider-transactions.dto';
 
 @Controller()
 export class TransactionKafkaController {
@@ -217,5 +220,103 @@ export class TransactionKafkaController {
     dto: UpdateProviderCommissionStateDto,
   ) {
     return this.transactionService.updateProviderCommissionState(dto);
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.CREDIT_PROVIDER_COMMISSION_DISTRIBUTION)
+  creditProviderCommissionDistribution(
+    @Payload()
+    dto: CreditCommissionDistributionDto,
+  ) {
+    return this.transactionService.creditProviderCommissionDistribution(dto);
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.PROCESS_PROVIDER_TRANSACTION_REVERSAL)
+  processProviderTransactionReversal(
+    @Payload()
+    dto: ProcessProviderTransactionReversalDto,
+  ) {
+    return this.transactionService.processProviderTransactionReversal(
+      dto.reversalReferenceId,
+      dto.processedBy,
+    );
+  }
+
+  @MessagePattern(
+    TRANSACTION_PATTERNS.MARK_PROVIDER_FINANCIAL_RECOVERY_REQUIRED,
+  )
+  markProviderFinancialRecoveryRequired(
+    @Payload()
+    payload: {
+      referenceId: string;
+      reason: string;
+    },
+  ) {
+    return this.transactionService.markProviderFinancialRecoveryRequired(
+      payload.referenceId,
+      payload.reason,
+    );
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.RECOVER_PROVIDER_FINANCIAL_EFFECTS)
+  recoverProviderFinancialEffects(
+    @Payload()
+    payload: {
+      referenceId: string;
+      recoveredBy: string;
+    },
+  ) {
+    return this.transactionService.recoverProviderFinancialEffects(
+      payload.referenceId,
+      payload.recoveredBy,
+    );
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.ADMIN_LIST_PROVIDER_TRANSACTIONS)
+  adminListProviderTransactions(
+    @Payload()
+    dto: AdminListProviderTransactionsDto,
+  ) {
+    return this.transactionService.adminListProviderTransactions(dto);
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.LIST_PENDING_PROVIDER_INCOME)
+  listPendingProviderIncome(
+    @Payload()
+    dto: AdminListProviderTransactionsDto,
+  ) {
+    return this.transactionService.listPendingProviderIncome(dto);
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.LIST_PROVIDER_REVERSALS)
+  listProviderReversals(
+    @Payload()
+    dto: ListProviderReversalsDto,
+  ) {
+    return this.transactionService.listProviderReversals(dto);
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.GET_PROVIDER_REVERSAL)
+  getProviderReversal(
+    @Payload()
+    payload: {
+      referenceId: string;
+    },
+  ) {
+    return this.transactionService.getProviderReversal(payload.referenceId);
+  }
+
+  @MessagePattern(TRANSACTION_PATTERNS.GET_PROVIDER_RECEIPT)
+  getProviderReceipt(
+    @Payload()
+    payload: {
+      referenceId: string;
+
+      userId?: string;
+    },
+  ) {
+    return this.transactionService.getProviderReceipt(
+      payload.referenceId,
+      payload.userId,
+    );
   }
 }

@@ -1,4 +1,12 @@
-import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsISO8601,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 
 import { Type } from 'class-transformer';
 
@@ -6,10 +14,6 @@ export class ProviderTransactionQueryDto {
   @IsOptional()
   @IsString()
   provider?: string;
-
-  @IsOptional()
-  @IsString()
-  serviceType?: string;
 
   @IsOptional()
   @IsIn(['BE', 'MS', 'CW', 'AP', 'CD'])
@@ -26,6 +30,37 @@ export class ProviderTransactionQueryDto {
     'REVERSED',
   ])
   status?: string;
+
+  @IsOptional()
+  @IsIn([
+    'NOT_REQUIRED',
+    'PENDING',
+    'RESERVED',
+    'SETTLED',
+    'COMPENSATED',
+    'FAILED',
+    'UNKNOWN',
+  ])
+  settlementStatus?: string;
+
+  @IsOptional()
+  @IsIn([
+    'NOT_REQUIRED',
+    'WAITING_PROVIDER_INCOME',
+    'PENDING',
+    'SETTLED',
+    'FAILED',
+    'REVERSED',
+  ])
+  commissionStatus?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  fromDate?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  toDate?: string;
 
   @IsOptional()
   @Type(() => Number)

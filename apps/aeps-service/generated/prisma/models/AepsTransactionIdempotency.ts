@@ -40,6 +40,7 @@ export type AepsTransactionIdempotencyMinAggregateOutputType = {
   completedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  intentHash: string | null
 }
 
 export type AepsTransactionIdempotencyMaxAggregateOutputType = {
@@ -58,6 +59,7 @@ export type AepsTransactionIdempotencyMaxAggregateOutputType = {
   completedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  intentHash: string | null
 }
 
 export type AepsTransactionIdempotencyCountAggregateOutputType = {
@@ -77,6 +79,7 @@ export type AepsTransactionIdempotencyCountAggregateOutputType = {
   completedAt: number
   createdAt: number
   updatedAt: number
+  intentHash: number
   _all: number
 }
 
@@ -97,6 +100,7 @@ export type AepsTransactionIdempotencyMinAggregateInputType = {
   completedAt?: true
   createdAt?: true
   updatedAt?: true
+  intentHash?: true
 }
 
 export type AepsTransactionIdempotencyMaxAggregateInputType = {
@@ -115,6 +119,7 @@ export type AepsTransactionIdempotencyMaxAggregateInputType = {
   completedAt?: true
   createdAt?: true
   updatedAt?: true
+  intentHash?: true
 }
 
 export type AepsTransactionIdempotencyCountAggregateInputType = {
@@ -134,6 +139,7 @@ export type AepsTransactionIdempotencyCountAggregateInputType = {
   completedAt?: true
   createdAt?: true
   updatedAt?: true
+  intentHash?: true
   _all?: true
 }
 
@@ -226,6 +232,7 @@ export type AepsTransactionIdempotencyGroupByOutputType = {
   completedAt: Date | null
   createdAt: Date
   updatedAt: Date
+  intentHash: string | null
   _count: AepsTransactionIdempotencyCountAggregateOutputType | null
   _min: AepsTransactionIdempotencyMinAggregateOutputType | null
   _max: AepsTransactionIdempotencyMaxAggregateOutputType | null
@@ -266,6 +273,7 @@ export type AepsTransactionIdempotencyWhereInput = {
   completedAt?: Prisma.DateTimeNullableFilter<"AepsTransactionIdempotency"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AepsTransactionIdempotency"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AepsTransactionIdempotency"> | Date | string
+  intentHash?: Prisma.StringNullableFilter<"AepsTransactionIdempotency"> | string | null
   profile?: Prisma.XOR<Prisma.AepsMerchantProfileScalarRelationFilter, Prisma.AepsMerchantProfileWhereInput>
 }
 
@@ -286,6 +294,7 @@ export type AepsTransactionIdempotencyOrderByWithRelationInput = {
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  intentHash?: Prisma.SortOrderInput | Prisma.SortOrder
   profile?: Prisma.AepsMerchantProfileOrderByWithRelationInput
 }
 
@@ -310,6 +319,7 @@ export type AepsTransactionIdempotencyWhereUniqueInput = Prisma.AtLeast<{
   completedAt?: Prisma.DateTimeNullableFilter<"AepsTransactionIdempotency"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AepsTransactionIdempotency"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AepsTransactionIdempotency"> | Date | string
+  intentHash?: Prisma.StringNullableFilter<"AepsTransactionIdempotency"> | string | null
   profile?: Prisma.XOR<Prisma.AepsMerchantProfileScalarRelationFilter, Prisma.AepsMerchantProfileWhereInput>
 }, "id" | "identityId_provider_transactionType_idempotencyKey">
 
@@ -330,6 +340,7 @@ export type AepsTransactionIdempotencyOrderByWithAggregationInput = {
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  intentHash?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AepsTransactionIdempotencyCountOrderByAggregateInput
   _max?: Prisma.AepsTransactionIdempotencyMaxOrderByAggregateInput
   _min?: Prisma.AepsTransactionIdempotencyMinOrderByAggregateInput
@@ -355,6 +366,7 @@ export type AepsTransactionIdempotencyScalarWhereWithAggregatesInput = {
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AepsTransactionIdempotency"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AepsTransactionIdempotency"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AepsTransactionIdempotency"> | Date | string
+  intentHash?: Prisma.StringNullableWithAggregatesFilter<"AepsTransactionIdempotency"> | string | null
 }
 
 export type AepsTransactionIdempotencyCreateInput = {
@@ -373,6 +385,7 @@ export type AepsTransactionIdempotencyCreateInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  intentHash?: string | null
   profile: Prisma.AepsMerchantProfileCreateNestedOneWithoutIdempotencyRequestsInput
 }
 
@@ -393,6 +406,7 @@ export type AepsTransactionIdempotencyUncheckedCreateInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  intentHash?: string | null
 }
 
 export type AepsTransactionIdempotencyUpdateInput = {
@@ -411,6 +425,7 @@ export type AepsTransactionIdempotencyUpdateInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  intentHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile?: Prisma.AepsMerchantProfileUpdateOneRequiredWithoutIdempotencyRequestsNestedInput
 }
 
@@ -431,6 +446,7 @@ export type AepsTransactionIdempotencyUncheckedUpdateInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  intentHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AepsTransactionIdempotencyCreateManyInput = {
@@ -450,6 +466,7 @@ export type AepsTransactionIdempotencyCreateManyInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  intentHash?: string | null
 }
 
 export type AepsTransactionIdempotencyUpdateManyMutationInput = {
@@ -468,6 +485,7 @@ export type AepsTransactionIdempotencyUpdateManyMutationInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  intentHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AepsTransactionIdempotencyUncheckedUpdateManyInput = {
@@ -487,6 +505,7 @@ export type AepsTransactionIdempotencyUncheckedUpdateManyInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  intentHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AepsTransactionIdempotencyListRelationFilter = {
@@ -523,6 +542,7 @@ export type AepsTransactionIdempotencyCountOrderByAggregateInput = {
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  intentHash?: Prisma.SortOrder
 }
 
 export type AepsTransactionIdempotencyMaxOrderByAggregateInput = {
@@ -541,6 +561,7 @@ export type AepsTransactionIdempotencyMaxOrderByAggregateInput = {
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  intentHash?: Prisma.SortOrder
 }
 
 export type AepsTransactionIdempotencyMinOrderByAggregateInput = {
@@ -559,6 +580,7 @@ export type AepsTransactionIdempotencyMinOrderByAggregateInput = {
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  intentHash?: Prisma.SortOrder
 }
 
 export type AepsTransactionIdempotencyCreateNestedManyWithoutProfileInput = {
@@ -627,6 +649,7 @@ export type AepsTransactionIdempotencyCreateWithoutProfileInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  intentHash?: string | null
 }
 
 export type AepsTransactionIdempotencyUncheckedCreateWithoutProfileInput = {
@@ -645,6 +668,7 @@ export type AepsTransactionIdempotencyUncheckedCreateWithoutProfileInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  intentHash?: string | null
 }
 
 export type AepsTransactionIdempotencyCreateOrConnectWithoutProfileInput = {
@@ -693,6 +717,7 @@ export type AepsTransactionIdempotencyScalarWhereInput = {
   completedAt?: Prisma.DateTimeNullableFilter<"AepsTransactionIdempotency"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AepsTransactionIdempotency"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AepsTransactionIdempotency"> | Date | string
+  intentHash?: Prisma.StringNullableFilter<"AepsTransactionIdempotency"> | string | null
 }
 
 export type AepsTransactionIdempotencyCreateManyProfileInput = {
@@ -711,6 +736,7 @@ export type AepsTransactionIdempotencyCreateManyProfileInput = {
   completedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  intentHash?: string | null
 }
 
 export type AepsTransactionIdempotencyUpdateWithoutProfileInput = {
@@ -729,6 +755,7 @@ export type AepsTransactionIdempotencyUpdateWithoutProfileInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  intentHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AepsTransactionIdempotencyUncheckedUpdateWithoutProfileInput = {
@@ -747,6 +774,7 @@ export type AepsTransactionIdempotencyUncheckedUpdateWithoutProfileInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  intentHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AepsTransactionIdempotencyUncheckedUpdateManyWithoutProfileInput = {
@@ -765,6 +793,7 @@ export type AepsTransactionIdempotencyUncheckedUpdateManyWithoutProfileInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  intentHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -786,6 +815,7 @@ export type AepsTransactionIdempotencySelect<ExtArgs extends runtime.Types.Exten
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  intentHash?: boolean
   profile?: boolean | Prisma.AepsMerchantProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["aepsTransactionIdempotency"]>
 
@@ -806,6 +836,7 @@ export type AepsTransactionIdempotencySelectCreateManyAndReturn<ExtArgs extends 
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  intentHash?: boolean
   profile?: boolean | Prisma.AepsMerchantProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["aepsTransactionIdempotency"]>
 
@@ -826,6 +857,7 @@ export type AepsTransactionIdempotencySelectUpdateManyAndReturn<ExtArgs extends 
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  intentHash?: boolean
   profile?: boolean | Prisma.AepsMerchantProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["aepsTransactionIdempotency"]>
 
@@ -846,9 +878,10 @@ export type AepsTransactionIdempotencySelectScalar = {
   completedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  intentHash?: boolean
 }
 
-export type AepsTransactionIdempotencyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "identityId" | "profileId" | "provider" | "transactionType" | "idempotencyKey" | "requestHash" | "lockToken" | "status" | "providerMerchantRefId" | "providerTxnRefId" | "providerStatusCode" | "response" | "completedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["aepsTransactionIdempotency"]>
+export type AepsTransactionIdempotencyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "identityId" | "profileId" | "provider" | "transactionType" | "idempotencyKey" | "requestHash" | "lockToken" | "status" | "providerMerchantRefId" | "providerTxnRefId" | "providerStatusCode" | "response" | "completedAt" | "createdAt" | "updatedAt" | "intentHash", ExtArgs["result"]["aepsTransactionIdempotency"]>
 export type AepsTransactionIdempotencyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.AepsMerchantProfileDefaultArgs<ExtArgs>
 }
@@ -896,6 +929,7 @@ export type $AepsTransactionIdempotencyPayload<ExtArgs extends runtime.Types.Ext
     completedAt: Date | null
     createdAt: Date
     updatedAt: Date
+    intentHash: string | null
   }, ExtArgs["result"]["aepsTransactionIdempotency"]>
   composites: {}
 }
@@ -1336,6 +1370,7 @@ export interface AepsTransactionIdempotencyFieldRefs {
   readonly completedAt: Prisma.FieldRef<"AepsTransactionIdempotency", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"AepsTransactionIdempotency", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AepsTransactionIdempotency", 'DateTime'>
+  readonly intentHash: Prisma.FieldRef<"AepsTransactionIdempotency", 'String'>
 }
     
 

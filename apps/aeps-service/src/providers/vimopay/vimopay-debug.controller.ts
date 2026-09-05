@@ -26,10 +26,11 @@ import { VimopayAadhaarPayDto } from './dto/aadhaar-pay.dto';
 import { VimopayCashDepositDto } from './dto/cash-deposit.dto';
 import { VimopayDistrictRequestDto } from './dto/district-request.dto';
 import { VimopayBankIinRequestDto } from './dto/bank-iin-request.dto';
-
-
+import { UseGuards } from '@nestjs/common';
+import { VimopayDebugGuard } from './guards/vimopay-debug.guard';
 
 @Controller('_debug/vimopay')
+@UseGuards(VimopayDebugGuard)
 export class VimopayDebugController {
   constructor(
     private readonly vimopayService: VimopayService,

@@ -49,6 +49,13 @@ export type ProviderTransactionReversalMinAggregateOutputType = {
   failedReason: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  principalStatus: $Enums.ProviderReversalComponentStatus | null
+  principalCompensationReference: string | null
+  principalFailureReason: string | null
+  commissionStatus: $Enums.ProviderReversalComponentStatus | null
+  commissionReversalReference: string | null
+  commissionFailureReason: string | null
+  processedBy: string | null
 }
 
 export type ProviderTransactionReversalMaxAggregateOutputType = {
@@ -66,6 +73,13 @@ export type ProviderTransactionReversalMaxAggregateOutputType = {
   failedReason: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  principalStatus: $Enums.ProviderReversalComponentStatus | null
+  principalCompensationReference: string | null
+  principalFailureReason: string | null
+  commissionStatus: $Enums.ProviderReversalComponentStatus | null
+  commissionReversalReference: string | null
+  commissionFailureReason: string | null
+  processedBy: string | null
 }
 
 export type ProviderTransactionReversalCountAggregateOutputType = {
@@ -83,6 +97,13 @@ export type ProviderTransactionReversalCountAggregateOutputType = {
   failedReason: number
   createdAt: number
   updatedAt: number
+  principalStatus: number
+  principalCompensationReference: number
+  principalFailureReason: number
+  commissionStatus: number
+  commissionReversalReference: number
+  commissionFailureReason: number
+  processedBy: number
   _all: number
 }
 
@@ -110,6 +131,13 @@ export type ProviderTransactionReversalMinAggregateInputType = {
   failedReason?: true
   createdAt?: true
   updatedAt?: true
+  principalStatus?: true
+  principalCompensationReference?: true
+  principalFailureReason?: true
+  commissionStatus?: true
+  commissionReversalReference?: true
+  commissionFailureReason?: true
+  processedBy?: true
 }
 
 export type ProviderTransactionReversalMaxAggregateInputType = {
@@ -127,6 +155,13 @@ export type ProviderTransactionReversalMaxAggregateInputType = {
   failedReason?: true
   createdAt?: true
   updatedAt?: true
+  principalStatus?: true
+  principalCompensationReference?: true
+  principalFailureReason?: true
+  commissionStatus?: true
+  commissionReversalReference?: true
+  commissionFailureReason?: true
+  processedBy?: true
 }
 
 export type ProviderTransactionReversalCountAggregateInputType = {
@@ -144,6 +179,13 @@ export type ProviderTransactionReversalCountAggregateInputType = {
   failedReason?: true
   createdAt?: true
   updatedAt?: true
+  principalStatus?: true
+  principalCompensationReference?: true
+  principalFailureReason?: true
+  commissionStatus?: true
+  commissionReversalReference?: true
+  commissionFailureReason?: true
+  processedBy?: true
   _all?: true
 }
 
@@ -248,6 +290,13 @@ export type ProviderTransactionReversalGroupByOutputType = {
   failedReason: string | null
   createdAt: Date
   updatedAt: Date
+  principalStatus: $Enums.ProviderReversalComponentStatus
+  principalCompensationReference: string | null
+  principalFailureReason: string | null
+  commissionStatus: $Enums.ProviderReversalComponentStatus
+  commissionReversalReference: string | null
+  commissionFailureReason: string | null
+  processedBy: string | null
   _count: ProviderTransactionReversalCountAggregateOutputType | null
   _avg: ProviderTransactionReversalAvgAggregateOutputType | null
   _sum: ProviderTransactionReversalSumAggregateOutputType | null
@@ -288,6 +337,13 @@ export type ProviderTransactionReversalWhereInput = {
   failedReason?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderTransactionReversal"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProviderTransactionReversal"> | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusFilter<"ProviderTransactionReversal"> | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
+  principalFailureReason?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusFilter<"ProviderTransactionReversal"> | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
+  commissionFailureReason?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
+  processedBy?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
   providerTransaction?: Prisma.XOR<Prisma.ProviderTransactionScalarRelationFilter, Prisma.ProviderTransactionWhereInput>
 }
 
@@ -306,6 +362,13 @@ export type ProviderTransactionReversalOrderByWithRelationInput = {
   failedReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  principalStatus?: Prisma.SortOrder
+  principalCompensationReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  principalFailureReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReversalReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  processedBy?: Prisma.SortOrderInput | Prisma.SortOrder
   providerTransaction?: Prisma.ProviderTransactionOrderByWithRelationInput
 }
 
@@ -327,6 +390,13 @@ export type ProviderTransactionReversalWhereUniqueInput = Prisma.AtLeast<{
   failedReason?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProviderTransactionReversal"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProviderTransactionReversal"> | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusFilter<"ProviderTransactionReversal"> | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
+  principalFailureReason?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusFilter<"ProviderTransactionReversal"> | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
+  commissionFailureReason?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
+  processedBy?: Prisma.StringNullableFilter<"ProviderTransactionReversal"> | string | null
   providerTransaction?: Prisma.XOR<Prisma.ProviderTransactionScalarRelationFilter, Prisma.ProviderTransactionWhereInput>
 }, "id" | "referenceId" | "providerTransactionId" | "idempotencyKey">
 
@@ -345,6 +415,13 @@ export type ProviderTransactionReversalOrderByWithAggregationInput = {
   failedReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  principalStatus?: Prisma.SortOrder
+  principalCompensationReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  principalFailureReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReversalReference?: Prisma.SortOrderInput | Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrderInput | Prisma.SortOrder
+  processedBy?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ProviderTransactionReversalCountOrderByAggregateInput
   _avg?: Prisma.ProviderTransactionReversalAvgOrderByAggregateInput
   _max?: Prisma.ProviderTransactionReversalMaxOrderByAggregateInput
@@ -370,6 +447,13 @@ export type ProviderTransactionReversalScalarWhereWithAggregatesInput = {
   failedReason?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransactionReversal"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ProviderTransactionReversal"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ProviderTransactionReversal"> | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusWithAggregatesFilter<"ProviderTransactionReversal"> | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransactionReversal"> | string | null
+  principalFailureReason?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransactionReversal"> | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusWithAggregatesFilter<"ProviderTransactionReversal"> | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransactionReversal"> | string | null
+  commissionFailureReason?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransactionReversal"> | string | null
+  processedBy?: Prisma.StringNullableWithAggregatesFilter<"ProviderTransactionReversal"> | string | null
 }
 
 export type ProviderTransactionReversalCreateInput = {
@@ -386,6 +470,13 @@ export type ProviderTransactionReversalCreateInput = {
   failedReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  principalStatus?: $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: string | null
+  principalFailureReason?: string | null
+  commissionStatus?: $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: string | null
+  commissionFailureReason?: string | null
+  processedBy?: string | null
   providerTransaction: Prisma.ProviderTransactionCreateNestedOneWithoutReversalInput
 }
 
@@ -404,6 +495,13 @@ export type ProviderTransactionReversalUncheckedCreateInput = {
   failedReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  principalStatus?: $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: string | null
+  principalFailureReason?: string | null
+  commissionStatus?: $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: string | null
+  commissionFailureReason?: string | null
+  processedBy?: string | null
 }
 
 export type ProviderTransactionReversalUpdateInput = {
@@ -420,6 +518,13 @@ export type ProviderTransactionReversalUpdateInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  principalFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   providerTransaction?: Prisma.ProviderTransactionUpdateOneRequiredWithoutReversalNestedInput
 }
 
@@ -438,6 +543,13 @@ export type ProviderTransactionReversalUncheckedUpdateInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  principalFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ProviderTransactionReversalCreateManyInput = {
@@ -455,6 +567,13 @@ export type ProviderTransactionReversalCreateManyInput = {
   failedReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  principalStatus?: $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: string | null
+  principalFailureReason?: string | null
+  commissionStatus?: $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: string | null
+  commissionFailureReason?: string | null
+  processedBy?: string | null
 }
 
 export type ProviderTransactionReversalUpdateManyMutationInput = {
@@ -471,6 +590,13 @@ export type ProviderTransactionReversalUpdateManyMutationInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  principalFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ProviderTransactionReversalUncheckedUpdateManyInput = {
@@ -488,6 +614,13 @@ export type ProviderTransactionReversalUncheckedUpdateManyInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  principalFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ProviderTransactionReversalNullableScalarRelationFilter = {
@@ -510,6 +643,13 @@ export type ProviderTransactionReversalCountOrderByAggregateInput = {
   failedReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  principalStatus?: Prisma.SortOrder
+  principalCompensationReference?: Prisma.SortOrder
+  principalFailureReason?: Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReversalReference?: Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrder
+  processedBy?: Prisma.SortOrder
 }
 
 export type ProviderTransactionReversalAvgOrderByAggregateInput = {
@@ -531,6 +671,13 @@ export type ProviderTransactionReversalMaxOrderByAggregateInput = {
   failedReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  principalStatus?: Prisma.SortOrder
+  principalCompensationReference?: Prisma.SortOrder
+  principalFailureReason?: Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReversalReference?: Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrder
+  processedBy?: Prisma.SortOrder
 }
 
 export type ProviderTransactionReversalMinOrderByAggregateInput = {
@@ -548,6 +695,13 @@ export type ProviderTransactionReversalMinOrderByAggregateInput = {
   failedReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  principalStatus?: Prisma.SortOrder
+  principalCompensationReference?: Prisma.SortOrder
+  principalFailureReason?: Prisma.SortOrder
+  commissionStatus?: Prisma.SortOrder
+  commissionReversalReference?: Prisma.SortOrder
+  commissionFailureReason?: Prisma.SortOrder
+  processedBy?: Prisma.SortOrder
 }
 
 export type ProviderTransactionReversalSumOrderByAggregateInput = {
@@ -590,6 +744,10 @@ export type EnumProviderTransactionReversalStatusFieldUpdateOperationsInput = {
   set?: $Enums.ProviderTransactionReversalStatus
 }
 
+export type EnumProviderReversalComponentStatusFieldUpdateOperationsInput = {
+  set?: $Enums.ProviderReversalComponentStatus
+}
+
 export type ProviderTransactionReversalCreateWithoutProviderTransactionInput = {
   id?: string
   referenceId: string
@@ -604,6 +762,13 @@ export type ProviderTransactionReversalCreateWithoutProviderTransactionInput = {
   failedReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  principalStatus?: $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: string | null
+  principalFailureReason?: string | null
+  commissionStatus?: $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: string | null
+  commissionFailureReason?: string | null
+  processedBy?: string | null
 }
 
 export type ProviderTransactionReversalUncheckedCreateWithoutProviderTransactionInput = {
@@ -620,6 +785,13 @@ export type ProviderTransactionReversalUncheckedCreateWithoutProviderTransaction
   failedReason?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  principalStatus?: $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: string | null
+  principalFailureReason?: string | null
+  commissionStatus?: $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: string | null
+  commissionFailureReason?: string | null
+  processedBy?: string | null
 }
 
 export type ProviderTransactionReversalCreateOrConnectWithoutProviderTransactionInput = {
@@ -652,6 +824,13 @@ export type ProviderTransactionReversalUpdateWithoutProviderTransactionInput = {
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  principalFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ProviderTransactionReversalUncheckedUpdateWithoutProviderTransactionInput = {
@@ -668,6 +847,13 @@ export type ProviderTransactionReversalUncheckedUpdateWithoutProviderTransaction
   failedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  principalStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  principalCompensationReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  principalFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionStatus?: Prisma.EnumProviderReversalComponentStatusFieldUpdateOperationsInput | $Enums.ProviderReversalComponentStatus
+  commissionReversalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commissionFailureReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  processedBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -687,6 +873,13 @@ export type ProviderTransactionReversalSelect<ExtArgs extends runtime.Types.Exte
   failedReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  principalStatus?: boolean
+  principalCompensationReference?: boolean
+  principalFailureReason?: boolean
+  commissionStatus?: boolean
+  commissionReversalReference?: boolean
+  commissionFailureReason?: boolean
+  processedBy?: boolean
   providerTransaction?: boolean | Prisma.ProviderTransactionDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["providerTransactionReversal"]>
 
@@ -705,6 +898,13 @@ export type ProviderTransactionReversalSelectCreateManyAndReturn<ExtArgs extends
   failedReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  principalStatus?: boolean
+  principalCompensationReference?: boolean
+  principalFailureReason?: boolean
+  commissionStatus?: boolean
+  commissionReversalReference?: boolean
+  commissionFailureReason?: boolean
+  processedBy?: boolean
   providerTransaction?: boolean | Prisma.ProviderTransactionDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["providerTransactionReversal"]>
 
@@ -723,6 +923,13 @@ export type ProviderTransactionReversalSelectUpdateManyAndReturn<ExtArgs extends
   failedReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  principalStatus?: boolean
+  principalCompensationReference?: boolean
+  principalFailureReason?: boolean
+  commissionStatus?: boolean
+  commissionReversalReference?: boolean
+  commissionFailureReason?: boolean
+  processedBy?: boolean
   providerTransaction?: boolean | Prisma.ProviderTransactionDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["providerTransactionReversal"]>
 
@@ -741,9 +948,16 @@ export type ProviderTransactionReversalSelectScalar = {
   failedReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  principalStatus?: boolean
+  principalCompensationReference?: boolean
+  principalFailureReason?: boolean
+  commissionStatus?: boolean
+  commissionReversalReference?: boolean
+  commissionFailureReason?: boolean
+  processedBy?: boolean
 }
 
-export type ProviderTransactionReversalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "providerTransactionId" | "idempotencyKey" | "amount" | "status" | "reason" | "requestedBy" | "compensationReferenceId" | "processingAt" | "completedAt" | "failedReason" | "createdAt" | "updatedAt", ExtArgs["result"]["providerTransactionReversal"]>
+export type ProviderTransactionReversalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "referenceId" | "providerTransactionId" | "idempotencyKey" | "amount" | "status" | "reason" | "requestedBy" | "compensationReferenceId" | "processingAt" | "completedAt" | "failedReason" | "createdAt" | "updatedAt" | "principalStatus" | "principalCompensationReference" | "principalFailureReason" | "commissionStatus" | "commissionReversalReference" | "commissionFailureReason" | "processedBy", ExtArgs["result"]["providerTransactionReversal"]>
 export type ProviderTransactionReversalInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   providerTransaction?: boolean | Prisma.ProviderTransactionDefaultArgs<ExtArgs>
 }
@@ -784,6 +998,13 @@ export type $ProviderTransactionReversalPayload<ExtArgs extends runtime.Types.Ex
     failedReason: string | null
     createdAt: Date
     updatedAt: Date
+    principalStatus: $Enums.ProviderReversalComponentStatus
+    principalCompensationReference: string | null
+    principalFailureReason: string | null
+    commissionStatus: $Enums.ProviderReversalComponentStatus
+    commissionReversalReference: string | null
+    commissionFailureReason: string | null
+    processedBy: string | null
   }, ExtArgs["result"]["providerTransactionReversal"]>
   composites: {}
 }
@@ -1222,6 +1443,13 @@ export interface ProviderTransactionReversalFieldRefs {
   readonly failedReason: Prisma.FieldRef<"ProviderTransactionReversal", 'String'>
   readonly createdAt: Prisma.FieldRef<"ProviderTransactionReversal", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ProviderTransactionReversal", 'DateTime'>
+  readonly principalStatus: Prisma.FieldRef<"ProviderTransactionReversal", 'ProviderReversalComponentStatus'>
+  readonly principalCompensationReference: Prisma.FieldRef<"ProviderTransactionReversal", 'String'>
+  readonly principalFailureReason: Prisma.FieldRef<"ProviderTransactionReversal", 'String'>
+  readonly commissionStatus: Prisma.FieldRef<"ProviderTransactionReversal", 'ProviderReversalComponentStatus'>
+  readonly commissionReversalReference: Prisma.FieldRef<"ProviderTransactionReversal", 'String'>
+  readonly commissionFailureReason: Prisma.FieldRef<"ProviderTransactionReversal", 'String'>
+  readonly processedBy: Prisma.FieldRef<"ProviderTransactionReversal", 'String'>
 }
     
 

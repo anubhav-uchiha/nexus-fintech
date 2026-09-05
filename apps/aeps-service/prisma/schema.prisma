@@ -300,7 +300,10 @@ model AepsTransactionIdempotency {
 
     profile AepsMerchantProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
+    intentHash String? @map("intent_hash") @db.VarChar(64)
+
     @@unique([identityId, provider, transactionType, idempotencyKey])
+    @@index([identityId, profileId, provider, transactionType, intentHash, status])
     @@index([identityId, transactionType, requestHash, status])
     @@index([profileId, status])
     @@index([identityId, createdAt])

@@ -49,10 +49,22 @@ export class RoleKafkaController {
   }
 
   @MessagePattern(ROLE_PATTERNS.FIND_BY_NAME)
-  async findByName(
-    @Payload()
-    dto: RoleNameDto,
-  ) {
-    return this.roleService.findByName(dto.name);
+  async findByName(@Payload() dto: RoleNameDto) {
+    console.log('[AUTH ROLE] FIND_BY_NAME RECEIVED', dto);
+
+    const role = await this.roleService.findByName(dto.name);
+
+    console.log(
+      '[AUTH ROLE] FIND_BY_NAME RESULT',
+      role
+        ? {
+            id: role.id,
+            name: role.name,
+            isActive: role.isActive,
+          }
+        : null,
+    );
+
+    return role;
   }
 }

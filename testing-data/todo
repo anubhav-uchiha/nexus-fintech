@@ -1,0 +1,14 @@
+MS transactionList normalization
+→ real production sample ke wait mein ⏸️
+
+Automatic VimoPay wallet/MS income fetch
+→ production wallet/ledger API docs ke wait mein ⏸️
+
+VimoPay production URLs/credentials
+→ provider se milne ke baad ⏸️
+
+Admin @RequirePermissions(...)
+→ final production deployment se pehle enable karenge ⏳
+
+Complete end-to-end testing
+→ poora system complete hone ke baad ek consolidated round ⏳

@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "provider_transactions_provider_provider_income_external_ref_key" RENAME TO "provider_transactions_provider_income_external_reference_key";

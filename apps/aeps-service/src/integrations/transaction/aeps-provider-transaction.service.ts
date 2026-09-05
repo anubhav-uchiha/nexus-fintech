@@ -40,6 +40,17 @@ export class AepsProviderTransactionService implements OnModuleInit {
     this.client.subscribeToResponseOf(
       TRANSACTION_PATTERNS.UPDATE_PROVIDER_COMMISSION_STATE,
     );
+    this.client.subscribeToResponseOf(
+      TRANSACTION_PATTERNS.MARK_PROVIDER_FINANCIAL_RECOVERY_REQUIRED,
+    );
+
+    this.client.subscribeToResponseOf(
+      TRANSACTION_PATTERNS.GET_PROVIDER_TRANSACTION,
+    );
+
+    this.client.subscribeToResponseOf(
+      TRANSACTION_PATTERNS.GET_PROVIDER_TRANSACTION,
+    );
 
     await this.client.connect();
   }
@@ -91,7 +102,13 @@ export class AepsProviderTransactionService implements OnModuleInit {
   updateCommissionState(input: {
     referenceId: string;
 
-    status: 'NOT_REQUIRED' | 'PENDING' | 'SETTLED' | 'FAILED';
+    status:
+      | 'NOT_REQUIRED'
+      | 'WAITING_PROVIDER_INCOME'
+      | 'PENDING'
+      | 'SETTLED'
+      | 'FAILED'
+      | 'REVERSED';
 
     commissionReferenceId?: string;
 
@@ -100,13 +117,39 @@ export class AepsProviderTransactionService implements OnModuleInit {
     commissionAmount?: number;
 
     failureReason?: string;
+
+    providerIncomeSource?: string;
+
+    providerIncomeExternalReference?: string;
+
+    providerIncomeReconciledBy?: string;
   }) {
     return firstValueFrom(
       this.client.send(
         TRANSACTION_PATTERNS.UPDATE_PROVIDER_COMMISSION_STATE,
-
         input,
       ),
+    );
+  }
+
+  markFinancialRecoveryRequired(referenceId: string, reason: string) {
+    return firstValueFrom(
+      this.client.send(
+        TRANSACTION_PATTERNS.MARK_PROVIDER_FINANCIAL_RECOVERY_REQUIRED,
+
+        {
+          referenceId,
+          reason,
+        },
+      ),
+    );
+  }
+
+  get(referenceId: string) {
+    return firstValueFrom(
+      this.client.send(TRANSACTION_PATTERNS.GET_PROVIDER_TRANSACTION, {
+        referenceId,
+      }),
     );
   }
 }
