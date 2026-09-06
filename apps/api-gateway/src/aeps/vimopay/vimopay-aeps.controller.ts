@@ -49,7 +49,27 @@ import {
   VimopayCashWithdrawalOtpGatewayDto,
   VimopayMiniStatementGatewayDto,
 } from './dto/vimopay-transaction-gateway.dto';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiHeader,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiTooManyRequestsResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('AEPS - Vimopay')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({
+  description:
+    'Access token is missing, invalid, expired, or the session is invalid',
+})
 @Controller('aeps/vimopay')
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(RpcToHttpExceptionInterceptor)
@@ -63,16 +83,39 @@ export class VimopayAepsController {
    */
 
   @Get('banks')
+  @ApiOperation({
+    summary: 'Get Vimopay supported banks',
+  })
+  @ApiOkResponse({
+    description: 'Supported bank list retrieved successfully',
+  })
   getBanks() {
     return this.service.getBanks();
   }
 
   @Get('states')
+  @ApiOperation({
+    summary: 'Get Vimopay supported states',
+  })
+  @ApiOkResponse({
+    description: 'Supported state list retrieved successfully',
+  })
   getStates() {
     return this.service.getStates();
   }
 
   @Get('districts')
+  @ApiOperation({
+    summary: 'Get districts for a state',
+    description:
+      'Returns Vimopay-supported districts based on the supplied query parameters.',
+  })
+  @ApiOkResponse({
+    description: 'District list retrieved successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid district query parameters',
+  })
   getDistricts(
     @Query()
     query: VimopayDistrictQueryDto,
@@ -81,6 +124,17 @@ export class VimopayAepsController {
   }
 
   @Get('bank-iins')
+  @ApiOperation({
+    summary: 'Get AEPS bank IIN list',
+    description:
+      'Returns bank IIN information supported by the Vimopay AEPS provider.',
+  })
+  @ApiOkResponse({
+    description: 'Bank IIN list retrieved successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid bank-IIN query parameters',
+  })
   getBankIins(
     @Query()
     query: VimopayBankIinQueryDto,
@@ -95,6 +149,12 @@ export class VimopayAepsController {
    */
 
   @Get('status')
+  @ApiOperation({
+    summary: 'Get my Vimopay AEPS onboarding status',
+  })
+  @ApiOkResponse({
+    description: 'AEPS status retrieved successfully',
+  })
   getStatus(
     @CurrentUser()
     user: JwtPayload,
@@ -109,6 +169,20 @@ export class VimopayAepsController {
    */
 
   @Post('onboarding/register')
+  @ApiOperation({
+    summary: 'Register merchant with Vimopay AEPS',
+    description:
+      'Starts or continues Vimopay AEPS merchant onboarding for the authenticated identity.',
+  })
+  @ApiCreatedResponse({
+    description: 'Vimopay merchant registration request completed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid onboarding registration payload',
+  })
+  @ApiForbiddenResponse({
+    description: 'Authenticated identity is not eligible for AEPS onboarding',
+  })
   register(
     @CurrentUser()
     user: JwtPayload,
@@ -135,6 +209,18 @@ export class VimopayAepsController {
    */
 
   @Post('onboarding/otp/send')
+  @ApiOperation({
+    summary: 'Send Vimopay onboarding OTP',
+  })
+  @ApiCreatedResponse({
+    description: 'Onboarding OTP sent successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'OTP cannot be sent at the current onboarding stage',
+  })
+  @ApiTooManyRequestsResponse({
+    description: 'OTP resend cooldown or request limit exceeded',
+  })
   sendOtp(
     @CurrentUser()
     user: JwtPayload,
@@ -143,6 +229,18 @@ export class VimopayAepsController {
   }
 
   @Post('onboarding/otp/resend')
+  @ApiOperation({
+    summary: 'Resend Vimopay onboarding OTP',
+  })
+  @ApiCreatedResponse({
+    description: 'Onboarding OTP resent successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'OTP cannot be resent at the current onboarding stage',
+  })
+  @ApiTooManyRequestsResponse({
+    description: 'OTP resend cooldown or request limit exceeded',
+  })
   resendOtp(
     @CurrentUser()
     user: JwtPayload,
@@ -151,6 +249,18 @@ export class VimopayAepsController {
   }
 
   @Post('onboarding/otp/verify')
+  @ApiOperation({
+    summary: 'Verify Vimopay onboarding OTP',
+  })
+  @ApiCreatedResponse({
+    description: 'Onboarding OTP verified successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid or expired OTP',
+  })
+  @ApiTooManyRequestsResponse({
+    description: 'Maximum OTP verification attempts exceeded',
+  })
   verifyOtp(
     @CurrentUser()
     user: JwtPayload,
@@ -168,6 +278,18 @@ export class VimopayAepsController {
    */
 
   @Post('onboarding/ekyc')
+  @ApiOperation({
+    summary: 'Complete Vimopay AEPS e-KYC',
+  })
+  @ApiCreatedResponse({
+    description: 'AEPS e-KYC request completed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid e-KYC request payload',
+  })
+  @ApiForbiddenResponse({
+    description: 'e-KYC is not available at the current onboarding stage',
+  })
   ekyc(
     @CurrentUser()
     user: JwtPayload,
@@ -185,6 +307,19 @@ export class VimopayAepsController {
    */
 
   @Post('onboarding/2fa')
+  @ApiOperation({
+    summary: 'Complete Vimopay daily two-factor authentication',
+  })
+  @ApiCreatedResponse({
+    description: 'Daily AEPS 2FA completed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid two-factor authentication payload',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'Two-factor authentication is not available for the current account state',
+  })
   twoFactorAuth(
     @CurrentUser()
     user: JwtPayload,
@@ -210,6 +345,19 @@ export class VimopayAepsController {
   }
 
   @Post('balance-enquiry')
+  @ApiOperation({
+    summary: 'Perform AEPS balance enquiry',
+  })
+  @ApiCreatedResponse({
+    description: 'Balance enquiry completed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid balance-enquiry request',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'AEPS transaction is not permitted for the current account or onboarding state',
+  })
   balanceEnquiry(
     @CurrentUser()
     user: JwtPayload,
@@ -230,6 +378,19 @@ export class VimopayAepsController {
   }
 
   @Post('mini-statement')
+  @ApiOperation({
+    summary: 'Get AEPS mini statement',
+  })
+  @ApiCreatedResponse({
+    description: 'Mini statement retrieved successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid mini-statement request',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'AEPS transaction is not permitted for the current account or onboarding state',
+  })
   miniStatement(
     @CurrentUser()
     user: JwtPayload,
@@ -250,6 +411,18 @@ export class VimopayAepsController {
   }
 
   @Post('cash-withdrawal/otp')
+  @ApiOperation({
+    summary: 'Generate OTP for AEPS cash withdrawal',
+  })
+  @ApiCreatedResponse({
+    description: 'Cash-withdrawal OTP generated successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid cash-withdrawal OTP request',
+  })
+  @ApiTooManyRequestsResponse({
+    description: 'OTP request limit exceeded',
+  })
   cashWithdrawalOtp(
     @CurrentUser()
     user: JwtPayload,
@@ -270,6 +443,29 @@ export class VimopayAepsController {
   }
 
   @Post('cash-withdrawal')
+  @ApiOperation({
+    summary: 'Perform AEPS cash withdrawal',
+  })
+  @ApiHeader({
+    name: 'idempotency-key',
+    required: true,
+    description:
+      'Unique UUID used to prevent duplicate cash-withdrawal transactions',
+    schema: {
+      type: 'string',
+      format: 'uuid',
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Cash withdrawal processed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid transaction payload or Idempotency-Key header',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'Cash withdrawal is not permitted for the current account state',
+  })
   cashWithdrawal(
     @CurrentUser()
     user: JwtPayload,
@@ -295,6 +491,18 @@ export class VimopayAepsController {
   }
 
   @Post('aadhaar-pay/otp')
+  @ApiOperation({
+    summary: 'Generate OTP for AEPS Aadhaar Pay',
+  })
+  @ApiCreatedResponse({
+    description: 'Aadhaar Pay OTP generated successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid Aadhaar Pay OTP request',
+  })
+  @ApiTooManyRequestsResponse({
+    description: 'OTP request limit exceeded',
+  })
   aadhaarPayOtp(
     @CurrentUser()
     user: JwtPayload,
@@ -315,6 +523,28 @@ export class VimopayAepsController {
   }
 
   @Post('aadhaar-pay')
+  @ApiOperation({
+    summary: 'Perform AEPS Aadhaar Pay transaction',
+  })
+  @ApiHeader({
+    name: 'idempotency-key',
+    required: true,
+    description:
+      'Unique UUID used to prevent duplicate Aadhaar Pay transactions',
+    schema: {
+      type: 'string',
+      format: 'uuid',
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Aadhaar Pay transaction processed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid transaction payload or Idempotency-Key header',
+  })
+  @ApiForbiddenResponse({
+    description: 'Aadhaar Pay is not permitted for the current account state',
+  })
   aadhaarPay(
     @CurrentUser()
     user: JwtPayload,
@@ -340,6 +570,28 @@ export class VimopayAepsController {
   }
 
   @Post('cash-deposit')
+  @ApiOperation({
+    summary: 'Perform AEPS cash deposit',
+  })
+  @ApiHeader({
+    name: 'idempotency-key',
+    required: true,
+    description:
+      'Unique UUID used to prevent duplicate cash-deposit transactions',
+    schema: {
+      type: 'string',
+      format: 'uuid',
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Cash deposit processed successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid transaction payload or Idempotency-Key header',
+  })
+  @ApiForbiddenResponse({
+    description: 'Cash deposit is not permitted for the current account state',
+  })
   cashDeposit(
     @CurrentUser()
     user: JwtPayload,
@@ -377,6 +629,29 @@ export class VimopayAepsController {
   @Post('admin/provider-income/:referenceId/reconcile')
   // @UseGuards(PermissionGuard)
   // @RequirePermissions(TRANSACTION_PERMISSIONS.RECONCILIATION_RESOLVE)
+  @ApiOperation({
+    summary: 'Reconcile Vimopay provider income',
+    description:
+      'Manually reconciles provider-income information for an AEPS transaction reference.',
+  })
+  @ApiParam({
+    name: 'referenceId',
+    required: true,
+    description: 'Transaction or provider-income reference ID',
+  })
+  @ApiCreatedResponse({
+    description: 'Provider income reconciled successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid reconciliation request or reference ID',
+  })
+  @ApiNotFoundResponse({
+    description: 'Provider income or transaction reference not found',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'Authenticated account is not authorized to reconcile provider income',
+  })
   reconcileProviderIncome(
     @CurrentUser()
     user: JwtPayload,

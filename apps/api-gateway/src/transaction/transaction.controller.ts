@@ -15,7 +15,22 @@ import { CurrentUser } from '../auth/decorator/current-user.decorator';
 import { JwtPayload } from '../auth/intercaces/jwt-payload.interface';
 
 import { RpcToHttpExceptionInterceptor } from '../common/interceptors/rpc-to-http-exception';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Transactions')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({
+  description:
+    'Access token is missing, invalid, expired, or the session is invalid',
+})
 @Controller('transactions')
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(RpcToHttpExceptionInterceptor)
@@ -33,6 +48,23 @@ export class TransactionController {
    */
 
   @Get('balance/:walletType')
+  @ApiOperation({
+    summary: 'Get my wallet balance',
+    description:
+      'Returns the balance of the selected wallet for the currently authenticated identity.',
+  })
+  @ApiParam({
+    name: 'walletType',
+    required: true,
+    enum: ['MAIN', 'AEPS', 'PROFIT'],
+    description: 'Wallet type',
+  })
+  @ApiOkResponse({
+    description: 'Wallet balance retrieved successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid wallet type',
+  })
   getMyBalance(
     @CurrentUser()
     user: JwtPayload,
