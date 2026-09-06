@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthNotificationEvent } from 'libs/kafka/src';
 import {
+  EMAIL_JOB_NAMES,
+  EmailJob,
   QUEUE_NAMES,
   QueueService,
   SMS_JOB_NAMES,
@@ -51,6 +53,39 @@ export class AuthNotificationService {
       '',
       'Please change your password and MPIN after your first login.',
     ].join('\n');
+
+    if (event.email) {
+      await this.queueService.add<EmailJob>(
+        QUEUE_NAMES.EMAIL,
+        EMAIL_JOB_NAMES.SEND,
+        {
+          type: 'ACCOUNT_CREDENTIALS',
+          to: event.email,
+          loginId,
+          temporaryPassword,
+          temporaryMpin,
+          fullName:
+            typeof event.data?.fullName === 'string'
+              ? event.data.fullName
+              : undefined,
+          role:
+            typeof event.data?.role === 'string' ? event.data.role : undefined,
+          expiresAt:
+            typeof event.data?.expiresAt === 'string'
+              ? event.data.expiresAt
+              : undefined,
+        },
+        {
+          jobId: `email-credentials-${event.eventId}`,
+        },
+      );
+
+      this.logger.log(
+        `Registration credentials email ${event.eventId} queued successfully`,
+      );
+
+      return;
+    }
 
     await this.queueSms(event, message, 'registration credentials');
   }
@@ -141,17 +176,27 @@ export class AuthNotificationService {
     message: string,
     eventName: string,
   ): Promise<void> {
+    const phoneNumber = event.phoneNumber?.trim();
+
+    if (!phoneNumber) {
+      this.logger.warn(
+        `Skipped ${eventName} SMS ${event.eventId}: phone number is unavailable`,
+      );
+      return;
+    }
+
     await this.queueService.add<SmsJob>(
       QUEUE_NAMES.SMS,
       SMS_JOB_NAMES.SEND,
       {
-        phoneNumber: event.phoneNumber,
+        phoneNumber,
         message,
       },
       {
         jobId: `sms-${event.eventId}`,
       },
     );
+
     this.logger.log(
       `${eventName} notification ${event.eventId} queued successfully`,
     );
@@ -165,6 +210,7 @@ export class AuthNotificationService {
       this.logger.error(`Rejected invalid ${eventName} event`);
       return null;
     }
+
     const event = payload as Partial<AuthNotificationEvent>;
 
     if (
@@ -172,12 +218,24 @@ export class AuthNotificationService {
       !event.eventId.trim() ||
       typeof event.identityId !== 'string' ||
       !event.identityId.trim() ||
-      !event.phoneNumber?.trim() ||
       typeof event.occurredAt !== 'string' ||
       !event.occurredAt.trim() ||
       Number.isNaN(Date.parse(event.occurredAt))
     ) {
       this.logger.error(`Rejected invalid ${eventName} event`);
+      return null;
+    }
+
+    const phoneNumber =
+      typeof event.phoneNumber === 'string' ? event.phoneNumber.trim() : '';
+
+    const email =
+      typeof event.email === 'string' ? event.email.trim().toLowerCase() : '';
+
+    if (!phoneNumber && !email) {
+      this.logger.error(
+        `Rejected ${eventName} event ${event.eventId}: no recipient supplied`,
+      );
       return null;
     }
 
@@ -190,18 +248,14 @@ export class AuthNotificationService {
       this.logger.error(`Rejected invalid ${eventName} event data`);
       return null;
     }
+
     return {
       eventId: event.eventId.trim(),
       identityId: event.identityId.trim(),
-      phoneNumber: event.phoneNumber.trim(),
       occurredAt: event.occurredAt,
-      ...(typeof event.email === 'string' &&
-        event.email.trim() && {
-          email: event.email.trim(),
-        }),
-      ...(event.data && {
-        data: event.data,
-      }),
+      data: event.data ?? {},
+      ...(phoneNumber && { phoneNumber }),
+      ...(email && { email }),
     };
   }
 

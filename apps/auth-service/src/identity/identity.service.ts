@@ -1,7 +1,9 @@
 import {
+  AccountOnboardingStatus,
   LoginMethod,
   Prisma,
   RegistrationStep,
+  UserStatus,
 } from '../../generated/prisma/client';
 import {
   BadRequestException,
@@ -30,9 +32,14 @@ const loginIdentitySelect = {
   username: true,
   email: true,
   phoneNumber: true,
+  panNumber: true,
   password: true,
   mpin: true,
   status: true,
+  isPhoneVerified: true,
+  isPanVerified: true,
+  onboardingStatus: true,
+  temporaryCredentialsExpireAt: true,
   passwordChangedAt: true,
   mpinChangedAt: true,
   preferredLoginMethod: true,
@@ -62,6 +69,25 @@ const peerTransferIdentitySelect = {
 export type LoginIdentity = Prisma.IdentityGetPayload<{
   select: typeof loginIdentitySelect;
 }>;
+
+export interface CreateAdminManagedIdentityData {
+  roleName: string;
+  fullName: string;
+  username: string;
+  email: string;
+  city: string;
+  state: string;
+  pincode: string;
+  shopName?: string;
+  shopAddress?: string;
+  shopCity?: string;
+  shopState?: string;
+  hashedPassword: string;
+  hashedMpin: string;
+  createdBySuperAdminId?: string;
+  createdByIdentityId?: string;
+  temporaryCredentialsExpireAt: Date;
+}
 
 @Injectable()
 export class IdentityService {
@@ -215,6 +241,17 @@ export class IdentityService {
     return this.prisma.identity.findUnique({
       where: {
         panNumber,
+      },
+    });
+  }
+
+  async findByIdWithRole(id: string) {
+    return this.prisma.identity.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        role: true,
       },
     });
   }
@@ -507,6 +544,144 @@ export class IdentityService {
     return identity;
   }
 
+  async createAdminManagedIdentity(
+    data: CreateAdminManagedIdentityData,
+  ): Promise<IdentityWithRole> {
+    if (data.createdBySuperAdminId && data.createdByIdentityId) {
+      throw new BadRequestException('An account cannot have multiple creators');
+    }
+
+    if (!data.createdBySuperAdminId && !data.createdByIdentityId) {
+      throw new BadRequestException('Account creator is required');
+    }
+    const roleName = data.roleName.trim().toUpperCase();
+
+    if (roleName === 'SUPER_ADMIN') {
+      throw new BadRequestException(
+        'Super Admin accounts must be created through the Super Admin account flow',
+      );
+    }
+
+    try {
+      const identity = await this.prisma.$transaction(async (tx) => {
+        const role = await tx.role.findUnique({
+          where: {
+            name: roleName,
+          },
+        });
+
+        if (!role || !role.isActive) {
+          throw new BadRequestException(
+            'The selected account role is invalid or inactive',
+          );
+        }
+
+        const updatedRole = await tx.role.update({
+          where: {
+            id: role.id,
+          },
+          data: {
+            lastLoginIdNumber: {
+              increment: 1,
+            },
+          },
+          select: {
+            id: true,
+            prefix: true,
+            lastLoginIdNumber: true,
+          },
+        });
+
+        const numberPart = updatedRole.lastLoginIdNumber
+          .toString()
+          .padStart(4, '0');
+
+        const loginId = `${updatedRole.prefix}${numberPart}`;
+
+        return tx.identity.create({
+          data: {
+            loginId,
+            fullName: data.fullName.trim(),
+            username: data.username.trim().toLowerCase(),
+            email: data.email.trim().toLowerCase(),
+
+            password: data.hashedPassword,
+            mpin: data.hashedMpin,
+
+            city: data.city.trim(),
+            state: data.state.trim(),
+            pincode: data.pincode.trim(),
+
+            shopName: data.shopName?.trim() || null,
+            shopAddress: data.shopAddress?.trim() || null,
+            shopCity: data.shopCity?.trim() || null,
+            shopState: data.shopState?.trim() || null,
+
+            phoneNumber: null,
+            aadhaarNumber: null,
+            panNumber: null,
+
+            status: UserStatus.ACTIVE,
+
+            isEmailVerified: false,
+            isPhoneVerified: false,
+            isPanVerified: false,
+
+            preferredLoginMethod: LoginMethod.LOGIN_ID,
+
+            // Public registration tracking is separate from
+            // administrator-created account onboarding.
+            registrationStep: RegistrationStep.COMPLETED,
+
+            onboardingStatus: AccountOnboardingStatus.CREDENTIALS_ISSUED,
+
+            temporaryCredentialsExpireAt: data.temporaryCredentialsExpireAt,
+
+            role: {
+              connect: {
+                id: updatedRole.id,
+              },
+            },
+
+            ...(data.createdBySuperAdminId && {
+              createdBySuperAdmin: {
+                connect: {
+                  id: data.createdBySuperAdminId,
+                },
+              },
+            }),
+
+            ...(data.createdByIdentityId && {
+              createdByIdentity: {
+                connect: {
+                  id: data.createdByIdentityId,
+                },
+              },
+            }),
+          },
+          include: {
+            role: true,
+          },
+        });
+      });
+
+      await this.clearIdentityCache(identity);
+
+      return identity;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'Email, username or generated login ID is already in use',
+        );
+      }
+
+      throw error;
+    }
+  }
+
   async updatePreferredLoginMethod(
     identityId: string,
     preferredLoginMethod: LoginMethod,
@@ -747,6 +922,8 @@ export class IdentityService {
         data: {
           mpin: data.hashedMpin,
           mpinChangedAt: now,
+          onboardingStatus: AccountOnboardingStatus.COMPLETED,
+          temporaryCredentialsExpireAt: null,
         },
       });
 
@@ -884,6 +1061,115 @@ export class IdentityService {
     });
   }
 
+  async isPhoneNumberUsedByAnotherAccount(
+    phoneNumber: string,
+    identityId: string,
+  ): Promise<boolean> {
+    const normalizedPhoneNumber = phoneNumber.trim();
+
+    const [identityOwner, superAdminOwner] = await Promise.all([
+      this.prisma.identity.findFirst({
+        where: {
+          phoneNumber: normalizedPhoneNumber,
+          id: {
+            not: identityId,
+          },
+        },
+        select: {
+          id: true,
+        },
+      }),
+
+      this.prisma.superAdmin.findUnique({
+        where: {
+          phoneNumber: normalizedPhoneNumber,
+        },
+        select: {
+          id: true,
+        },
+      }),
+    ]);
+
+    return Boolean(identityOwner || superAdminOwner);
+  }
+
+  async setPhoneForOnboarding(identityId: string, phoneNumber: string) {
+    const normalizedPhoneNumber = phoneNumber.trim();
+
+    const updated = await this.prisma.identity.updateMany({
+      where: {
+        id: identityId,
+        status: UserStatus.ACTIVE,
+        isPhoneVerified: false,
+        onboardingStatus: {
+          not: AccountOnboardingStatus.COMPLETED,
+        },
+      },
+      data: {
+        phoneNumber: normalizedPhoneNumber,
+        isPhoneVerified: false,
+        onboardingStatus: AccountOnboardingStatus.PHONE_PENDING,
+      },
+    });
+
+    if (updated.count !== 1) {
+      throw new BadRequestException(
+        'Phone onboarding is not available for this account',
+      );
+    }
+
+    return this.prisma.identity.findUnique({
+      where: {
+        id: identityId,
+      },
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  async markOnboardingPhoneVerified(
+    identityId: string,
+    expectedPhoneNumber: string,
+  ) {
+    const updated = await this.prisma.identity.updateMany({
+      where: {
+        id: identityId,
+        phoneNumber: expectedPhoneNumber,
+        status: UserStatus.ACTIVE,
+        isPhoneVerified: false,
+        onboardingStatus: AccountOnboardingStatus.PHONE_PENDING,
+      },
+      data: {
+        isPhoneVerified: true,
+        onboardingStatus: AccountOnboardingStatus.PAN_PENDING,
+      },
+    });
+
+    if (updated.count !== 1) {
+      throw new ConflictException(
+        'Phone onboarding state changed. Please try again.',
+      );
+    }
+
+    const identity = await this.prisma.identity.findUnique({
+      where: {
+        id: identityId,
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    if (!identity) {
+      throw new BadRequestException('Account not found');
+    }
+
+    await this.clearIdentityCache(identity);
+
+    return identity;
+  }
+
   async create(data: Prisma.IdentityCreateInput): Promise<IdentityWithRole> {
     const identity = await this.prisma.identity.create({
       data,
@@ -893,6 +1179,59 @@ export class IdentityService {
     });
     await this.clearIdentityCache(identity);
     return identity;
+  }
+
+  async isPanNumberUsedByAnotherAccount(
+    panNumber: string,
+    identityId: string,
+  ): Promise<boolean> {
+    const normalizedPan = panNumber.trim().toUpperCase();
+
+    const [identityOwner, superAdminOwner] = await Promise.all([
+      this.prisma.identity.findFirst({
+        where: {
+          panNumber: normalizedPan,
+          id: { not: identityId },
+        },
+        select: { id: true },
+      }),
+
+      this.prisma.superAdmin.findUnique({
+        where: { panNumber: normalizedPan },
+        select: { id: true },
+      }),
+    ]);
+
+    return Boolean(identityOwner || superAdminOwner);
+  }
+
+  async addPanForIdentityOnboarding(identityId: string, panNumber: string) {
+    const normalizedPan = panNumber.trim().toUpperCase();
+
+    const updated = await this.prisma.identity.updateMany({
+      where: {
+        id: identityId,
+        status: UserStatus.ACTIVE,
+        isPhoneVerified: true,
+        onboardingStatus: AccountOnboardingStatus.PAN_PENDING,
+      },
+      data: {
+        panNumber: normalizedPan,
+        isPanVerified: false,
+        onboardingStatus: AccountOnboardingStatus.CREDENTIAL_CHANGE_REQUIRED,
+      },
+    });
+
+    if (updated.count !== 1) {
+      throw new ConflictException(
+        'PAN onboarding state changed. Please try again.',
+      );
+    }
+
+    return this.prisma.identity.findUnique({
+      where: { id: identityId },
+      include: { role: true },
+    });
   }
 
   private async advanceSessionValidationCacheVersion(

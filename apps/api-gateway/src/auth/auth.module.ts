@@ -8,6 +8,9 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './guards/jwt-auth-guard';
 import { PermissionGuard } from './guards/permission.guard';
+import { SuperAdminAuthController } from './super-admin-auth.controller';
+import { SuperAdminAuthGuard } from './guards/super-admin-auth.guard';
+import { SuperAdminOnboardingGuard } from './guards/super-admin-onboarding.guard';
 
 @Global()
 @Module({
@@ -42,10 +45,23 @@ import { PermissionGuard } from './guards/permission.guard';
     }),
   ],
 
-  controllers: [AuthController],
+  controllers: [AuthController, SuperAdminAuthController],
 
-  providers: [AuthGatewayService, JwtAuthGuard, PermissionGuard],
+  providers: [
+    AuthGatewayService,
+    JwtAuthGuard,
+    PermissionGuard,
+    SuperAdminAuthGuard,
+    SuperAdminOnboardingGuard,
+  ],
 
-  exports: [AuthGatewayService, JwtModule, JwtAuthGuard, PermissionGuard],
+  exports: [
+    AuthGatewayService,
+    JwtModule,
+    JwtAuthGuard,
+    PermissionGuard,
+    SuperAdminAuthGuard,
+    SuperAdminOnboardingGuard,
+  ],
 })
 export class AuthModule {}

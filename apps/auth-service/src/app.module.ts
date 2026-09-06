@@ -19,6 +19,7 @@ import { PackagePermissionModule } from './package-permission/package-permission
 import { RolePackageModule } from './role-package/role-package.module';
 import { RoleRegisterPermissionModule } from './role-register-permission/role-register-permission.module';
 import { AuthorizationModule } from './authorization/authorization.module';
+import { SuperAdminModule } from './super-admin/super-admin.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { AuthorizationModule } from './authorization/authorization.module';
     OtpModule,
     KafkaModule,
     SessionModule,
+    SuperAdminModule,
     PermissionModule,
     PackageModule,
     PackagePermissionModule,

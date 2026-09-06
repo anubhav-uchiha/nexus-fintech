@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Identity: 'Identity',
   SuperAdmin: 'SuperAdmin',
+  SuperAdminSession: 'SuperAdminSession',
   Role: 'Role',
   Permission: 'Permission',
   Package: 'Package',
@@ -62,7 +63,9 @@ export const ModelName = {
   Otp: 'Otp',
   Session: 'Session',
   RegistrationDraft: 'RegistrationDraft',
-  PasswordResetDraft: 'PasswordResetDraft'
+  PasswordResetDraft: 'PasswordResetDraft',
+  TrustedDevice: 'TrustedDevice',
+  LoginDeviceChallenge: 'LoginDeviceChallenge'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -99,6 +102,8 @@ export const IdentityScalarFieldEnum = {
   city: 'city',
   state: 'state',
   pincode: 'pincode',
+  onboardingStatus: 'onboardingStatus',
+  temporaryCredentialsExpireAt: 'temporaryCredentialsExpireAt',
   status: 'status',
   isEmailVerified: 'isEmailVerified',
   isPhoneVerified: 'isPhoneVerified',
@@ -111,6 +116,8 @@ export const IdentityScalarFieldEnum = {
   roleId: 'roleId',
   lastLoginLatitude: 'lastLoginLatitude',
   lastLoginLongitude: 'lastLoginLongitude',
+  createdBySuperAdminId: 'createdBySuperAdminId',
+  createdByIdentityId: 'createdByIdentityId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -156,6 +163,27 @@ export const SuperAdminScalarFieldEnum = {
 } as const
 
 export type SuperAdminScalarFieldEnum = (typeof SuperAdminScalarFieldEnum)[keyof typeof SuperAdminScalarFieldEnum]
+
+
+export const SuperAdminSessionScalarFieldEnum = {
+  id: 'id',
+  superAdminId: 'superAdminId',
+  refreshToken: 'refreshToken',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  locationAccuracy: 'locationAccuracy',
+  locationCapturedAt: 'locationCapturedAt',
+  device: 'device',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  expiresAt: 'expiresAt',
+  revoked: 'revoked',
+  lastUsedAt: 'lastUsedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SuperAdminSessionScalarFieldEnum = (typeof SuperAdminSessionScalarFieldEnum)[keyof typeof SuperAdminSessionScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -303,6 +331,43 @@ export const PasswordResetDraftScalarFieldEnum = {
 } as const
 
 export type PasswordResetDraftScalarFieldEnum = (typeof PasswordResetDraftScalarFieldEnum)[keyof typeof PasswordResetDraftScalarFieldEnum]
+
+
+export const TrustedDeviceScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  superAdminId: 'superAdminId',
+  deviceId: 'deviceId',
+  deviceName: 'deviceName',
+  userAgent: 'userAgent',
+  lastIpAddress: 'lastIpAddress',
+  verifiedAt: 'verifiedAt',
+  trustedUntil: 'trustedUntil',
+  lastUsedAt: 'lastUsedAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrustedDeviceScalarFieldEnum = (typeof TrustedDeviceScalarFieldEnum)[keyof typeof TrustedDeviceScalarFieldEnum]
+
+
+export const LoginDeviceChallengeScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  superAdminId: 'superAdminId',
+  deviceId: 'deviceId',
+  deviceName: 'deviceName',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  expiresAt: 'expiresAt',
+  verifiedAt: 'verifiedAt',
+  attempts: 'attempts',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LoginDeviceChallengeScalarFieldEnum = (typeof LoginDeviceChallengeScalarFieldEnum)[keyof typeof LoginDeviceChallengeScalarFieldEnum]
 
 
 export const SortOrder = {

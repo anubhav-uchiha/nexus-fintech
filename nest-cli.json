@@ -7,9 +7,27 @@
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": false,
-    "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
+    "tsConfigPath": "apps/api-gateway/tsconfig.app.json",
+    "plugins": [
+      {
+        "name": "@nestjs/swagger",
+        "options": {
+          "classValidatorShim": true,
+          "introspectComments": true
+        }
+      }
+    ]
   },
   "projects": {
+    "admin-service": {
+      "type": "application",
+      "root": "apps/admin-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/admin-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/admin-service/tsconfig.app.json"
+      }
+    },
     "aeps-service": {
       "type": "application",
       "root": "apps/aeps-service",

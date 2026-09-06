@@ -399,6 +399,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Identity: 'Identity',
   SuperAdmin: 'SuperAdmin',
+  SuperAdminSession: 'SuperAdminSession',
   Role: 'Role',
   Permission: 'Permission',
   Package: 'Package',
@@ -408,7 +409,9 @@ export const ModelName = {
   Otp: 'Otp',
   Session: 'Session',
   RegistrationDraft: 'RegistrationDraft',
-  PasswordResetDraft: 'PasswordResetDraft'
+  PasswordResetDraft: 'PasswordResetDraft',
+  TrustedDevice: 'TrustedDevice',
+  LoginDeviceChallenge: 'LoginDeviceChallenge'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -424,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "identity" | "superAdmin" | "role" | "permission" | "package" | "rolePackage" | "packagePermission" | "roleRegisterPermission" | "otp" | "session" | "registrationDraft" | "passwordResetDraft"
+    modelProps: "identity" | "superAdmin" | "superAdminSession" | "role" | "permission" | "package" | "rolePackage" | "packagePermission" | "roleRegisterPermission" | "otp" | "session" | "registrationDraft" | "passwordResetDraft" | "trustedDevice" | "loginDeviceChallenge"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -573,6 +576,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.SuperAdminCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.SuperAdminCountAggregateOutputType> | number
+        }
+      }
+    }
+    SuperAdminSession: {
+      payload: Prisma.$SuperAdminSessionPayload<ExtArgs>
+      fields: Prisma.SuperAdminSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SuperAdminSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SuperAdminSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.SuperAdminSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SuperAdminSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>
+        }
+        findMany: {
+          args: Prisma.SuperAdminSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>[]
+        }
+        create: {
+          args: Prisma.SuperAdminSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>
+        }
+        createMany: {
+          args: Prisma.SuperAdminSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SuperAdminSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.SuperAdminSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>
+        }
+        update: {
+          args: Prisma.SuperAdminSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.SuperAdminSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SuperAdminSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SuperAdminSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.SuperAdminSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SuperAdminSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.SuperAdminSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSuperAdminSession>
+        }
+        groupBy: {
+          args: Prisma.SuperAdminSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SuperAdminSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SuperAdminSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SuperAdminSessionCountAggregateOutputType> | number
         }
       }
     }
@@ -1316,6 +1393,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TrustedDevice: {
+      payload: Prisma.$TrustedDevicePayload<ExtArgs>
+      fields: Prisma.TrustedDeviceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TrustedDeviceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TrustedDeviceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        findFirst: {
+          args: Prisma.TrustedDeviceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TrustedDeviceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        findMany: {
+          args: Prisma.TrustedDeviceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>[]
+        }
+        create: {
+          args: Prisma.TrustedDeviceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        createMany: {
+          args: Prisma.TrustedDeviceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TrustedDeviceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>[]
+        }
+        delete: {
+          args: Prisma.TrustedDeviceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        update: {
+          args: Prisma.TrustedDeviceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        deleteMany: {
+          args: Prisma.TrustedDeviceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TrustedDeviceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TrustedDeviceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>[]
+        }
+        upsert: {
+          args: Prisma.TrustedDeviceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrustedDevicePayload>
+        }
+        aggregate: {
+          args: Prisma.TrustedDeviceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTrustedDevice>
+        }
+        groupBy: {
+          args: Prisma.TrustedDeviceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrustedDeviceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TrustedDeviceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrustedDeviceCountAggregateOutputType> | number
+        }
+      }
+    }
+    LoginDeviceChallenge: {
+      payload: Prisma.$LoginDeviceChallengePayload<ExtArgs>
+      fields: Prisma.LoginDeviceChallengeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LoginDeviceChallengeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LoginDeviceChallengeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>
+        }
+        findFirst: {
+          args: Prisma.LoginDeviceChallengeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LoginDeviceChallengeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>
+        }
+        findMany: {
+          args: Prisma.LoginDeviceChallengeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>[]
+        }
+        create: {
+          args: Prisma.LoginDeviceChallengeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>
+        }
+        createMany: {
+          args: Prisma.LoginDeviceChallengeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.LoginDeviceChallengeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>[]
+        }
+        delete: {
+          args: Prisma.LoginDeviceChallengeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>
+        }
+        update: {
+          args: Prisma.LoginDeviceChallengeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>
+        }
+        deleteMany: {
+          args: Prisma.LoginDeviceChallengeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LoginDeviceChallengeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.LoginDeviceChallengeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>[]
+        }
+        upsert: {
+          args: Prisma.LoginDeviceChallengeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LoginDeviceChallengePayload>
+        }
+        aggregate: {
+          args: Prisma.LoginDeviceChallengeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLoginDeviceChallenge>
+        }
+        groupBy: {
+          args: Prisma.LoginDeviceChallengeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LoginDeviceChallengeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LoginDeviceChallengeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LoginDeviceChallengeCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1373,6 +1598,8 @@ export const IdentityScalarFieldEnum = {
   city: 'city',
   state: 'state',
   pincode: 'pincode',
+  onboardingStatus: 'onboardingStatus',
+  temporaryCredentialsExpireAt: 'temporaryCredentialsExpireAt',
   status: 'status',
   isEmailVerified: 'isEmailVerified',
   isPhoneVerified: 'isPhoneVerified',
@@ -1385,6 +1612,8 @@ export const IdentityScalarFieldEnum = {
   roleId: 'roleId',
   lastLoginLatitude: 'lastLoginLatitude',
   lastLoginLongitude: 'lastLoginLongitude',
+  createdBySuperAdminId: 'createdBySuperAdminId',
+  createdByIdentityId: 'createdByIdentityId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1430,6 +1659,27 @@ export const SuperAdminScalarFieldEnum = {
 } as const
 
 export type SuperAdminScalarFieldEnum = (typeof SuperAdminScalarFieldEnum)[keyof typeof SuperAdminScalarFieldEnum]
+
+
+export const SuperAdminSessionScalarFieldEnum = {
+  id: 'id',
+  superAdminId: 'superAdminId',
+  refreshToken: 'refreshToken',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  locationAccuracy: 'locationAccuracy',
+  locationCapturedAt: 'locationCapturedAt',
+  device: 'device',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  expiresAt: 'expiresAt',
+  revoked: 'revoked',
+  lastUsedAt: 'lastUsedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SuperAdminSessionScalarFieldEnum = (typeof SuperAdminSessionScalarFieldEnum)[keyof typeof SuperAdminSessionScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
@@ -1579,6 +1829,43 @@ export const PasswordResetDraftScalarFieldEnum = {
 export type PasswordResetDraftScalarFieldEnum = (typeof PasswordResetDraftScalarFieldEnum)[keyof typeof PasswordResetDraftScalarFieldEnum]
 
 
+export const TrustedDeviceScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  superAdminId: 'superAdminId',
+  deviceId: 'deviceId',
+  deviceName: 'deviceName',
+  userAgent: 'userAgent',
+  lastIpAddress: 'lastIpAddress',
+  verifiedAt: 'verifiedAt',
+  trustedUntil: 'trustedUntil',
+  lastUsedAt: 'lastUsedAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrustedDeviceScalarFieldEnum = (typeof TrustedDeviceScalarFieldEnum)[keyof typeof TrustedDeviceScalarFieldEnum]
+
+
+export const LoginDeviceChallengeScalarFieldEnum = {
+  id: 'id',
+  identityId: 'identityId',
+  superAdminId: 'superAdminId',
+  deviceId: 'deviceId',
+  deviceName: 'deviceName',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  expiresAt: 'expiresAt',
+  verifiedAt: 'verifiedAt',
+  attempts: 'attempts',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LoginDeviceChallengeScalarFieldEnum = (typeof LoginDeviceChallengeScalarFieldEnum)[keyof typeof LoginDeviceChallengeScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1620,6 +1907,34 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
  * Reference to a field of type 'String[]'
  */
 export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
+    
+
+
+/**
+ * Reference to a field of type 'AccountOnboardingStatus'
+ */
+export type EnumAccountOnboardingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountOnboardingStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AccountOnboardingStatus[]'
+ */
+export type ListEnumAccountOnboardingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountOnboardingStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime'
+ */
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime[]'
+ */
+export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
     
 
 
@@ -1673,20 +1988,6 @@ export type ListEnumRegistrationStepFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
- * Reference to a field of type 'DateTime'
- */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime[]'
- */
-export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
  * Reference to a field of type 'Decimal'
  */
 export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -1701,16 +2002,16 @@ export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMo
 
 
 /**
- * Reference to a field of type 'AccountOnboardingStatus'
+ * Reference to a field of type 'Float'
  */
-export type EnumAccountOnboardingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountOnboardingStatus'>
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
 
 
 /**
- * Reference to a field of type 'AccountOnboardingStatus[]'
+ * Reference to a field of type 'Float[]'
  */
-export type ListEnumAccountOnboardingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountOnboardingStatus[]'>
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 
@@ -1753,20 +2054,6 @@ export type EnumOtpPurposeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'OtpPurpose[]'
  */
 export type ListEnumOtpPurposeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OtpPurpose[]'>
-    
-
-
-/**
- * Reference to a field of type 'Float'
- */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
-    
-
-
-/**
- * Reference to a field of type 'Float[]'
- */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1922,6 +2209,7 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   identity?: Prisma.IdentityOmit
   superAdmin?: Prisma.SuperAdminOmit
+  superAdminSession?: Prisma.SuperAdminSessionOmit
   role?: Prisma.RoleOmit
   permission?: Prisma.PermissionOmit
   package?: Prisma.PackageOmit
@@ -1932,6 +2220,8 @@ export type GlobalOmitConfig = {
   session?: Prisma.SessionOmit
   registrationDraft?: Prisma.RegistrationDraftOmit
   passwordResetDraft?: Prisma.PasswordResetDraftOmit
+  trustedDevice?: Prisma.TrustedDeviceOmit
+  loginDeviceChallenge?: Prisma.LoginDeviceChallengeOmit
 }
 
 /* Types for Logging */

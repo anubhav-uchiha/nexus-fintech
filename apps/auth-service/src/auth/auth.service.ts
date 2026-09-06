@@ -16,6 +16,7 @@ import { RoleService } from '../role/role.service';
 import { PasswordService } from './password/password.service';
 import { JwtService } from './jwt/jwt.service';
 import {
+  AccountOnboardingStatus,
   LoginMethod,
   OtpPurpose,
   OtpType,
@@ -24,6 +25,9 @@ import {
 } from '../../generated/prisma/enums';
 import { OtpService } from '../otp/otp.service';
 import {
+  IdentityOnboardingPanDto,
+  IdentityOnboardingSendPhoneDto,
+  IdentityOnboardingVerifyPhoneDto,
   LoginKafkaResponseDto,
   LogoutDto,
   RefreshKafkaResponseDto,
@@ -55,6 +59,9 @@ import {
   KafkaProducerService,
 } from 'libs/kafka/src';
 import { AUDIT_PATTERNS, CreateAuditLogDto } from '@nexus/common/audit';
+import { TrustedDeviceService } from './device/trusted-device.service';
+import { VerifyDeviceLoginDto } from '@nexus/common/auth/dto/verify-device-login.dto';
+import { DeviceVerificationRequiredResponse } from '@nexus/common/auth/dto/device-verification-required-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -69,6 +76,7 @@ export class AuthService {
     private readonly cache: CacheService,
     private readonly sessionService: SessionService,
     private readonly kafkaProducer: KafkaProducerService,
+    private readonly trustedDeviceService: TrustedDeviceService,
   ) {}
 
   private queueAuditLog(data: Omit<CreateAuditLogDto, 'eventId'>): void {
@@ -406,7 +414,9 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginKafkaDto): Promise<LoginKafkaResponseDto> {
+  async login(
+    dto: LoginKafkaDto,
+  ): Promise<LoginKafkaResponseDto | DeviceVerificationRequiredResponse> {
     let auditIdentity: {
       id: string;
       loginId: string;
@@ -461,6 +471,19 @@ export class AuthService {
         throw new ForbiddenException('Account role is inactive');
       }
 
+      const onboardingRequired =
+        identity.onboardingStatus !== AccountOnboardingStatus.COMPLETED;
+
+      if (
+        onboardingRequired &&
+        identity.temporaryCredentialsExpireAt &&
+        identity.temporaryCredentialsExpireAt <= new Date()
+      ) {
+        throw new ForbiddenException(
+          'Temporary credentials have expired. Contact your administrator.',
+        );
+      }
+
       const credentialHash =
         dto.loginWith === 'PASSWORD' ? identity.password : identity.mpin;
 
@@ -477,6 +500,57 @@ export class AuthService {
 
       await this.clearLoginAttempts(dto);
 
+      const deviceId = dto.deviceId.trim();
+
+      const isTrustedDevice =
+        await this.trustedDeviceService.isIdentityDeviceTrusted(
+          identity.id,
+          deviceId,
+        );
+
+      if (!isTrustedDevice) {
+        const challenge =
+          await this.trustedDeviceService.createIdentityLoginChallenge({
+            identityId: identity.id,
+            deviceId,
+            deviceName: dto.device,
+            ipAddress: dto.ipAddress,
+            userAgent: dto.userAgent,
+          });
+
+        await this.otpService.sendOtp({
+          type: OtpType.EMAIL,
+          purpose: OtpPurpose.NEW_DEVICE_LOGIN,
+          email: identity.email,
+        });
+
+        this.queueAuditLog({
+          identityId: identity.id,
+          loginId: identity.loginId,
+          role: identity.role.name,
+          service: 'AUTH',
+          action: 'NEW_DEVICE_VERIFICATION_REQUIRED',
+          status: 'SUCCESS',
+          httpMethod: 'POST',
+          endpoint: '/auth/login',
+          statusCode: 200,
+          ipAddress: dto.ipAddress,
+          metadata: {
+            deviceId,
+            device: dto.device,
+            loginMethod: dto.loginWith,
+          },
+        });
+
+        return {
+          requiresDeviceVerification: true,
+          challengeId: challenge.id,
+          maskedEmail: this.maskEmail(identity.email),
+          expiresAt: challenge.expiresAt,
+          message: 'New device detected. Verification OTP sent to your email.',
+        };
+      }
+
       const location =
         hasLatitude && hasLongitude
           ? {
@@ -492,9 +566,10 @@ export class AuthService {
             }
           : undefined;
       const sessionId = randomUUID();
-      const payload = {
+      const payload: JwtPayload = {
         sub: identity.id,
         sid: sessionId,
+        accountType: 'IDENTITY',
         loginId: identity.loginId,
         username: identity.username,
         email: identity.email,
@@ -546,9 +621,20 @@ export class AuthService {
         },
       });
 
+      const nextStep = onboardingRequired
+        ? this.getIdentityNextOnboardingStep(identity)
+        : null;
+
       return {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
+        refreshExpiresAt: tokens.refreshExpiresAt,
+        onboardingRequired,
+
+        ...(onboardingRequired && {
+          onboardingStatus: identity.onboardingStatus,
+          nextStep,
+        }),
         identity: {
           id: identity.id,
           loginId: identity.loginId,
@@ -662,6 +748,7 @@ export class AuthService {
     const nextPayload: JwtPayload = {
       sub: session.identity.id,
       sid: session.id,
+      accountType: 'IDENTITY',
       loginId: session.identity.loginId,
       username: session.identity.username,
       email: session.identity.email,
@@ -717,6 +804,28 @@ export class AuthService {
 
       if (!user) {
         throw new NotFoundException('User not found');
+      }
+
+      const onboardingRequired =
+        user.onboardingStatus !== AccountOnboardingStatus.COMPLETED;
+
+      if (onboardingRequired) {
+        if (!user.isPhoneVerified) {
+          throw new ForbiddenException('Complete phone verification first');
+        }
+
+        if (!user.panNumber) {
+          throw new ForbiddenException('Add PAN number first');
+        }
+
+        if (
+          user.onboardingStatus !==
+          AccountOnboardingStatus.CREDENTIAL_CHANGE_REQUIRED
+        ) {
+          throw new BadRequestException(
+            'Password change is not available at the current onboarding stage',
+          );
+        }
       }
 
       loginId = user.loginId;
@@ -783,6 +892,12 @@ export class AuthService {
         success: true,
         message: 'Password changed successfully',
         revokedOtherSessionCount: result.revokedSessionCount,
+
+        ...(onboardingRequired && {
+          onboardingRequired: true,
+          onboardingStatus: AccountOnboardingStatus.CREDENTIAL_CHANGE_REQUIRED,
+          nextStep: 'CHANGE_MPIN',
+        }),
       };
     } catch (error) {
       const statusCode =
@@ -826,6 +941,32 @@ export class AuthService {
 
       if (!user) {
         throw new NotFoundException('User not found');
+      }
+
+      const onboardingRequired =
+        user.onboardingStatus !== AccountOnboardingStatus.COMPLETED;
+
+      if (onboardingRequired) {
+        if (!user.isPhoneVerified) {
+          throw new ForbiddenException('Complete phone verification first');
+        }
+
+        if (!user.panNumber) {
+          throw new ForbiddenException('Add PAN number first');
+        }
+
+        if (!user.passwordChangedAt) {
+          throw new ForbiddenException('Change the temporary password first');
+        }
+
+        if (
+          user.onboardingStatus !==
+          AccountOnboardingStatus.CREDENTIAL_CHANGE_REQUIRED
+        ) {
+          throw new BadRequestException(
+            'MPIN change is not available at the current onboarding stage',
+          );
+        }
       }
 
       loginId = user.loginId;
@@ -892,6 +1033,12 @@ export class AuthService {
         success: true,
         message: 'MPIN changed successfully',
         revokedOtherSessionCount: result.revokedSessionCount,
+
+        ...(onboardingRequired && {
+          onboardingRequired: false,
+          onboardingStatus: AccountOnboardingStatus.COMPLETED,
+          nextStep: null,
+        }),
       };
     } catch (error) {
       const statusCode =
@@ -934,6 +1081,12 @@ export class AuthService {
 
       if (!user) {
         throw new BadRequestException('Unable to verify account details');
+      }
+
+      if (!user.panNumber || !user.aadhaarNumber || !user.phoneNumber) {
+        throw new BadRequestException(
+          'Complete account onboarding before using account recovery',
+        );
       }
 
       auditIdentity = user;
@@ -1032,6 +1185,12 @@ export class AuthService {
 
       if (draft.expiresAt < new Date()) {
         throw new BadRequestException('Password reset request has expired');
+      }
+
+      if (!draft.identity.phoneNumber) {
+        throw new BadRequestException(
+          'Phone verification is required before resetting password',
+        );
       }
 
       await this.otpService.verifyOtp(
@@ -1636,5 +1795,352 @@ export class AuthService {
       role: identity.role.name,
       reason: null,
     };
+  }
+
+  private getIdentityNextOnboardingStep(identity: {
+    isPhoneVerified: boolean;
+    panNumber: string | null;
+    passwordChangedAt: Date | null;
+    mpinChangedAt: Date | null;
+  }): string {
+    if (!identity.isPhoneVerified) {
+      return 'ADD_AND_VERIFY_PHONE';
+    }
+
+    if (!identity.panNumber) {
+      return 'ADD_PAN';
+    }
+
+    if (!identity.passwordChangedAt) {
+      return 'CHANGE_PASSWORD';
+    }
+
+    if (!identity.mpinChangedAt) {
+      return 'CHANGE_MPIN';
+    }
+
+    return 'COMPLETE_ONBOARDING';
+  }
+
+  async sendIdentityOnboardingPhoneOtp(
+    identityId: string,
+    dto: IdentityOnboardingSendPhoneDto,
+  ) {
+    const identity = await this.identityService.findById(identityId);
+
+    if (!identity) {
+      throw new NotFoundException('Account not found');
+    }
+
+    if (identity.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('Account is not active');
+    }
+
+    if (identity.onboardingStatus === AccountOnboardingStatus.COMPLETED) {
+      throw new ConflictException(
+        'Account onboarding has already been completed',
+      );
+    }
+
+    if (identity.isPhoneVerified) {
+      throw new ConflictException('Phone number has already been verified');
+    }
+
+    const phoneNumber = dto.phoneNumber.trim();
+
+    const phoneNumberUsed =
+      await this.identityService.isPhoneNumberUsedByAnotherAccount(
+        phoneNumber,
+        identity.id,
+      );
+
+    if (phoneNumberUsed) {
+      throw new ConflictException(
+        'Phone number is already registered with another account',
+      );
+    }
+
+    await this.identityService.setPhoneForOnboarding(identity.id, phoneNumber);
+
+    const otpResult = await this.otpService.sendOtp({
+      type: OtpType.PHONE,
+      purpose: OtpPurpose.ACCOUNT_ONBOARDING,
+      phoneNumber,
+    });
+
+    return {
+      ...otpResult,
+      onboardingStatus: AccountOnboardingStatus.PHONE_PENDING,
+      nextStep: 'VERIFY_PHONE_OTP',
+    };
+  }
+
+  async verifyIdentityOnboardingPhoneOtp(
+    identityId: string,
+    dto: IdentityOnboardingVerifyPhoneDto,
+  ) {
+    const identity = await this.identityService.findById(identityId);
+
+    if (!identity) {
+      throw new NotFoundException('Account not found');
+    }
+
+    if (identity.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('Account is not active');
+    }
+
+    if (identity.onboardingStatus === AccountOnboardingStatus.COMPLETED) {
+      throw new ConflictException(
+        'Account onboarding has already been completed',
+      );
+    }
+
+    if (identity.isPhoneVerified) {
+      throw new ConflictException('Phone number has already been verified');
+    }
+
+    if (!identity.phoneNumber) {
+      throw new BadRequestException('Add a phone number before verifying OTP');
+    }
+
+    if (identity.onboardingStatus !== AccountOnboardingStatus.PHONE_PENDING) {
+      throw new BadRequestException('Phone OTP has not been requested');
+    }
+
+    await this.otpService.verifyOtp(
+      OtpType.PHONE,
+      OtpPurpose.ACCOUNT_ONBOARDING,
+      dto.otp,
+      identity.phoneNumber,
+    );
+
+    await this.identityService.markOnboardingPhoneVerified(
+      identity.id,
+      identity.phoneNumber,
+    );
+
+    return {
+      success: true,
+      message: 'Phone number verified successfully',
+      onboardingStatus: AccountOnboardingStatus.PAN_PENDING,
+      nextStep: 'ADD_PAN',
+    };
+  }
+
+  async addIdentityOnboardingPan(
+    identityId: string,
+    dto: IdentityOnboardingPanDto,
+  ) {
+    const identity = await this.identityService.findById(identityId);
+
+    if (!identity) {
+      throw new NotFoundException('Account not found');
+    }
+
+    if (identity.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('Account is not active');
+    }
+
+    if (identity.onboardingStatus === AccountOnboardingStatus.COMPLETED) {
+      throw new ConflictException(
+        'Account onboarding has already been completed',
+      );
+    }
+
+    if (!identity.isPhoneVerified) {
+      throw new ForbiddenException(
+        'Verify your phone number before adding PAN',
+      );
+    }
+
+    if (identity.onboardingStatus !== AccountOnboardingStatus.PAN_PENDING) {
+      throw new BadRequestException(
+        'PAN onboarding is not currently available',
+      );
+    }
+
+    const panNumber = dto.panNumber.trim().toUpperCase();
+
+    const panUsed = await this.identityService.isPanNumberUsedByAnotherAccount(
+      panNumber,
+      identity.id,
+    );
+
+    if (panUsed) {
+      throw new ConflictException(
+        'PAN number is already registered with another account',
+      );
+    }
+
+    await this.identityService.addPanForIdentityOnboarding(
+      identity.id,
+      panNumber,
+    );
+
+    return {
+      success: true,
+      message: 'PAN number added successfully',
+      panVerificationStatus: 'NOT_VERIFIED',
+      onboardingStatus: AccountOnboardingStatus.CREDENTIAL_CHANGE_REQUIRED,
+      nextStep: 'CHANGE_PASSWORD',
+    };
+  }
+
+  async verifyDeviceLogin(dto: VerifyDeviceLoginDto) {
+    const challenge = await this.trustedDeviceService.findValidChallenge(
+      dto.challengeId,
+    );
+
+    if (!challenge.identityId) {
+      throw new UnauthorizedException(
+        'Invalid identity device verification challenge',
+      );
+    }
+
+    const identity = await this.identityService.findByIdWithRole(
+      challenge.identityId,
+    );
+
+    if (!identity) {
+      throw new UnauthorizedException('Account not found');
+    }
+
+    if (identity.status !== UserStatus.ACTIVE) {
+      throw new ForbiddenException('Account is not active');
+    }
+
+    if (!identity.role.isActive) {
+      throw new ForbiddenException('Account role is inactive');
+    }
+
+    if (challenge.attempts >= 5) {
+      throw new UnauthorizedException('Too many device verification attempts');
+    }
+
+    try {
+      await this.otpService.verifyOtp(
+        OtpType.EMAIL,
+        OtpPurpose.NEW_DEVICE_LOGIN,
+        dto.otp,
+        undefined,
+        identity.email,
+      );
+    } catch (error) {
+      await this.trustedDeviceService.incrementChallengeAttempts(challenge.id);
+
+      throw error;
+    }
+
+    const trustedDevice = await this.trustedDeviceService.trustIdentityDevice({
+      identityId: identity.id,
+      deviceId: challenge.deviceId,
+      deviceName: challenge.deviceName ?? undefined,
+      ipAddress: challenge.ipAddress ?? undefined,
+      userAgent: challenge.userAgent ?? undefined,
+    });
+
+    const sessionId = randomUUID();
+
+    const payload: JwtPayload = {
+      sub: identity.id,
+      sid: sessionId,
+      accountType: 'IDENTITY',
+      loginId: identity.loginId,
+      username: identity.username,
+      email: identity.email,
+      role: identity.role.name,
+    };
+
+    const tokens = await this.jwtService.generateTokens(payload);
+
+    await this.sessionService.create({
+      id: sessionId,
+      identityId: identity.id,
+      refreshToken: tokens.refreshToken,
+      expiresAt: tokens.refreshExpiresAt,
+      ipAddress: challenge.ipAddress ?? undefined,
+      userAgent: challenge.userAgent ?? undefined,
+      device: challenge.deviceName ?? undefined,
+    });
+
+    await this.trustedDeviceService.markChallengeVerified(challenge.id);
+
+    this.updateLastLoginInBackground(identity.id);
+
+    this.queueAuditLog({
+      identityId: identity.id,
+      sessionId,
+      loginId: identity.loginId,
+      role: identity.role.name,
+      service: 'AUTH',
+      action: 'NEW_DEVICE_VERIFICATION_SUCCESS',
+      status: 'SUCCESS',
+      httpMethod: 'POST',
+      endpoint: '/auth/login/verify-device',
+      statusCode: 200,
+      ipAddress: challenge.ipAddress ?? undefined,
+      metadata: {
+        deviceId: challenge.deviceId,
+        trustedUntil: trustedDevice.trustedUntil.toISOString(),
+      },
+    });
+
+    const onboardingRequired =
+      identity.onboardingStatus !== AccountOnboardingStatus.COMPLETED;
+
+    const nextStep = onboardingRequired
+      ? this.getIdentityNextOnboardingStep(identity)
+      : null;
+
+    return {
+      success: true,
+      requiresDeviceVerification: false,
+
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      refreshExpiresAt: tokens.refreshExpiresAt,
+
+      trustedDevice: {
+        deviceId: trustedDevice.deviceId,
+        trustedUntil: trustedDevice.trustedUntil,
+      },
+
+      onboardingRequired,
+
+      ...(onboardingRequired && {
+        onboardingStatus: identity.onboardingStatus,
+        nextStep,
+      }),
+
+      identity: {
+        id: identity.id,
+        loginId: identity.loginId,
+        fullName: identity.fullName,
+        username: identity.username,
+        email: identity.email,
+        phoneNumber: identity.phoneNumber,
+        role: identity.role.name,
+        status: identity.status,
+        passwordChangedAt: identity.passwordChangedAt,
+        mpinChangedAt: identity.mpinChangedAt,
+        preferredLoginMethod: identity.preferredLoginMethod,
+      },
+    };
+  }
+
+  private maskEmail(email: string): string {
+    const [localPart, domain] = email.split('@');
+
+    if (!localPart || !domain) {
+      return '***';
+    }
+
+    if (localPart.length <= 2) {
+      return `${localPart[0] ?? '*'}***@${domain}`;
+    }
+
+    return `${localPart[0]}${'*'.repeat(
+      Math.min(localPart.length - 2, 5),
+    )}${localPart[localPart.length - 1]}@${domain}`;
   }
 }

@@ -8,6 +8,7 @@ import { JwtModule } from './jwt/jwt.module';
 import { OtpModule } from '../otp/otp.module';
 import { AuthKafkaController } from './auth.kafka.controller';
 import { SessionModule } from '../session/session.module';
+import { DeviceModule } from './device/device.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SessionModule } from '../session/session.module';
     JwtModule,
     OtpModule,
     SessionModule,
+    DeviceModule,
   ],
   controllers: [AuthKafkaController],
   providers: [AuthService],

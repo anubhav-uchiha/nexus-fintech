@@ -7,6 +7,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { ensureKafkaReplyTopics } from './kafka-topics';
 import { AuditMiddleware } from './audit/audit.middleware';
 import { RpcToHttpExceptionInterceptor } from './common/interceptors/rpc-to-http-exception';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AUTH_COOKIE } from '@nexus/common/auth/auth.constants';
 
 function getKafkaBrokers(config: ConfigService): string[] {
   return (
@@ -34,7 +36,6 @@ async function bootstrap() {
   app.enableCors({
     origin: (
       origin: string | undefined,
-
       callback: (error: Error | null, allow?: boolean) => void,
     ) => {
       if (!origin) {
@@ -81,6 +82,49 @@ async function bootstrap() {
 
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Nexus Fintech API')
+    .setDescription('Complete API documentation for the Nexus Fintech platform')
+    .setVersion('1.0.0')
+
+    /*
+     * JWT access token
+     */
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter the JWT access token',
+      },
+      'access-token',
+    )
+
+    .addCookieAuth(
+      AUTH_COOKIE.REFRESH_TOKEN,
+      {
+        type: 'apiKey',
+        in: 'cookie',
+        description: 'HTTP-only refresh token cookie',
+      },
+      'refresh-token',
+    )
+
+    .build();
+
+  const swaggerDocumentFactory = () =>
+    SwaggerModule.createDocument(app, swaggerConfig);
+
+  SwaggerModule.setup('swagger', app, swaggerDocumentFactory, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      filter: true,
+    },
+
+    customSiteTitle: 'Nexus Fintech API Documentation',
+  });
+
   // ClientKafka subscribes to reply topics in onModuleInit. Create every reply
   // topic before app.listen() triggers those hooks, so a fresh Kafka cluster can
   // boot without racing Kafka's asynchronous broker-side auto-creation.
@@ -93,6 +137,7 @@ async function bootstrap() {
   const port = config.get<number>('app.gateway.port') ?? 8000;
   await app.listen(port, '0.0.0.0');
   console.log(`🚀 API Gateway running on http://localhost:${port}`);
+  console.log(`📚 Swagger docs running on http://localhost:${port}/swagger`);
 }
 
 bootstrap();

@@ -33,14 +33,44 @@ export class EmailProcessor extends WorkerHost {
   }
 
   private async sendEmail(data: EmailJob): Promise<void> {
-    if (!data.to) {
+    if (!data.to?.trim()) {
       throw new BadRequestException('Email recipient is required');
     }
 
-    if (!data.otp) {
-      throw new BadRequestException('Email OTP is required');
-    }
+    switch (data.type) {
+      case 'OTP':
+        if (!data.otp?.trim()) {
+          throw new BadRequestException('Email OTP is required');
+        }
 
-    await this.emailService.sendOtp(data.to, data.otp);
+        await this.emailService.sendOtp(data.to.trim(), data.otp);
+        return;
+
+      case 'ACCOUNT_CREDENTIALS':
+        if (
+          !data.loginId?.trim() ||
+          !data.temporaryPassword?.trim() ||
+          !data.temporaryMpin?.trim()
+        ) {
+          throw new BadRequestException('Account credentials are incomplete');
+        }
+
+        await this.emailService.sendAccountCredentials(data.to.trim(), {
+          loginId: data.loginId,
+          temporaryPassword: data.temporaryPassword,
+          temporaryMpin: data.temporaryMpin,
+          fullName: data.fullName,
+          role: data.role,
+          expiresAt: data.expiresAt,
+        });
+        return;
+
+      default: {
+        const exhaustiveCheck: never = data;
+        throw new BadRequestException(
+          `Unsupported email type: ${String(exhaustiveCheck)}`,
+        );
+      }
+    }
   }
 }

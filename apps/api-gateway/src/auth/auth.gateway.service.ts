@@ -10,9 +10,14 @@ import { ClientKafka } from '@nestjs/microservices';
 import {
   ChangeMpinDto,
   ChangePasswordDto,
+  IdentityOnboardingPanDto,
+  IdentityOnboardingSendPhoneDto,
+  IdentityOnboardingVerifyPhoneDto,
   LoginDto,
   LogoutDto,
   RefreshTokenDto,
+  SuperAdminSendPhoneOtpDto,
+  SuperAdminVerifyPhoneOtpDto,
 } from '@nexus/common';
 import { AUTH_PATTERNS } from '@nexus/common/auth/auth.patterns';
 import { ChangeLoginMethodDto } from '@nexus/common/auth/dto/change-login-method.dto';
@@ -55,6 +60,8 @@ import { RequestMetadata } from './utils/request-metadata.util';
 import { ConfigService } from '@nestjs/config';
 import { CacheService } from 'libs/cache/src';
 import { PERMISSION_CACHE_VERSION_KEY } from './constants/permission-cache.constants';
+import { SuperAdminPanOnboardingDto } from '@nexus/common/auth/dto/super-admin/super-admin-pan-onboarding.dto';
+import { VerifyDeviceLoginDto } from '@nexus/common/auth/dto/verify-device-login.dto';
 
 @Injectable()
 export class AuthGatewayService implements OnModuleInit {
@@ -158,15 +165,37 @@ export class AuthGatewayService implements OnModuleInit {
     this.client.subscribeToResponseOf(AUTH_PATTERNS.REGISTER_SEND_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.REGISTER_VERIFY_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.REGISTER_PAN);
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.SUPER_ADMIN_ONBOARDING_ADD_PAN,
+    );
     this.client.subscribeToResponseOf(AUTH_PATTERNS.REGISTER_DETAILS);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.LOGIN);
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.VERIFY_DEVICE_LOGIN);
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.SUPER_ADMIN_LOGIN);
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.SUPER_ADMIN_VERIFY_DEVICE_LOGIN,
+    );
     this.client.subscribeToResponseOf(AUTH_PATTERNS.SEND_PHONE_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.SEND_EMAIL_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.VERIFY_PHONE_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.VERIFY_EMAIL_OTP);
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.SUPER_ADMIN_ONBOARDING_SEND_PHONE_OTP,
+    );
+
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.SUPER_ADMIN_ONBOARDING_VERIFY_PHONE_OTP,
+    );
     this.client.subscribeToResponseOf(AUTH_PATTERNS.REFRESH_TOKEN);
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.SUPER_ADMIN_REFRESH_TOKEN);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.CHANGE_PASSWORD);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.CHANGE_MPIN);
+
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.SUPER_ADMIN_CHANGE_PASSWORD,
+    );
+
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.SUPER_ADMIN_CHANGE_MPIN);
     this.client.subscribeToResponseOf(
       AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_USER,
     );
@@ -174,6 +203,7 @@ export class AuthGatewayService implements OnModuleInit {
     this.client.subscribeToResponseOf(AUTH_PATTERNS.FORGOT_PASSWORD_VERIFY_OTP);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.FORGOT_PASSWORD_RESET);
     this.client.subscribeToResponseOf(AUTH_PATTERNS.LOGOUT);
+    this.client.subscribeToResponseOf(AUTH_PATTERNS.SUPER_ADMIN_LOGOUT);
 
     for (const pattern of Object.values(ROLE_PATTERNS)) {
       this.client.subscribeToResponseOf(pattern);
@@ -231,6 +261,22 @@ export class AuthGatewayService implements OnModuleInit {
 
     this.client.subscribeToResponseOf(AUTH_PATTERNS.VALIDATE_SESSION);
 
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.SUPER_ADMIN_VALIDATE_SESSION,
+    );
+
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.IDENTITY_ONBOARDING_SEND_PHONE_OTP,
+    );
+
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.IDENTITY_ONBOARDING_VERIFY_PHONE_OTP,
+    );
+
+    this.client.subscribeToResponseOf(
+      AUTH_PATTERNS.IDENTITY_ONBOARDING_ADD_PAN,
+    );
+
     await this.client.connect();
   }
 
@@ -254,6 +300,18 @@ export class AuthGatewayService implements OnModuleInit {
     return this.withTimeout(this.client.send(AUTH_PATTERNS.REGISTER_PAN, dto));
   }
 
+  addSuperAdminOnboardingPan(
+    superAdminId: string,
+    dto: SuperAdminPanOnboardingDto,
+  ) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.SUPER_ADMIN_ONBOARDING_ADD_PAN, {
+        superAdminId,
+        ...dto,
+      }),
+    );
+  }
+
   registerDetails(dto: any) {
     return this.withTimeout(
       this.client.send(AUTH_PATTERNS.REGISTER_DETAILS, dto),
@@ -272,6 +330,17 @@ export class AuthGatewayService implements OnModuleInit {
   login(dto: LoginDto, metadata: RequestMetadata) {
     return this.withTimeout(
       this.client.send(AUTH_PATTERNS.LOGIN, {
+        ...dto,
+        ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
+        device: metadata.device,
+      }),
+    );
+  }
+
+  superAdminLogin(dto: LoginDto, metadata: RequestMetadata) {
+    return this.withTimeout<any>(
+      this.client.send<any>(AUTH_PATTERNS.SUPER_ADMIN_LOGIN, {
         ...dto,
         ipAddress: metadata.ipAddress,
         userAgent: metadata.userAgent,
@@ -304,8 +373,38 @@ export class AuthGatewayService implements OnModuleInit {
     );
   }
 
+  sendSuperAdminPhoneOnboardingOtp(
+    superAdminId: string,
+    dto: SuperAdminSendPhoneOtpDto,
+  ) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.SUPER_ADMIN_ONBOARDING_SEND_PHONE_OTP, {
+        superAdminId,
+        ...dto,
+      }),
+    );
+  }
+
+  verifySuperAdminPhoneOnboardingOtp(
+    superAdminId: string,
+    dto: SuperAdminVerifyPhoneOtpDto,
+  ) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.SUPER_ADMIN_ONBOARDING_VERIFY_PHONE_OTP, {
+        superAdminId,
+        ...dto,
+      }),
+    );
+  }
+
   refreshToken(dto: RefreshTokenDto) {
     return this.withTimeout(this.client.send(AUTH_PATTERNS.REFRESH_TOKEN, dto));
+  }
+
+  superAdminRefresh(dto: RefreshTokenDto) {
+    return this.withTimeout<any>(
+      this.client.send<any>(AUTH_PATTERNS.SUPER_ADMIN_REFRESH_TOKEN, dto),
+    );
   }
 
   changePassword(
@@ -339,6 +438,33 @@ export class AuthGatewayService implements OnModuleInit {
       }),
     );
   }
+  changeSuperAdminPassword(
+    superAdminId: string,
+    sessionId: string,
+    dto: ChangePasswordDto,
+  ) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.SUPER_ADMIN_CHANGE_PASSWORD, {
+        superAdminId,
+        sessionId,
+        ...dto,
+      }),
+    );
+  }
+
+  changeSuperAdminMpin(
+    superAdminId: string,
+    sessionId: string,
+    dto: ChangeMpinDto,
+  ) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.SUPER_ADMIN_CHANGE_MPIN, {
+        superAdminId,
+        sessionId,
+        ...dto,
+      }),
+    );
+  }
 
   forgotPasswordVerifyUser(dto: VerifyForgotPasswordUserDto) {
     return this.withTimeout(
@@ -360,6 +486,12 @@ export class AuthGatewayService implements OnModuleInit {
 
   logout(dto: LogoutDto) {
     return this.withTimeout(this.client.send(AUTH_PATTERNS.LOGOUT, dto));
+  }
+
+  superAdminLogout(dto: LogoutDto) {
+    return this.withTimeout<any>(
+      this.client.send<any>(AUTH_PATTERNS.SUPER_ADMIN_LOGOUT, dto),
+    );
   }
 
   createRole(dto: CreateRoleDto) {
@@ -643,6 +775,66 @@ export class AuthGatewayService implements OnModuleInit {
           sessionId,
         },
       ),
+    );
+  }
+
+  validateSuperAdminSession(
+    superAdminId: string,
+    sessionId: string,
+  ): Promise<{
+    valid: boolean;
+    onboardingStatus?: string;
+    onboardingCompleted?: boolean;
+  }> {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.SUPER_ADMIN_VALIDATE_SESSION, {
+        superAdminId,
+        sessionId,
+      }),
+    );
+  }
+
+  sendIdentityOnboardingPhoneOtp(
+    identityId: string,
+    dto: IdentityOnboardingSendPhoneDto,
+  ) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.IDENTITY_ONBOARDING_SEND_PHONE_OTP, {
+        identityId,
+        dto,
+      }),
+    );
+  }
+
+  verifyIdentityOnboardingPhoneOtp(
+    identityId: string,
+    dto: IdentityOnboardingVerifyPhoneDto,
+  ) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.IDENTITY_ONBOARDING_VERIFY_PHONE_OTP, {
+        identityId,
+        dto,
+      }),
+    );
+  }
+  addIdentityOnboardingPan(identityId: string, dto: IdentityOnboardingPanDto) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.IDENTITY_ONBOARDING_ADD_PAN, {
+        identityId,
+        dto,
+      }),
+    );
+  }
+
+  verifyDeviceLogin(dto: VerifyDeviceLoginDto) {
+    return this.withTimeout(
+      this.client.send(AUTH_PATTERNS.VERIFY_DEVICE_LOGIN, dto),
+    );
+  }
+
+  superAdminVerifyDeviceLogin(dto: VerifyDeviceLoginDto) {
+    return this.withTimeout<any>(
+      this.client.send<any>(AUTH_PATTERNS.SUPER_ADMIN_VERIFY_DEVICE_LOGIN, dto),
     );
   }
 }

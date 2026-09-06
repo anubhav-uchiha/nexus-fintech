@@ -1,20 +1,24 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../database/prisma.service';
 import {
   CreateRoleDto,
   UpdateRoleDto,
   UpdateRoleStatusDto,
 } from '@nexus/common/role';
 import { RoleRepository } from './repository/role.repository';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class RoleService {
-  constructor(private readonly roleRepository: RoleRepository) {}
+  constructor(
+    private readonly roleRepository: RoleRepository,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async create(dto: CreateRoleDto) {
     const name = dto.name.trim().toUpperCase().replace(/\s+/g, '_');
@@ -139,5 +143,47 @@ export class RoleService {
       'code' in error &&
       error.code === 'P2002'
     );
+  }
+
+  async assertCanRegisterRole(registrarRoleId: string, targetRoleName: string) {
+    const normalizedTargetRoleName = targetRoleName
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '_');
+
+    const targetRole = await this.prisma.role.findUnique({
+      where: {
+        name: normalizedTargetRoleName,
+      },
+    });
+
+    if (!targetRole) {
+      throw new BadRequestException('Target role does not exist');
+    }
+
+    if (!targetRole.isActive) {
+      throw new BadRequestException('Target role is inactive');
+    }
+
+    const registrationPermission =
+      await this.prisma.roleRegisterPermission.findUnique({
+        where: {
+          registrarRoleId_targetRoleId: {
+            registrarRoleId,
+            targetRoleId: targetRole.id,
+          },
+        },
+        select: {
+          isActive: true,
+        },
+      });
+
+    if (!registrationPermission?.isActive) {
+      throw new ForbiddenException(
+        `Your role is not allowed to create ${targetRole.name} accounts`,
+      );
+    }
+
+    return targetRole;
   }
 }

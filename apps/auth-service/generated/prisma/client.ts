@@ -50,6 +50,11 @@ export type Identity = Prisma.IdentityModel
  */
 export type SuperAdmin = Prisma.SuperAdminModel
 /**
+ * Model SuperAdminSession
+ * 
+ */
+export type SuperAdminSession = Prisma.SuperAdminSessionModel
+/**
  * Model Role
  * 
  */
@@ -99,3 +104,13 @@ export type RegistrationDraft = Prisma.RegistrationDraftModel
  * 
  */
 export type PasswordResetDraft = Prisma.PasswordResetDraftModel
+/**
+ * Model TrustedDevice
+ * 
+ */
+export type TrustedDevice = Prisma.TrustedDeviceModel
+/**
+ * Model LoginDeviceChallenge
+ * 
+ */
+export type LoginDeviceChallenge = Prisma.LoginDeviceChallengeModel

@@ -453,6 +453,10 @@ export type SuperAdminWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"SuperAdmin"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SuperAdmin"> | Date | string
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
+  sessions?: Prisma.SuperAdminSessionListRelationFilter
+  createdIdentities?: Prisma.IdentityListRelationFilter
+  trustedDevices?: Prisma.TrustedDeviceListRelationFilter
+  loginChallenges?: Prisma.LoginDeviceChallengeListRelationFilter
   createdBySuperAdmin?: Prisma.XOR<Prisma.SuperAdminNullableScalarRelationFilter, Prisma.SuperAdminWhereInput> | null
   createdSuperAdmins?: Prisma.SuperAdminListRelationFilter
 }
@@ -493,6 +497,10 @@ export type SuperAdminOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.RoleOrderByWithRelationInput
+  sessions?: Prisma.SuperAdminSessionOrderByRelationAggregateInput
+  createdIdentities?: Prisma.IdentityOrderByRelationAggregateInput
+  trustedDevices?: Prisma.TrustedDeviceOrderByRelationAggregateInput
+  loginChallenges?: Prisma.LoginDeviceChallengeOrderByRelationAggregateInput
   createdBySuperAdmin?: Prisma.SuperAdminOrderByWithRelationInput
   createdSuperAdmins?: Prisma.SuperAdminOrderByRelationAggregateInput
 }
@@ -536,6 +544,10 @@ export type SuperAdminWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"SuperAdmin"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SuperAdmin"> | Date | string
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
+  sessions?: Prisma.SuperAdminSessionListRelationFilter
+  createdIdentities?: Prisma.IdentityListRelationFilter
+  trustedDevices?: Prisma.TrustedDeviceListRelationFilter
+  loginChallenges?: Prisma.LoginDeviceChallengeListRelationFilter
   createdBySuperAdmin?: Prisma.XOR<Prisma.SuperAdminNullableScalarRelationFilter, Prisma.SuperAdminWhereInput> | null
   createdSuperAdmins?: Prisma.SuperAdminListRelationFilter
 }, "id" | "loginId" | "username" | "email" | "phoneNumber" | "aadhaarNumber" | "panNumber">
@@ -656,6 +668,10 @@ export type SuperAdminCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutSuperAdminsInput
+  sessions?: Prisma.SuperAdminSessionCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeCreateNestedManyWithoutSuperAdminInput
   createdBySuperAdmin?: Prisma.SuperAdminCreateNestedOneWithoutCreatedSuperAdminsInput
   createdSuperAdmins?: Prisma.SuperAdminCreateNestedManyWithoutCreatedBySuperAdminInput
 }
@@ -695,6 +711,10 @@ export type SuperAdminUncheckedCreateInput = {
   createdBySuperAdminId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedCreateNestedManyWithoutSuperAdminInput
   createdSuperAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
 }
 
@@ -732,6 +752,10 @@ export type SuperAdminUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutSuperAdminsNestedInput
+  sessions?: Prisma.SuperAdminSessionUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUpdateManyWithoutSuperAdminNestedInput
   createdBySuperAdmin?: Prisma.SuperAdminUpdateOneWithoutCreatedSuperAdminsNestedInput
   createdSuperAdmins?: Prisma.SuperAdminUpdateManyWithoutCreatedBySuperAdminNestedInput
 }
@@ -771,6 +795,10 @@ export type SuperAdminUncheckedUpdateInput = {
   createdBySuperAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedUpdateManyWithoutSuperAdminNestedInput
   createdSuperAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
 }
 
@@ -1019,6 +1047,27 @@ export type SuperAdminSumOrderByAggregateInput = {
   lastLoginLongitude?: Prisma.SortOrder
 }
 
+export type SuperAdminScalarRelationFilter = {
+  is?: Prisma.SuperAdminWhereInput
+  isNot?: Prisma.SuperAdminWhereInput
+}
+
+export type SuperAdminCreateNestedOneWithoutCreatedIdentitiesInput = {
+  create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutCreatedIdentitiesInput, Prisma.SuperAdminUncheckedCreateWithoutCreatedIdentitiesInput>
+  connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutCreatedIdentitiesInput
+  connect?: Prisma.SuperAdminWhereUniqueInput
+}
+
+export type SuperAdminUpdateOneWithoutCreatedIdentitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutCreatedIdentitiesInput, Prisma.SuperAdminUncheckedCreateWithoutCreatedIdentitiesInput>
+  connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutCreatedIdentitiesInput
+  upsert?: Prisma.SuperAdminUpsertWithoutCreatedIdentitiesInput
+  disconnect?: Prisma.SuperAdminWhereInput | boolean
+  delete?: Prisma.SuperAdminWhereInput | boolean
+  connect?: Prisma.SuperAdminWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SuperAdminUpdateToOneWithWhereWithoutCreatedIdentitiesInput, Prisma.SuperAdminUpdateWithoutCreatedIdentitiesInput>, Prisma.SuperAdminUncheckedUpdateWithoutCreatedIdentitiesInput>
+}
+
 export type SuperAdminCreateNestedOneWithoutCreatedSuperAdminsInput = {
   create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutCreatedSuperAdminsInput, Prisma.SuperAdminUncheckedCreateWithoutCreatedSuperAdminsInput>
   connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutCreatedSuperAdminsInput
@@ -1037,14 +1086,6 @@ export type SuperAdminUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput =
   connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutCreatedBySuperAdminInput | Prisma.SuperAdminCreateOrConnectWithoutCreatedBySuperAdminInput[]
   createMany?: Prisma.SuperAdminCreateManyCreatedBySuperAdminInputEnvelope
   connect?: Prisma.SuperAdminWhereUniqueInput | Prisma.SuperAdminWhereUniqueInput[]
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
-export type EnumAccountOnboardingStatusFieldUpdateOperationsInput = {
-  set?: $Enums.AccountOnboardingStatus
 }
 
 export type SuperAdminUpdateOneWithoutCreatedSuperAdminsNestedInput = {
@@ -1083,6 +1124,20 @@ export type SuperAdminUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput =
   update?: Prisma.SuperAdminUpdateWithWhereUniqueWithoutCreatedBySuperAdminInput | Prisma.SuperAdminUpdateWithWhereUniqueWithoutCreatedBySuperAdminInput[]
   updateMany?: Prisma.SuperAdminUpdateManyWithWhereWithoutCreatedBySuperAdminInput | Prisma.SuperAdminUpdateManyWithWhereWithoutCreatedBySuperAdminInput[]
   deleteMany?: Prisma.SuperAdminScalarWhereInput | Prisma.SuperAdminScalarWhereInput[]
+}
+
+export type SuperAdminCreateNestedOneWithoutSessionsInput = {
+  create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutSessionsInput, Prisma.SuperAdminUncheckedCreateWithoutSessionsInput>
+  connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutSessionsInput
+  connect?: Prisma.SuperAdminWhereUniqueInput
+}
+
+export type SuperAdminUpdateOneRequiredWithoutSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutSessionsInput, Prisma.SuperAdminUncheckedCreateWithoutSessionsInput>
+  connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutSessionsInput
+  upsert?: Prisma.SuperAdminUpsertWithoutSessionsInput
+  connect?: Prisma.SuperAdminWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SuperAdminUpdateToOneWithWhereWithoutSessionsInput, Prisma.SuperAdminUpdateWithoutSessionsInput>, Prisma.SuperAdminUncheckedUpdateWithoutSessionsInput>
 }
 
 export type SuperAdminCreateNestedManyWithoutRoleInput = {
@@ -1127,6 +1182,218 @@ export type SuperAdminUncheckedUpdateManyWithoutRoleNestedInput = {
   deleteMany?: Prisma.SuperAdminScalarWhereInput | Prisma.SuperAdminScalarWhereInput[]
 }
 
+export type SuperAdminCreateNestedOneWithoutTrustedDevicesInput = {
+  create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutTrustedDevicesInput, Prisma.SuperAdminUncheckedCreateWithoutTrustedDevicesInput>
+  connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutTrustedDevicesInput
+  connect?: Prisma.SuperAdminWhereUniqueInput
+}
+
+export type SuperAdminUpdateOneWithoutTrustedDevicesNestedInput = {
+  create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutTrustedDevicesInput, Prisma.SuperAdminUncheckedCreateWithoutTrustedDevicesInput>
+  connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutTrustedDevicesInput
+  upsert?: Prisma.SuperAdminUpsertWithoutTrustedDevicesInput
+  disconnect?: Prisma.SuperAdminWhereInput | boolean
+  delete?: Prisma.SuperAdminWhereInput | boolean
+  connect?: Prisma.SuperAdminWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SuperAdminUpdateToOneWithWhereWithoutTrustedDevicesInput, Prisma.SuperAdminUpdateWithoutTrustedDevicesInput>, Prisma.SuperAdminUncheckedUpdateWithoutTrustedDevicesInput>
+}
+
+export type SuperAdminCreateNestedOneWithoutLoginChallengesInput = {
+  create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutLoginChallengesInput, Prisma.SuperAdminUncheckedCreateWithoutLoginChallengesInput>
+  connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutLoginChallengesInput
+  connect?: Prisma.SuperAdminWhereUniqueInput
+}
+
+export type SuperAdminUpdateOneWithoutLoginChallengesNestedInput = {
+  create?: Prisma.XOR<Prisma.SuperAdminCreateWithoutLoginChallengesInput, Prisma.SuperAdminUncheckedCreateWithoutLoginChallengesInput>
+  connectOrCreate?: Prisma.SuperAdminCreateOrConnectWithoutLoginChallengesInput
+  upsert?: Prisma.SuperAdminUpsertWithoutLoginChallengesInput
+  disconnect?: Prisma.SuperAdminWhereInput | boolean
+  delete?: Prisma.SuperAdminWhereInput | boolean
+  connect?: Prisma.SuperAdminWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SuperAdminUpdateToOneWithWhereWithoutLoginChallengesInput, Prisma.SuperAdminUpdateWithoutLoginChallengesInput>, Prisma.SuperAdminUncheckedUpdateWithoutLoginChallengesInput>
+}
+
+export type SuperAdminCreateWithoutCreatedIdentitiesInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber?: string | null
+  password: string
+  mpin: string
+  aadhaarNumber?: string | null
+  panNumber?: string | null
+  shopName?: string | null
+  shopAddress?: string | null
+  shopCity?: string | null
+  shopState?: string | null
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  onboardingStatus?: $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
+  lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  isPrimary?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role: Prisma.RoleCreateNestedOneWithoutSuperAdminsInput
+  sessions?: Prisma.SuperAdminSessionCreateNestedManyWithoutSuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeCreateNestedManyWithoutSuperAdminInput
+  createdBySuperAdmin?: Prisma.SuperAdminCreateNestedOneWithoutCreatedSuperAdminsInput
+  createdSuperAdmins?: Prisma.SuperAdminCreateNestedManyWithoutCreatedBySuperAdminInput
+}
+
+export type SuperAdminUncheckedCreateWithoutCreatedIdentitiesInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber?: string | null
+  password: string
+  mpin: string
+  aadhaarNumber?: string | null
+  panNumber?: string | null
+  shopName?: string | null
+  shopAddress?: string | null
+  shopCity?: string | null
+  shopState?: string | null
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  onboardingStatus?: $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
+  lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  roleId: string
+  isPrimary?: boolean
+  createdBySuperAdminId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedCreateNestedManyWithoutSuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdSuperAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+}
+
+export type SuperAdminCreateOrConnectWithoutCreatedIdentitiesInput = {
+  where: Prisma.SuperAdminWhereUniqueInput
+  create: Prisma.XOR<Prisma.SuperAdminCreateWithoutCreatedIdentitiesInput, Prisma.SuperAdminUncheckedCreateWithoutCreatedIdentitiesInput>
+}
+
+export type SuperAdminUpsertWithoutCreatedIdentitiesInput = {
+  update: Prisma.XOR<Prisma.SuperAdminUpdateWithoutCreatedIdentitiesInput, Prisma.SuperAdminUncheckedUpdateWithoutCreatedIdentitiesInput>
+  create: Prisma.XOR<Prisma.SuperAdminCreateWithoutCreatedIdentitiesInput, Prisma.SuperAdminUncheckedCreateWithoutCreatedIdentitiesInput>
+  where?: Prisma.SuperAdminWhereInput
+}
+
+export type SuperAdminUpdateToOneWithWhereWithoutCreatedIdentitiesInput = {
+  where?: Prisma.SuperAdminWhereInput
+  data: Prisma.XOR<Prisma.SuperAdminUpdateWithoutCreatedIdentitiesInput, Prisma.SuperAdminUncheckedUpdateWithoutCreatedIdentitiesInput>
+}
+
+export type SuperAdminUpdateWithoutCreatedIdentitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  panNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  onboardingStatus?: Prisma.EnumAccountOnboardingStatusFieldUpdateOperationsInput | $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.RoleUpdateOneRequiredWithoutSuperAdminsNestedInput
+  sessions?: Prisma.SuperAdminSessionUpdateManyWithoutSuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUpdateManyWithoutSuperAdminNestedInput
+  createdBySuperAdmin?: Prisma.SuperAdminUpdateOneWithoutCreatedSuperAdminsNestedInput
+  createdSuperAdmins?: Prisma.SuperAdminUpdateManyWithoutCreatedBySuperAdminNestedInput
+}
+
+export type SuperAdminUncheckedUpdateWithoutCreatedIdentitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  panNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  onboardingStatus?: Prisma.EnumAccountOnboardingStatusFieldUpdateOperationsInput | $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  roleId?: Prisma.StringFieldUpdateOperationsInput | string
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdBySuperAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedUpdateManyWithoutSuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdSuperAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+}
+
 export type SuperAdminCreateWithoutCreatedSuperAdminsInput = {
   id?: string
   loginId: string
@@ -1161,6 +1428,10 @@ export type SuperAdminCreateWithoutCreatedSuperAdminsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutSuperAdminsInput
+  sessions?: Prisma.SuperAdminSessionCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeCreateNestedManyWithoutSuperAdminInput
   createdBySuperAdmin?: Prisma.SuperAdminCreateNestedOneWithoutCreatedSuperAdminsInput
 }
 
@@ -1199,6 +1470,10 @@ export type SuperAdminUncheckedCreateWithoutCreatedSuperAdminsInput = {
   createdBySuperAdminId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedCreateNestedManyWithoutSuperAdminInput
 }
 
 export type SuperAdminCreateOrConnectWithoutCreatedSuperAdminsInput = {
@@ -1240,6 +1515,10 @@ export type SuperAdminCreateWithoutCreatedBySuperAdminInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutSuperAdminsInput
+  sessions?: Prisma.SuperAdminSessionCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeCreateNestedManyWithoutSuperAdminInput
   createdSuperAdmins?: Prisma.SuperAdminCreateNestedManyWithoutCreatedBySuperAdminInput
 }
 
@@ -1277,6 +1556,10 @@ export type SuperAdminUncheckedCreateWithoutCreatedBySuperAdminInput = {
   isPrimary?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedCreateNestedManyWithoutSuperAdminInput
   createdSuperAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
 }
 
@@ -1335,6 +1618,10 @@ export type SuperAdminUpdateWithoutCreatedSuperAdminsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutSuperAdminsNestedInput
+  sessions?: Prisma.SuperAdminSessionUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUpdateManyWithoutSuperAdminNestedInput
   createdBySuperAdmin?: Prisma.SuperAdminUpdateOneWithoutCreatedSuperAdminsNestedInput
 }
 
@@ -1373,6 +1660,10 @@ export type SuperAdminUncheckedUpdateWithoutCreatedSuperAdminsInput = {
   createdBySuperAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedUpdateManyWithoutSuperAdminNestedInput
 }
 
 export type SuperAdminUpsertWithWhereUniqueWithoutCreatedBySuperAdminInput = {
@@ -1431,6 +1722,186 @@ export type SuperAdminScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"SuperAdmin"> | Date | string
 }
 
+export type SuperAdminCreateWithoutSessionsInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber?: string | null
+  password: string
+  mpin: string
+  aadhaarNumber?: string | null
+  panNumber?: string | null
+  shopName?: string | null
+  shopAddress?: string | null
+  shopCity?: string | null
+  shopState?: string | null
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  onboardingStatus?: $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
+  lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  isPrimary?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role: Prisma.RoleCreateNestedOneWithoutSuperAdminsInput
+  createdIdentities?: Prisma.IdentityCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeCreateNestedManyWithoutSuperAdminInput
+  createdBySuperAdmin?: Prisma.SuperAdminCreateNestedOneWithoutCreatedSuperAdminsInput
+  createdSuperAdmins?: Prisma.SuperAdminCreateNestedManyWithoutCreatedBySuperAdminInput
+}
+
+export type SuperAdminUncheckedCreateWithoutSessionsInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber?: string | null
+  password: string
+  mpin: string
+  aadhaarNumber?: string | null
+  panNumber?: string | null
+  shopName?: string | null
+  shopAddress?: string | null
+  shopCity?: string | null
+  shopState?: string | null
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  onboardingStatus?: $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
+  lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  roleId: string
+  isPrimary?: boolean
+  createdBySuperAdminId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  createdIdentities?: Prisma.IdentityUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdSuperAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+}
+
+export type SuperAdminCreateOrConnectWithoutSessionsInput = {
+  where: Prisma.SuperAdminWhereUniqueInput
+  create: Prisma.XOR<Prisma.SuperAdminCreateWithoutSessionsInput, Prisma.SuperAdminUncheckedCreateWithoutSessionsInput>
+}
+
+export type SuperAdminUpsertWithoutSessionsInput = {
+  update: Prisma.XOR<Prisma.SuperAdminUpdateWithoutSessionsInput, Prisma.SuperAdminUncheckedUpdateWithoutSessionsInput>
+  create: Prisma.XOR<Prisma.SuperAdminCreateWithoutSessionsInput, Prisma.SuperAdminUncheckedCreateWithoutSessionsInput>
+  where?: Prisma.SuperAdminWhereInput
+}
+
+export type SuperAdminUpdateToOneWithWhereWithoutSessionsInput = {
+  where?: Prisma.SuperAdminWhereInput
+  data: Prisma.XOR<Prisma.SuperAdminUpdateWithoutSessionsInput, Prisma.SuperAdminUncheckedUpdateWithoutSessionsInput>
+}
+
+export type SuperAdminUpdateWithoutSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  panNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  onboardingStatus?: Prisma.EnumAccountOnboardingStatusFieldUpdateOperationsInput | $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.RoleUpdateOneRequiredWithoutSuperAdminsNestedInput
+  createdIdentities?: Prisma.IdentityUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUpdateManyWithoutSuperAdminNestedInput
+  createdBySuperAdmin?: Prisma.SuperAdminUpdateOneWithoutCreatedSuperAdminsNestedInput
+  createdSuperAdmins?: Prisma.SuperAdminUpdateManyWithoutCreatedBySuperAdminNestedInput
+}
+
+export type SuperAdminUncheckedUpdateWithoutSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  panNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  onboardingStatus?: Prisma.EnumAccountOnboardingStatusFieldUpdateOperationsInput | $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  roleId?: Prisma.StringFieldUpdateOperationsInput | string
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdBySuperAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdIdentities?: Prisma.IdentityUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdSuperAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+}
+
 export type SuperAdminCreateWithoutRoleInput = {
   id?: string
   loginId: string
@@ -1464,6 +1935,10 @@ export type SuperAdminCreateWithoutRoleInput = {
   isPrimary?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  sessions?: Prisma.SuperAdminSessionCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeCreateNestedManyWithoutSuperAdminInput
   createdBySuperAdmin?: Prisma.SuperAdminCreateNestedOneWithoutCreatedSuperAdminsInput
   createdSuperAdmins?: Prisma.SuperAdminCreateNestedManyWithoutCreatedBySuperAdminInput
 }
@@ -1502,6 +1977,10 @@ export type SuperAdminUncheckedCreateWithoutRoleInput = {
   createdBySuperAdminId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedCreateNestedManyWithoutSuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedCreateNestedManyWithoutSuperAdminInput
   createdSuperAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
 }
 
@@ -1529,6 +2008,366 @@ export type SuperAdminUpdateWithWhereUniqueWithoutRoleInput = {
 export type SuperAdminUpdateManyWithWhereWithoutRoleInput = {
   where: Prisma.SuperAdminScalarWhereInput
   data: Prisma.XOR<Prisma.SuperAdminUpdateManyMutationInput, Prisma.SuperAdminUncheckedUpdateManyWithoutRoleInput>
+}
+
+export type SuperAdminCreateWithoutTrustedDevicesInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber?: string | null
+  password: string
+  mpin: string
+  aadhaarNumber?: string | null
+  panNumber?: string | null
+  shopName?: string | null
+  shopAddress?: string | null
+  shopCity?: string | null
+  shopState?: string | null
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  onboardingStatus?: $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
+  lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  isPrimary?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role: Prisma.RoleCreateNestedOneWithoutSuperAdminsInput
+  sessions?: Prisma.SuperAdminSessionCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityCreateNestedManyWithoutCreatedBySuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeCreateNestedManyWithoutSuperAdminInput
+  createdBySuperAdmin?: Prisma.SuperAdminCreateNestedOneWithoutCreatedSuperAdminsInput
+  createdSuperAdmins?: Prisma.SuperAdminCreateNestedManyWithoutCreatedBySuperAdminInput
+}
+
+export type SuperAdminUncheckedCreateWithoutTrustedDevicesInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber?: string | null
+  password: string
+  mpin: string
+  aadhaarNumber?: string | null
+  panNumber?: string | null
+  shopName?: string | null
+  shopAddress?: string | null
+  shopCity?: string | null
+  shopState?: string | null
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  onboardingStatus?: $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
+  lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  roleId: string
+  isPrimary?: boolean
+  createdBySuperAdminId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdSuperAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+}
+
+export type SuperAdminCreateOrConnectWithoutTrustedDevicesInput = {
+  where: Prisma.SuperAdminWhereUniqueInput
+  create: Prisma.XOR<Prisma.SuperAdminCreateWithoutTrustedDevicesInput, Prisma.SuperAdminUncheckedCreateWithoutTrustedDevicesInput>
+}
+
+export type SuperAdminUpsertWithoutTrustedDevicesInput = {
+  update: Prisma.XOR<Prisma.SuperAdminUpdateWithoutTrustedDevicesInput, Prisma.SuperAdminUncheckedUpdateWithoutTrustedDevicesInput>
+  create: Prisma.XOR<Prisma.SuperAdminCreateWithoutTrustedDevicesInput, Prisma.SuperAdminUncheckedCreateWithoutTrustedDevicesInput>
+  where?: Prisma.SuperAdminWhereInput
+}
+
+export type SuperAdminUpdateToOneWithWhereWithoutTrustedDevicesInput = {
+  where?: Prisma.SuperAdminWhereInput
+  data: Prisma.XOR<Prisma.SuperAdminUpdateWithoutTrustedDevicesInput, Prisma.SuperAdminUncheckedUpdateWithoutTrustedDevicesInput>
+}
+
+export type SuperAdminUpdateWithoutTrustedDevicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  panNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  onboardingStatus?: Prisma.EnumAccountOnboardingStatusFieldUpdateOperationsInput | $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.RoleUpdateOneRequiredWithoutSuperAdminsNestedInput
+  sessions?: Prisma.SuperAdminSessionUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUpdateManyWithoutCreatedBySuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUpdateManyWithoutSuperAdminNestedInput
+  createdBySuperAdmin?: Prisma.SuperAdminUpdateOneWithoutCreatedSuperAdminsNestedInput
+  createdSuperAdmins?: Prisma.SuperAdminUpdateManyWithoutCreatedBySuperAdminNestedInput
+}
+
+export type SuperAdminUncheckedUpdateWithoutTrustedDevicesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  panNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  onboardingStatus?: Prisma.EnumAccountOnboardingStatusFieldUpdateOperationsInput | $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  roleId?: Prisma.StringFieldUpdateOperationsInput | string
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdBySuperAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdSuperAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+}
+
+export type SuperAdminCreateWithoutLoginChallengesInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber?: string | null
+  password: string
+  mpin: string
+  aadhaarNumber?: string | null
+  panNumber?: string | null
+  shopName?: string | null
+  shopAddress?: string | null
+  shopCity?: string | null
+  shopState?: string | null
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  onboardingStatus?: $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
+  lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  isPrimary?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role: Prisma.RoleCreateNestedOneWithoutSuperAdminsInput
+  sessions?: Prisma.SuperAdminSessionCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceCreateNestedManyWithoutSuperAdminInput
+  createdBySuperAdmin?: Prisma.SuperAdminCreateNestedOneWithoutCreatedSuperAdminsInput
+  createdSuperAdmins?: Prisma.SuperAdminCreateNestedManyWithoutCreatedBySuperAdminInput
+}
+
+export type SuperAdminUncheckedCreateWithoutLoginChallengesInput = {
+  id?: string
+  loginId: string
+  fullName: string
+  username: string
+  email: string
+  phoneNumber?: string | null
+  password: string
+  mpin: string
+  aadhaarNumber?: string | null
+  panNumber?: string | null
+  shopName?: string | null
+  shopAddress?: string | null
+  shopCity?: string | null
+  shopState?: string | null
+  city: string
+  state: string
+  pincode: string
+  status?: $Enums.UserStatus
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  isPanVerified?: boolean
+  preferredLoginMethod?: $Enums.LoginMethod
+  onboardingStatus?: $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  passwordChangedAt?: Date | string | null
+  mpinChangedAt?: Date | string | null
+  lastLoginLatitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  roleId: string
+  isPrimary?: boolean
+  createdBySuperAdminId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdIdentities?: Prisma.IdentityUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedCreateNestedManyWithoutSuperAdminInput
+  createdSuperAdmins?: Prisma.SuperAdminUncheckedCreateNestedManyWithoutCreatedBySuperAdminInput
+}
+
+export type SuperAdminCreateOrConnectWithoutLoginChallengesInput = {
+  where: Prisma.SuperAdminWhereUniqueInput
+  create: Prisma.XOR<Prisma.SuperAdminCreateWithoutLoginChallengesInput, Prisma.SuperAdminUncheckedCreateWithoutLoginChallengesInput>
+}
+
+export type SuperAdminUpsertWithoutLoginChallengesInput = {
+  update: Prisma.XOR<Prisma.SuperAdminUpdateWithoutLoginChallengesInput, Prisma.SuperAdminUncheckedUpdateWithoutLoginChallengesInput>
+  create: Prisma.XOR<Prisma.SuperAdminCreateWithoutLoginChallengesInput, Prisma.SuperAdminUncheckedCreateWithoutLoginChallengesInput>
+  where?: Prisma.SuperAdminWhereInput
+}
+
+export type SuperAdminUpdateToOneWithWhereWithoutLoginChallengesInput = {
+  where?: Prisma.SuperAdminWhereInput
+  data: Prisma.XOR<Prisma.SuperAdminUpdateWithoutLoginChallengesInput, Prisma.SuperAdminUncheckedUpdateWithoutLoginChallengesInput>
+}
+
+export type SuperAdminUpdateWithoutLoginChallengesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  panNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  onboardingStatus?: Prisma.EnumAccountOnboardingStatusFieldUpdateOperationsInput | $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.RoleUpdateOneRequiredWithoutSuperAdminsNestedInput
+  sessions?: Prisma.SuperAdminSessionUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUpdateManyWithoutSuperAdminNestedInput
+  createdBySuperAdmin?: Prisma.SuperAdminUpdateOneWithoutCreatedSuperAdminsNestedInput
+  createdSuperAdmins?: Prisma.SuperAdminUpdateManyWithoutCreatedBySuperAdminNestedInput
+}
+
+export type SuperAdminUncheckedUpdateWithoutLoginChallengesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  loginId?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  mpin?: Prisma.StringFieldUpdateOperationsInput | string
+  aadhaarNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  panNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shopState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  pincode?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPhoneVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isPanVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  preferredLoginMethod?: Prisma.EnumLoginMethodFieldUpdateOperationsInput | $Enums.LoginMethod
+  onboardingStatus?: Prisma.EnumAccountOnboardingStatusFieldUpdateOperationsInput | $Enums.AccountOnboardingStatus
+  temporaryCredentialsExpireAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mpinChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginLatitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  lastLoginLongitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  roleId?: Prisma.StringFieldUpdateOperationsInput | string
+  isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdBySuperAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdSuperAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
 }
 
 export type SuperAdminCreateManyCreatedBySuperAdminInput = {
@@ -1601,6 +2440,10 @@ export type SuperAdminUpdateWithoutCreatedBySuperAdminInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutSuperAdminsNestedInput
+  sessions?: Prisma.SuperAdminSessionUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUpdateManyWithoutSuperAdminNestedInput
   createdSuperAdmins?: Prisma.SuperAdminUpdateManyWithoutCreatedBySuperAdminNestedInput
 }
 
@@ -1638,6 +2481,10 @@ export type SuperAdminUncheckedUpdateWithoutCreatedBySuperAdminInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedUpdateManyWithoutSuperAdminNestedInput
   createdSuperAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
 }
 
@@ -1746,6 +2593,10 @@ export type SuperAdminUpdateWithoutRoleInput = {
   isPrimary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SuperAdminSessionUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUpdateManyWithoutSuperAdminNestedInput
   createdBySuperAdmin?: Prisma.SuperAdminUpdateOneWithoutCreatedSuperAdminsNestedInput
   createdSuperAdmins?: Prisma.SuperAdminUpdateManyWithoutCreatedBySuperAdminNestedInput
 }
@@ -1784,6 +2635,10 @@ export type SuperAdminUncheckedUpdateWithoutRoleInput = {
   createdBySuperAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SuperAdminSessionUncheckedUpdateManyWithoutSuperAdminNestedInput
+  createdIdentities?: Prisma.IdentityUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
+  trustedDevices?: Prisma.TrustedDeviceUncheckedUpdateManyWithoutSuperAdminNestedInput
+  loginChallenges?: Prisma.LoginDeviceChallengeUncheckedUpdateManyWithoutSuperAdminNestedInput
   createdSuperAdmins?: Prisma.SuperAdminUncheckedUpdateManyWithoutCreatedBySuperAdminNestedInput
 }
 
@@ -1829,10 +2684,18 @@ export type SuperAdminUncheckedUpdateManyWithoutRoleInput = {
  */
 
 export type SuperAdminCountOutputType = {
+  sessions: number
+  createdIdentities: number
+  trustedDevices: number
+  loginChallenges: number
   createdSuperAdmins: number
 }
 
 export type SuperAdminCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  sessions?: boolean | SuperAdminCountOutputTypeCountSessionsArgs
+  createdIdentities?: boolean | SuperAdminCountOutputTypeCountCreatedIdentitiesArgs
+  trustedDevices?: boolean | SuperAdminCountOutputTypeCountTrustedDevicesArgs
+  loginChallenges?: boolean | SuperAdminCountOutputTypeCountLoginChallengesArgs
   createdSuperAdmins?: boolean | SuperAdminCountOutputTypeCountCreatedSuperAdminsArgs
 }
 
@@ -1844,6 +2707,34 @@ export type SuperAdminCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.E
    * Select specific fields to fetch from the SuperAdminCountOutputType
    */
   select?: Prisma.SuperAdminCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * SuperAdminCountOutputType without action
+ */
+export type SuperAdminCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SuperAdminSessionWhereInput
+}
+
+/**
+ * SuperAdminCountOutputType without action
+ */
+export type SuperAdminCountOutputTypeCountCreatedIdentitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.IdentityWhereInput
+}
+
+/**
+ * SuperAdminCountOutputType without action
+ */
+export type SuperAdminCountOutputTypeCountTrustedDevicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TrustedDeviceWhereInput
+}
+
+/**
+ * SuperAdminCountOutputType without action
+ */
+export type SuperAdminCountOutputTypeCountLoginChallengesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.LoginDeviceChallengeWhereInput
 }
 
 /**
@@ -1890,6 +2781,10 @@ export type SuperAdminSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
+  sessions?: boolean | Prisma.SuperAdmin$sessionsArgs<ExtArgs>
+  createdIdentities?: boolean | Prisma.SuperAdmin$createdIdentitiesArgs<ExtArgs>
+  trustedDevices?: boolean | Prisma.SuperAdmin$trustedDevicesArgs<ExtArgs>
+  loginChallenges?: boolean | Prisma.SuperAdmin$loginChallengesArgs<ExtArgs>
   createdBySuperAdmin?: boolean | Prisma.SuperAdmin$createdBySuperAdminArgs<ExtArgs>
   createdSuperAdmins?: boolean | Prisma.SuperAdmin$createdSuperAdminsArgs<ExtArgs>
   _count?: boolean | Prisma.SuperAdminCountOutputTypeDefaultArgs<ExtArgs>
@@ -2013,6 +2908,10 @@ export type SuperAdminSelectScalar = {
 export type SuperAdminOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "loginId" | "fullName" | "username" | "email" | "phoneNumber" | "password" | "mpin" | "aadhaarNumber" | "panNumber" | "shopName" | "shopAddress" | "shopCity" | "shopState" | "city" | "state" | "pincode" | "status" | "isEmailVerified" | "isPhoneVerified" | "isPanVerified" | "preferredLoginMethod" | "onboardingStatus" | "temporaryCredentialsExpireAt" | "lastLoginAt" | "passwordChangedAt" | "mpinChangedAt" | "lastLoginLatitude" | "lastLoginLongitude" | "roleId" | "isPrimary" | "createdBySuperAdminId" | "createdAt" | "updatedAt", ExtArgs["result"]["superAdmin"]>
 export type SuperAdminInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
+  sessions?: boolean | Prisma.SuperAdmin$sessionsArgs<ExtArgs>
+  createdIdentities?: boolean | Prisma.SuperAdmin$createdIdentitiesArgs<ExtArgs>
+  trustedDevices?: boolean | Prisma.SuperAdmin$trustedDevicesArgs<ExtArgs>
+  loginChallenges?: boolean | Prisma.SuperAdmin$loginChallengesArgs<ExtArgs>
   createdBySuperAdmin?: boolean | Prisma.SuperAdmin$createdBySuperAdminArgs<ExtArgs>
   createdSuperAdmins?: boolean | Prisma.SuperAdmin$createdSuperAdminsArgs<ExtArgs>
   _count?: boolean | Prisma.SuperAdminCountOutputTypeDefaultArgs<ExtArgs>
@@ -2030,6 +2929,10 @@ export type $SuperAdminPayload<ExtArgs extends runtime.Types.Extensions.Internal
   name: "SuperAdmin"
   objects: {
     role: Prisma.$RolePayload<ExtArgs>
+    sessions: Prisma.$SuperAdminSessionPayload<ExtArgs>[]
+    createdIdentities: Prisma.$IdentityPayload<ExtArgs>[]
+    trustedDevices: Prisma.$TrustedDevicePayload<ExtArgs>[]
+    loginChallenges: Prisma.$LoginDeviceChallengePayload<ExtArgs>[]
     createdBySuperAdmin: Prisma.$SuperAdminPayload<ExtArgs> | null
     createdSuperAdmins: Prisma.$SuperAdminPayload<ExtArgs>[]
   }
@@ -2463,6 +3366,10 @@ readonly fields: SuperAdminFieldRefs;
 export interface Prisma__SuperAdminClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   role<T extends Prisma.RoleDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RoleDefaultArgs<ExtArgs>>): Prisma.Prisma__RoleClient<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  sessions<T extends Prisma.SuperAdmin$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SuperAdmin$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SuperAdminSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  createdIdentities<T extends Prisma.SuperAdmin$createdIdentitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SuperAdmin$createdIdentitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IdentityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  trustedDevices<T extends Prisma.SuperAdmin$trustedDevicesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SuperAdmin$trustedDevicesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrustedDevicePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  loginChallenges<T extends Prisma.SuperAdmin$loginChallengesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SuperAdmin$loginChallengesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LoginDeviceChallengePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   createdBySuperAdmin<T extends Prisma.SuperAdmin$createdBySuperAdminArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SuperAdmin$createdBySuperAdminArgs<ExtArgs>>): Prisma.Prisma__SuperAdminClient<runtime.Types.Result.GetResult<Prisma.$SuperAdminPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdSuperAdmins<T extends Prisma.SuperAdmin$createdSuperAdminsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SuperAdmin$createdSuperAdminsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SuperAdminPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -2926,6 +3833,102 @@ export type SuperAdminDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many SuperAdmins to delete.
    */
   limit?: number
+}
+
+/**
+ * SuperAdmin.sessions
+ */
+export type SuperAdmin$sessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SuperAdminSession
+   */
+  select?: Prisma.SuperAdminSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SuperAdminSession
+   */
+  omit?: Prisma.SuperAdminSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SuperAdminSessionInclude<ExtArgs> | null
+  where?: Prisma.SuperAdminSessionWhereInput
+  orderBy?: Prisma.SuperAdminSessionOrderByWithRelationInput | Prisma.SuperAdminSessionOrderByWithRelationInput[]
+  cursor?: Prisma.SuperAdminSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SuperAdminSessionScalarFieldEnum | Prisma.SuperAdminSessionScalarFieldEnum[]
+}
+
+/**
+ * SuperAdmin.createdIdentities
+ */
+export type SuperAdmin$createdIdentitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Identity
+   */
+  select?: Prisma.IdentitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Identity
+   */
+  omit?: Prisma.IdentityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.IdentityInclude<ExtArgs> | null
+  where?: Prisma.IdentityWhereInput
+  orderBy?: Prisma.IdentityOrderByWithRelationInput | Prisma.IdentityOrderByWithRelationInput[]
+  cursor?: Prisma.IdentityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.IdentityScalarFieldEnum | Prisma.IdentityScalarFieldEnum[]
+}
+
+/**
+ * SuperAdmin.trustedDevices
+ */
+export type SuperAdmin$trustedDevicesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TrustedDevice
+   */
+  select?: Prisma.TrustedDeviceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TrustedDevice
+   */
+  omit?: Prisma.TrustedDeviceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TrustedDeviceInclude<ExtArgs> | null
+  where?: Prisma.TrustedDeviceWhereInput
+  orderBy?: Prisma.TrustedDeviceOrderByWithRelationInput | Prisma.TrustedDeviceOrderByWithRelationInput[]
+  cursor?: Prisma.TrustedDeviceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TrustedDeviceScalarFieldEnum | Prisma.TrustedDeviceScalarFieldEnum[]
+}
+
+/**
+ * SuperAdmin.loginChallenges
+ */
+export type SuperAdmin$loginChallengesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LoginDeviceChallenge
+   */
+  select?: Prisma.LoginDeviceChallengeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LoginDeviceChallenge
+   */
+  omit?: Prisma.LoginDeviceChallengeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LoginDeviceChallengeInclude<ExtArgs> | null
+  where?: Prisma.LoginDeviceChallengeWhereInput
+  orderBy?: Prisma.LoginDeviceChallengeOrderByWithRelationInput | Prisma.LoginDeviceChallengeOrderByWithRelationInput[]
+  cursor?: Prisma.LoginDeviceChallengeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.LoginDeviceChallengeScalarFieldEnum | Prisma.LoginDeviceChallengeScalarFieldEnum[]
 }
 
 /**

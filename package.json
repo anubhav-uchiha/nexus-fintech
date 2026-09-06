@@ -10,6 +10,7 @@
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "auth:migrate": "prisma migrate dev --config apps/auth-service/prisma.config.ts",
     "auth:generate": "prisma generate --config apps/auth-service/prisma.config.ts",
+    "auth:bootstrap-super-admin": "tsx apps/auth-service/prisma/bootstrap-super-admin.ts",
     "auth:seed": "prisma db seed --config apps/auth-service/prisma.config.ts",
     "auth:studio": "prisma studio --config apps/auth-service/prisma.config.ts",
     "prisma:deploy": "prisma migrate deploy",

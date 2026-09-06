@@ -9,6 +9,8 @@ export const AUTH_PATTERNS = {
 
   LOGIN: 'auth.login',
 
+  VERIFY_DEVICE_LOGIN: 'auth.login.verify-device',
+
   CHANGE_PASSWORD: 'auth.change-password',
   CHANGE_MPIN: 'auth.change-mpin',
 
@@ -45,4 +47,30 @@ export const AUTH_PATTERNS = {
 
   RESOLVE_COMMISSION_RECIPIENT_ELIGIBILITY:
     'auth.commission-recipient.resolve-eligibility',
+
+  SUPER_ADMIN_LOGIN: 'auth.super-admin.login',
+  SUPER_ADMIN_REFRESH_TOKEN: 'auth.super-admin.refresh-token',
+  SUPER_ADMIN_LOGOUT: 'auth.super-admin.logout',
+  SUPER_ADMIN_VALIDATE_SESSION: 'auth.super-admin.sessions.validate',
+  SUPER_ADMIN_ONBOARDING_SEND_PHONE_OTP:
+    'auth.super-admin.onboarding.phone.send-otp',
+
+  SUPER_ADMIN_ONBOARDING_VERIFY_PHONE_OTP:
+    'auth.super-admin.onboarding.phone.verify-otp',
+  SUPER_ADMIN_ONBOARDING_ADD_PAN: 'auth.super-admin.onboarding.pan.add',
+  SUPER_ADMIN_CHANGE_PASSWORD: 'auth.super-admin.onboarding.change-password',
+
+  SUPER_ADMIN_CHANGE_MPIN: 'auth.super-admin.onboarding.change-mpin',
+
+  SUPER_ADMIN_CREATE_IDENTITY_ACCOUNT:
+    'auth.super-admin.accounts.create-identity',
+
+  SUPER_ADMIN_VERIFY_DEVICE_LOGIN: 'auth.super-admin.login.verify-device',
+
+  IDENTITY_ONBOARDING_SEND_PHONE_OTP: 'auth.identity.onboarding.phone.send-otp',
+
+  IDENTITY_ONBOARDING_VERIFY_PHONE_OTP:
+    'auth.identity.onboarding.phone.verify-otp',
+  IDENTITY_ONBOARDING_ADD_PAN: 'auth.identity.onboarding.pan.add',
+  CREATE_IDENTITY_ACCOUNT: 'auth.identity-account.create',
 } as const;

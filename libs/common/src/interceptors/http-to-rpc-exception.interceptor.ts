@@ -13,6 +13,12 @@ import { catchError, Observable, throwError } from 'rxjs';
 
 type ExceptionMessage = string | string[] | Record<string, unknown>;
 
+type RpcErrorPayload = {
+  statusCode: number;
+  message: string | string[];
+  error?: string;
+};
+
 interface RpcExceptionPayload {
   statusCode: number;
   message: ExceptionMessage;
@@ -25,12 +31,15 @@ interface RpcExceptionPayload {
 export class HttpToRpcExceptionInterceptor implements NestInterceptor {
   private readonly logger = new Logger(HttpToRpcExceptionInterceptor.name);
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+  intercept(
+    _context: ExecutionContext,
+    next: CallHandler,
+  ): Observable<unknown> {
     // Only convert exceptions for Kafka/microservice requests.
     // HTTP routes exposed directly by the service remain unchanged.
-    if (context.getType() !== 'rpc') {
-      return next.handle();
-    }
+    // if (context.getType() !== 'rpc') {
+    //   return next.handle();
+    // }
 
     return next.handle().pipe(
       catchError((error: unknown) => {
@@ -41,17 +50,32 @@ export class HttpToRpcExceptionInterceptor implements NestInterceptor {
         }
 
         if (error instanceof HttpException) {
-          const payload = this.convertHttpException(error);
+          const statusCode = error.getStatus();
+          const response = error.getResponse();
+          const payload: RpcErrorPayload =
+            typeof response === 'string'
+              ? {
+                  statusCode,
+                  message: response,
+                  error: error.name,
+                }
+              : {
+                  statusCode,
+                  message: this.readMessage(response) ?? error.message,
+                  error: this.readString(response, 'error') ?? error.name,
+                };
 
           return throwError(() => new RpcException(payload));
         }
 
-        const message =
-          error instanceof Error ? error.message : 'Unknown microservice error';
+        const serializedError = this.extractSerializedError(error);
+
+        if (serializedError) {
+          return throwError(() => new RpcException(serializedError));
+        }
 
         this.logger.error(
-          `Unhandled microservice error: ${message}`,
-          error instanceof Error ? error.stack : undefined,
+          `Unhandled microservice error: ${this.describeError(error)}`,
         );
 
         return throwError(
@@ -66,59 +90,84 @@ export class HttpToRpcExceptionInterceptor implements NestInterceptor {
     );
   }
 
-  private convertHttpException(exception: HttpException): RpcExceptionPayload {
-    const statusCode = exception.getStatus();
+  private extractSerializedError(error: unknown): RpcErrorPayload | null {
+    const candidates: unknown[] = [error];
 
-    const response = exception.getResponse();
-
-    if (typeof response === 'string') {
-      return {
-        statusCode,
-        message: response,
-      };
+    if (this.isRecord(error)) {
+      candidates.push(error.response, error.err, error.cause);
     }
 
-    const responseBody = response as Record<string, unknown>;
+    for (const candidate of candidates) {
+      if (!this.isRecord(candidate)) {
+        continue;
+      }
 
-    const message = this.normalizeMessage(
-      responseBody.message,
-      exception.message,
-    );
+      const statusCode = candidate.statusCode;
+      const message = this.readMessage(candidate);
 
-    return {
-      statusCode,
-      message,
+      if (
+        typeof statusCode === 'number' &&
+        statusCode >= 400 &&
+        statusCode <= 599 &&
+        message
+      ) {
+        return {
+          statusCode,
+          message,
+          ...(this.readString(candidate, 'error') && {
+            error: this.readString(candidate, 'error'),
+          }),
+        };
+      }
+    }
 
-      ...(typeof responseBody.error === 'string' && {
-        error: responseBody.error,
-      }),
-
-      ...(typeof responseBody.errorCode === 'string' && {
-        errorCode: responseBody.errorCode,
-      }),
-
-      ...(responseBody.errors !== undefined && {
-        errors: responseBody.errors,
-      }),
-    };
+    return null;
   }
 
-  private normalizeMessage(value: unknown, fallback: string): ExceptionMessage {
-    if (typeof value === 'string') {
-      return value;
+  private readMessage(value: unknown): string | string[] | null {
+    if (!this.isRecord(value)) {
+      return null;
+    }
+
+    const message = value.message;
+
+    if (typeof message === 'string') {
+      return message;
     }
 
     if (
-      Array.isArray(value) &&
-      value.every((item) => typeof item === 'string')
+      Array.isArray(message) &&
+      message.every((item) => typeof item === 'string')
     ) {
-      return value;
+      return message;
     }
 
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      return value as Record<string, unknown>;
+    return null;
+  }
+
+  private readString(value: unknown, key: string): string | undefined {
+    if (!this.isRecord(value)) {
+      return undefined;
     }
 
-    return fallback;
+    const property = value[key];
+
+    return typeof property === 'string' ? property : undefined;
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  private describeError(error: unknown): string {
+    if (error instanceof Error) {
+      return error.stack ?? error.message;
+    }
+
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
   }
 }

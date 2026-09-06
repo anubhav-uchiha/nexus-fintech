@@ -25,6 +25,7 @@ import redisConfig from '@nexus/config/configs/redis.config';
 import { CacheModule } from 'libs/cache/src';
 import { APP_GUARD } from '@nestjs/core';
 import { RateLimitGuard } from './common/rate-limit/rate-limit.guard';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { RateLimitGuard } from './common/rate-limit/rate-limit.guard';
     PackageModule,
     VimopayAepsModule,
     AuditModule,
+    AdminModule,
   ],
   providers: [
     {

@@ -80,4 +80,27 @@ export class EmailService {
 
     // return true;
   }
+
+  async sendAccountCredentials(
+    email: string,
+    data: {
+      loginId: string;
+      temporaryPassword: string;
+      temporaryMpin: string;
+      fullName?: string;
+      role?: string;
+      expiresAt?: string;
+    },
+  ): Promise<void> {
+    const html = this.compileTemplate('account-credentials', {
+      fullName: data.fullName ?? 'User',
+      loginId: data.loginId,
+      temporaryPassword: data.temporaryPassword,
+      temporaryMpin: data.temporaryMpin,
+      role: data.role,
+      expiresAt: data.expiresAt,
+    });
+
+    await this.sendEmail(email, 'Your UmiPay account credentials', html);
+  }
 }

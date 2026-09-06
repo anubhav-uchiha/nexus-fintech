@@ -20,7 +20,20 @@ import {
   FileInterceptor,
 } from '@nestjs/platform-express';
 
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiHeader,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { KycGatewayService } from './kyc.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth-guard';
 import { UploadDocumentDto } from '@nexus/common/kyc/dto/upload-document.dto';
@@ -38,6 +51,11 @@ import { validateFileContent } from './storage/file-validation';
 import { IdempotencyService } from './idempotency/idempotency.service';
 
 @ApiTags('KYC')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({
+  description:
+    'Access token is missing, invalid, expired, or the session is invalid',
+})
 @Controller('kyc')
 @UseGuards(JwtAuthGuard)
 export class KycGatewayController {
@@ -68,6 +86,17 @@ export class KycGatewayController {
   }
 
   @Post('create')
+  @ApiOperation({
+    summary: 'Create KYC profile',
+    description:
+      'Creates the KYC profile for the currently authenticated identity.',
+  })
+  @ApiCreatedResponse({
+    description: 'KYC profile created successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'KYC profile cannot be created for the current identity',
+  })
   create(@Req() req: any) {
     return this.kycGatewayService.create({
       identityId: req.user.sub,
@@ -75,6 +104,23 @@ export class KycGatewayController {
   }
 
   @Post('submit')
+  @ApiOperation({
+    summary: 'Submit KYC for verification',
+    description:
+      'Submits the current identity KYC for verification. The request is protected with an idempotency key.',
+  })
+  @ApiHeader({
+    name: 'idempotency-key',
+    required: true,
+    description:
+      'Unique idempotency key used to prevent duplicate KYC submission',
+  })
+  @ApiCreatedResponse({
+    description: 'KYC submitted successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'KYC is incomplete, already submitted, or cannot be submitted',
+  })
   async submitKyc(
     @Req() req: any,
     @Headers('idempotency-key') idempotencyKey: string,
@@ -93,12 +139,58 @@ export class KycGatewayController {
   }
 
   @Get('me')
+  @ApiOperation({
+    summary: 'Get my KYC profile',
+  })
+  @ApiOkResponse({
+    description: 'KYC profile retrieved successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'KYC profile not found',
+  })
   getMyKyc(@Req() req: any) {
     return this.kycGatewayService.getMyKyc(req.user.sub);
   }
 
   @Post('document')
   @UseInterceptors(FileInterceptor('file', documentUploadOptions))
+  @UseInterceptors(FileInterceptor('file', documentUploadOptions))
+  @ApiOperation({
+    summary: 'Upload KYC document',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiHeader({
+    name: 'idempotency-key',
+    required: false,
+    description:
+      'Optional idempotency key used to prevent duplicate document uploads',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        documentType: {
+          type: 'string',
+        },
+        documentNumber: {
+          type: 'string',
+          nullable: true,
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['documentType', 'file'],
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'KYC document uploaded successfully',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'Document file is missing, invalid, or the document payload is invalid',
+  })
   async uploadDocument(
     @Req() req: any,
     @Body() dto: UploadDocumentDto,
@@ -175,6 +267,42 @@ export class KycGatewayController {
       imageUploadOptions,
     ),
   )
+  @ApiOperation({
+    summary: 'Upload Aadhaar document',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiHeader({
+    name: 'idempotency-key',
+    required: false,
+    description:
+      'Optional idempotency key used to prevent duplicate Aadhaar uploads',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        documentNumber: {
+          type: 'string',
+        },
+        frontImage: {
+          type: 'string',
+          format: 'binary',
+        },
+        backImage: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['documentNumber', 'frontImage', 'backImage'],
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'Aadhaar uploaded successfully',
+  })
+  @ApiBadRequestResponse({
+    description:
+      'Aadhaar number, front image, or back image is invalid or missing',
+  })
   async uploadAadhaar(
     @Req() req: any,
     @Body() dto: UploadAadharDto,
@@ -293,6 +421,35 @@ export class KycGatewayController {
       imageUploadOptions,
     ),
   )
+  @ApiOperation({
+    summary: 'Update Aadhaar details or images',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        documentNumber: {
+          type: 'string',
+          nullable: true,
+        },
+        frontImage: {
+          type: 'string',
+          format: 'binary',
+        },
+        backImage: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Aadhaar updated successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Provide Aadhaar number, front image, or back image',
+  })
   async updateAadhaar(
     @Req() req: any,
     @Body() dto: UpdateAadhaarDto,
@@ -395,6 +552,34 @@ export class KycGatewayController {
 
   @Post('video')
   @UseInterceptors(FileInterceptor('file', videoUploadOptions))
+  @ApiOperation({
+    summary: 'Upload KYC verification video',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiHeader({
+    name: 'idempotency-key',
+    required: false,
+    description:
+      'Optional idempotency key used to prevent duplicate video uploads',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiCreatedResponse({
+    description: 'KYC video uploaded successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Video file is missing or invalid',
+  })
   async uploadVideo(
     @Req() req: any,
     @UploadedFile() file: Express.Multer.File,
@@ -420,11 +605,8 @@ export class KycGatewayController {
     };
     return this.idempotencyService.execute({
       identityId,
-
       operation: 'UPLOAD_VIDEO',
-
       idempotencyKey,
-
       payload,
 
       handler: async () => {
@@ -451,6 +633,12 @@ export class KycGatewayController {
   }
 
   @Get('me/documents')
+  @ApiOperation({
+    summary: 'Get my KYC documents',
+  })
+  @ApiOkResponse({
+    description: 'KYC documents retrieved successfully',
+  })
   getDocuments(@Req() req: any, @Query() pagination: PaginationDto) {
     return this.kycGatewayService.getDocuments(
       req.user.sub,
@@ -461,6 +649,41 @@ export class KycGatewayController {
 
   @Put('document')
   @UseInterceptors(FileInterceptor('file', documentUploadOptions))
+  @ApiOperation({
+    summary: 'Update KYC document',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiHeader({
+    name: 'idempotency-key',
+    required: false,
+    description:
+      'Optional idempotency key used to prevent duplicate document updates',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        documentType: {
+          type: 'string',
+        },
+        documentNumber: {
+          type: 'string',
+          nullable: true,
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+      required: ['documentType'],
+    },
+  })
+  @ApiOkResponse({
+    description: 'KYC document updated successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Document number or document file is required',
+  })
   async updateDocument(
     @Req() req: any,
     @Body() dto: UploadDocumentDto,
@@ -540,11 +763,37 @@ export class KycGatewayController {
   }
 
   @Delete('document/:documentId')
+  @ApiOperation({
+    summary: 'Delete KYC document',
+  })
+  @ApiParam({
+    name: 'documentId',
+    description: 'KYC document ID',
+  })
+  @ApiOkResponse({
+    description: 'KYC document deleted successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'KYC document not found',
+  })
   deleteDocument(@Req() req: any, @Param('documentId') documentId: string) {
     return this.kycGatewayService.deleteDocument(documentId, req.user.sub);
   }
 
   @Delete('video/:videoId')
+  @ApiOperation({
+    summary: 'Delete KYC verification video',
+  })
+  @ApiParam({
+    name: 'videoId',
+    description: 'KYC video ID',
+  })
+  @ApiOkResponse({
+    description: 'KYC video deleted successfully',
+  })
+  @ApiNotFoundResponse({
+    description: 'KYC video not found',
+  })
   deleteVideo(@Req() req: any, @Param('videoId') videoId: string) {
     return this.kycGatewayService.deleteVideo(videoId, req.user.sub);
   }

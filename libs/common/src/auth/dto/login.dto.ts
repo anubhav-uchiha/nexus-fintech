@@ -1,11 +1,13 @@
 import { Transform } from 'class-transformer';
 import {
   IsDateString,
+  IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   Max,
+  MaxLength,
   Min,
 } from 'class-validator';
 
@@ -16,6 +18,7 @@ export class LoginDto {
   identifier!: string;
 
   @IsString()
+  @IsIn(['PASSWORD', 'MPIN'])
   loginWith!: 'PASSWORD' | 'MPIN';
 
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
@@ -43,4 +46,10 @@ export class LoginDto {
   @IsOptional()
   @IsDateString()
   locationCapturedAt?: string;
+
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  deviceId!: string;
 }

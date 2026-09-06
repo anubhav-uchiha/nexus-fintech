@@ -16,7 +16,22 @@ import { GetAuditLogsQueryDto } from '@nexus/common/audit';
 import { GetAllAuditLogsQueryDto } from '@nexus/common/audit/dto/get-all-audit-logd-query.dto';
 import { AuditService } from './../../../audit-service/src/audit/audit.service';
 import { RpcToHttpExceptionInterceptor } from '../common/interceptors/rpc-to-http-exception';
+import {
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Audit')
+@ApiBearerAuth('access-token')
+@ApiUnauthorizedResponse({
+  description:
+    'Access token is missing, invalid, expired, or the session is invalid',
+})
 @Controller('audit')
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(RpcToHttpExceptionInterceptor)
@@ -24,6 +39,14 @@ export class AuditController {
   constructor(private readonly auditService: AuditPublisherService) {}
 
   @Get('me')
+  @ApiOperation({
+    summary: 'Get audit logs for the logged-in identity',
+    description:
+      'Returns audit logs belonging to the currently authenticated identity. Query parameters can be used for filtering and pagination.',
+  })
+  @ApiOkResponse({
+    description: 'Audit logs retrieved successfully',
+  })
   getMyLogs(
     @CurrentUser() user: JwtPayload,
     @Query() query: GetAuditLogsQueryDto,
@@ -32,6 +55,23 @@ export class AuditController {
   }
 
   @Get('/me/:id')
+  @ApiOperation({
+    summary: 'Get an audit log by ID',
+    description:
+      'Returns a specific audit log visible to the currently authenticated identity.',
+  })
+  @ApiParam({
+    name: 'id',
+    format: 'uuid',
+    description: 'Audit log UUID',
+  })
+  @ApiOkResponse({
+    description: 'Audit log retrieved successfully',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'The authenticated identity is not allowed to view the requested audit log',
+  })
   getLogById(
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() user: JwtPayload,
@@ -40,6 +80,17 @@ export class AuditController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Get all audit logs',
+    description:
+      'Returns system-wide audit logs. This endpoint is restricted to SUPER_ADMIN.',
+  })
+  @ApiOkResponse({
+    description: 'All audit logs retrieved successfully',
+  })
+  @ApiForbiddenResponse({
+    description: 'Only SUPER_ADMIN can view all audit logs',
+  })
   getAllLogs(
     @CurrentUser() user: JwtPayload,
     @Query() query: GetAllAuditLogsQueryDto,

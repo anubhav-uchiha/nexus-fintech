@@ -8,8 +8,10 @@ import {
 } from 'libs/queue/src/bullmq/constants/bullmq.constants';
 import { QueueService } from 'libs/queue/src/bullmq/services/queue.service';
 
-interface EmailSendEvent extends EmailJob {
+interface EmailSendEvent {
   eventId: string;
+  to: string;
+  otp: string;
 }
 
 @Controller()
@@ -37,6 +39,7 @@ export class EmailConsumer {
       QUEUE_NAMES.EMAIL,
       EMAIL_JOB_NAMES.SEND,
       {
+        type: 'OTP',
         to: data.to.trim(),
         otp: data.otp,
       },

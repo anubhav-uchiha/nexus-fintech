@@ -5,6 +5,9 @@ import { AuthService } from './auth.service';
 
 import {
   ChangeMpinDto,
+  IdentityOnboardingPanDto,
+  IdentityOnboardingSendPhoneDto,
+  IdentityOnboardingVerifyPhoneDto,
   LogoutDto,
   RefreshTokenDto,
   SendEmailOtpDto,
@@ -23,6 +26,7 @@ import { VerifyForgotPasswordUserDto } from '@nexus/common/auth/dto/forgot-passw
 import { VerifyForgotPasswordOtpDto } from '@nexus/common/auth/dto/forgot-password/verify-forgot-password-otp.dto';
 import { ResetForgotPasswordDto } from '@nexus/common/auth/dto/forgot-password/reset-forgot-password.dto';
 import { LoginKafkaDto } from '@nexus/common/auth/dto/login-kafka.dto';
+import { VerifyDeviceLoginDto } from '@nexus/common/auth/dto/verify-device-login.dto';
 
 @Controller()
 export class AuthKafkaController {
@@ -162,5 +166,52 @@ export class AuthKafkaController {
     },
   ) {
     return this.authService.resolveCommissionRecipientEligibility(dto);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.IDENTITY_ONBOARDING_SEND_PHONE_OTP)
+  sendIdentityOnboardingPhoneOtp(
+    @Payload()
+    payload: {
+      identityId: string;
+      dto: IdentityOnboardingSendPhoneDto;
+    },
+  ) {
+    return this.authService.sendIdentityOnboardingPhoneOtp(
+      payload.identityId,
+      payload.dto,
+    );
+  }
+
+  @MessagePattern(AUTH_PATTERNS.IDENTITY_ONBOARDING_VERIFY_PHONE_OTP)
+  verifyIdentityOnboardingPhoneOtp(
+    @Payload()
+    payload: {
+      identityId: string;
+      dto: IdentityOnboardingVerifyPhoneDto;
+    },
+  ) {
+    return this.authService.verifyIdentityOnboardingPhoneOtp(
+      payload.identityId,
+      payload.dto,
+    );
+  }
+
+  @MessagePattern(AUTH_PATTERNS.IDENTITY_ONBOARDING_ADD_PAN)
+  addIdentityOnboardingPan(
+    @Payload()
+    payload: {
+      identityId: string;
+      dto: IdentityOnboardingPanDto;
+    },
+  ) {
+    return this.authService.addIdentityOnboardingPan(
+      payload.identityId,
+      payload.dto,
+    );
+  }
+
+  @MessagePattern(AUTH_PATTERNS.VERIFY_DEVICE_LOGIN)
+  verifyDeviceLogin(@Payload() dto: VerifyDeviceLoginDto) {
+    return this.authService.verifyDeviceLogin(dto);
   }
 }

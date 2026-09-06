@@ -45,22 +45,26 @@ model Identity {
 
   username    String @unique
   email       String @unique
-  phoneNumber String @unique
+  phoneNumber String? @unique
 
   password String
   mpin     String
 
-  aadhaarNumber String @unique
-  panNumber     String @unique
+  aadhaarNumber String? @unique
+  panNumber     String? @unique
 
-  shopName    String
-  shopAddress String
-  shopCity    String
-  shopState   String
+  shopName    String?
+  shopAddress String?
+  shopCity    String?
+  shopState   String?
 
   city    String
   state   String
   pincode String
+
+  onboardingStatus AccountOnboardingStatus @default(COMPLETED)
+
+  temporaryCredentialsExpireAt DateTime?
 
   status UserStatus @default(ACTIVE)
 
@@ -84,6 +88,20 @@ model Identity {
   sessions            Session[]
   otp                 Otp[]
   passwordResetDrafts PasswordResetDraft[]
+  trustedDevices TrustedDevice[]
+  loginChallenges LoginDeviceChallenge[]
+
+  createdBySuperAdminId String?
+  createdBySuperAdmin SuperAdmin? @relation("SuperAdminCreatedIdentities", fields: [createdBySuperAdminId], references: [id], onDelete: Restrict)
+
+
+
+  createdByIdentityId String?
+  createdByIdentity   Identity? @relation("IdentityCreatedIdentities",fields: [createdByIdentityId],references: [id],onDelete: Restrict)
+
+  createdIdentities Identity[] @relation("IdentityCreatedIdentities")
+
+
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -94,6 +112,8 @@ model Identity {
   @@index([phoneNumber])
   @@index([roleId])
   @@index([preferredLoginMethod])
+  @@index([createdBySuperAdminId])
+  @@index([createdByIdentityId])
   @@map("identities")
 }
 
@@ -143,6 +163,11 @@ model SuperAdmin {
 
   roleId String
   role   Role @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  sessions SuperAdminSession[]
+  createdIdentities Identity[] @relation("SuperAdminCreatedIdentities")
+
+  trustedDevices TrustedDevice[]
+  loginChallenges LoginDeviceChallenge[]
 
   isPrimary Boolean @default(false)
 
@@ -164,6 +189,39 @@ model SuperAdmin {
   @@index([createdBySuperAdminId])
 
   @@map("super_admins")
+}
+
+model SuperAdminSession {
+  id String @id @default(cuid())
+
+  superAdminId String
+
+  refreshToken String
+
+  latitude           Decimal? @db.Decimal(8, 6)
+  longitude          Decimal? @db.Decimal(9, 6)
+  locationAccuracy   Float?
+  locationCapturedAt DateTime?
+
+  device    String?
+  ipAddress String?
+  userAgent String?
+
+  expiresAt DateTime
+
+  revoked   Boolean  @default(false)
+  lastUsedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  superAdmin SuperAdmin @relation(fields: [superAdminId],references: [id],onDelete: Cascade)
+
+  @@index([superAdminId])
+  @@index([superAdminId, revoked])
+  @@index([expiresAt])
+
+  @@map("super_admin_sessions")
 }
 
 model Role {
@@ -278,10 +336,12 @@ enum OtpType {
 enum OtpPurpose {
   REGISTER
   LOGIN
+  NEW_DEVICE_LOGIN
   FORGOT_PASSWORD
   CHANGE_EMAIL
   CHANGE_PHONE
   TRANSACTION
+  ACCOUNT_ONBOARDING
 }
 
 model Otp {
@@ -398,6 +458,73 @@ model PasswordResetDraft {
   @@map("password_reset_drafts")
 }
 
+model TrustedDevice {
+  id String @id @default(cuid())
+
+  identityId   String?
+  superAdminId String?
+
+  deviceId   String
+  deviceName String?
+
+  userAgent     String?
+  lastIpAddress String?
+
+  verifiedAt   DateTime
+  trustedUntil DateTime
+
+  lastUsedAt DateTime @default(now())
+  revokedAt  DateTime?
+
+  identity Identity? @relation(fields: [identityId],references: [id],onDelete: Cascade)
+
+  superAdmin SuperAdmin? @relation(fields: [superAdminId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([identityId, deviceId])
+  @@unique([superAdminId, deviceId])
+
+  @@index([identityId])
+  @@index([superAdminId])
+  @@index([deviceId])
+  @@index([trustedUntil])
+
+  @@map("trusted_devices")
+}
+
+model LoginDeviceChallenge {
+  id String @id @default(cuid())
+
+  identityId   String?
+  superAdminId String?
+
+  deviceId   String
+  deviceName String?
+
+  ipAddress String?
+  userAgent String?
+
+  expiresAt DateTime
+  verifiedAt DateTime?
+
+  attempts Int @default(0)
+
+  identity Identity? @relation(fields: [identityId],references: [id],onDelete: Cascade)
+
+  superAdmin SuperAdmin? @relation(fields: [superAdminId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([identityId])
+  @@index([superAdminId])
+  @@index([deviceId])
+  @@index([expiresAt])
+
+  @@map("login_device_challenges")
+}
 
 
 // enum BankAccountDocumentType {

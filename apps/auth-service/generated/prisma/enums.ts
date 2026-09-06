@@ -62,10 +62,12 @@ export type OtpType = (typeof OtpType)[keyof typeof OtpType]
 export const OtpPurpose = {
   REGISTER: 'REGISTER',
   LOGIN: 'LOGIN',
+  NEW_DEVICE_LOGIN: 'NEW_DEVICE_LOGIN',
   FORGOT_PASSWORD: 'FORGOT_PASSWORD',
   CHANGE_EMAIL: 'CHANGE_EMAIL',
   CHANGE_PHONE: 'CHANGE_PHONE',
-  TRANSACTION: 'TRANSACTION'
+  TRANSACTION: 'TRANSACTION',
+  ACCOUNT_ONBOARDING: 'ACCOUNT_ONBOARDING'
 } as const
 
 export type OtpPurpose = (typeof OtpPurpose)[keyof typeof OtpPurpose]

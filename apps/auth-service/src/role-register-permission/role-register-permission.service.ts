@@ -21,16 +21,27 @@ export class RoleRegisterPermissionService {
   ) {}
 
   async create(registrarRoleId: string, dto: CreateRoleRegisterPermissionDto) {
-    if (registrarRoleId === dto.targetRoleId) {
-      throw new BadRequestException(
-        'A role cannot be allowed to register itself',
-      );
-    }
-
     const [registrarRole, targetRole] = await Promise.all([
       this.roleService.findById(registrarRoleId),
       this.roleService.findById(dto.targetRoleId),
     ]);
+
+    if (!registrarRole) {
+      throw new NotFoundException('Registrar role not found');
+    }
+
+    if (!targetRole) {
+      throw new NotFoundException('Target role not found');
+    }
+
+    if (
+      registrarRoleId === dto.targetRoleId &&
+      registrarRole.name !== 'SUPER_ADMIN'
+    ) {
+      throw new BadRequestException(
+        'Only SUPER_ADMIN can create another account with the same role',
+      );
+    }
 
     const existing = await this.repository.findByIds(
       registrarRoleId,

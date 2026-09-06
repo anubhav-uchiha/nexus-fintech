@@ -10,7 +10,7 @@ export class RefreshKafkaResponseDto {
     fullName: string;
     username: string;
     email: string;
-    phoneNumber: string;
+    phoneNumber: string | null;
     role: string;
     status: string;
     passwordChangedAt: Date | null;
