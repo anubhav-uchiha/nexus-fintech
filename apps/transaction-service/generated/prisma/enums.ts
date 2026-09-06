@@ -66,9 +66,11 @@ export type ProviderSettlementStatus = (typeof ProviderSettlementStatus)[keyof t
 
 export const ProviderCommissionStatus = {
   NOT_REQUIRED: 'NOT_REQUIRED',
+  WAITING_PROVIDER_INCOME: 'WAITING_PROVIDER_INCOME',
   PENDING: 'PENDING',
   SETTLED: 'SETTLED',
-  FAILED: 'FAILED'
+  FAILED: 'FAILED',
+  REVERSED: 'REVERSED'
 } as const
 
 export type ProviderCommissionStatus = (typeof ProviderCommissionStatus)[keyof typeof ProviderCommissionStatus]
@@ -83,3 +85,41 @@ export const ProviderTransactionReversalStatus = {
 } as const
 
 export type ProviderTransactionReversalStatus = (typeof ProviderTransactionReversalStatus)[keyof typeof ProviderTransactionReversalStatus]
+
+
+export const ProviderReversalComponentStatus = {
+  NOT_REQUIRED: 'NOT_REQUIRED',
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type ProviderReversalComponentStatus = (typeof ProviderReversalComponentStatus)[keyof typeof ProviderReversalComponentStatus]
+
+
+export const ProviderReconciliationStatus = {
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+} as const
+
+export type ProviderReconciliationStatus = (typeof ProviderReconciliationStatus)[keyof typeof ProviderReconciliationStatus]
+
+
+export const ProviderReconciliationResolution = {
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED'
+} as const
+
+export type ProviderReconciliationResolution = (typeof ProviderReconciliationResolution)[keyof typeof ProviderReconciliationResolution]
+
+
+export const ProviderReconciliationAction = {
+  NONE: 'NONE',
+  SETTLE_PRINCIPAL: 'SETTLE_PRINCIPAL',
+  CONFIRM_RESERVATION: 'CONFIRM_RESERVATION',
+  COMPENSATE_RESERVATION: 'COMPENSATE_RESERVATION'
+} as const
+
+export type ProviderReconciliationAction = (typeof ProviderReconciliationAction)[keyof typeof ProviderReconciliationAction]

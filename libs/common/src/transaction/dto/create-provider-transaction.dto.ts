@@ -24,4 +24,6 @@ export interface CreateProviderTransactionDto {
   metadata?: JsonObject;
 
   settlementRequired?: boolean;
+
+  sourceRole?: string;
 }

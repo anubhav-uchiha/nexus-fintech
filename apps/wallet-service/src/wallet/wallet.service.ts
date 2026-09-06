@@ -80,6 +80,10 @@ export class WalletService implements OnModuleInit {
       TRANSACTION_PATTERNS.CONFIRM_PROVIDER_WALLET_RESERVATION,
     );
 
+    this.transactionClient.subscribeToResponseOf(
+      TRANSACTION_PATTERNS.CREDIT_PROVIDER_COMMISSION_DISTRIBUTION,
+    );
+
     await Promise.all([
       this.transactionClient.connect(),
       this.commissionClient.connect(),
@@ -479,6 +483,8 @@ export class WalletService implements OnModuleInit {
 
           operation: 'CD',
 
+          sourceRole: dto.sourceRole,
+
           amount: dto.amount,
 
           idempotencyKey: dto.providerTransactionIdempotencyKey,
@@ -495,7 +501,7 @@ export class WalletService implements OnModuleInit {
 
           walletServiceType: 'AEPS_CASH_DEPOSIT',
 
-          walletDescription: 'AEPS Cash Deposit principal reservation',
+          walletDescription: 'AEPS Cash Deposit gross funding reservation',
         },
       ),
     );
@@ -614,10 +620,24 @@ export class WalletService implements OnModuleInit {
       });
     }
 
+    if (!dto.providerTransactionReference?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Provider transaction reference is required',
+      });
+    }
+
     if (!dto.distributionTransactionId?.trim()) {
       throw new RpcException({
         statusCode: 400,
         message: 'Distribution transaction ID is required',
+      });
+    }
+
+    if (!dto.commissionReference?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Commission reference is required',
       });
     }
 
@@ -635,44 +655,11 @@ export class WalletService implements OnModuleInit {
       });
     }
 
-    /*
-     * IMPORTANT:
-     *
-     * Every distribution gets its OWN
-     * PROFIT wallet ledger entry.
-     *
-     * Same recipient ko multiple dynamic
-     * distributions ho sakti hain.
-     *
-     * Each allocation ki idempotency key
-     * different hogi.
-     */
-
     return firstValueFrom(
-      this.transactionClient.send(TRANSACTION_PATTERNS.CREATE, {
-        userId: dto.recipientUserId,
-
-        walletType: 'PROFIT',
-
-        type: 'CREDIT',
-
-        amount: dto.amount,
-
-        serviceType: dto.serviceType,
-
-        description: `AEPS commission distribution for ${dto.recipientRole}`,
-
-        /*
-         * Individual allocation trace.
-         */
-        externalReference: dto.distributionTransactionId,
-
-        /*
-         * Already commission DB mein
-         * generated unique key.
-         */
-        idempotencyKey: dto.idempotencyKey,
-      }),
+      this.transactionClient.send(
+        TRANSACTION_PATTERNS.CREDIT_PROVIDER_COMMISSION_DISTRIBUTION,
+        dto,
+      ),
     );
   }
 }

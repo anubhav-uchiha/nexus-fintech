@@ -24,4 +24,6 @@ export interface PrepareProviderWalletDebitDto {
   walletServiceType: string;
 
   walletDescription: string;
+
+  sourceRole?: string;
 }

@@ -53,7 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   Transaction: 'Transaction',
   ProviderTransaction: 'ProviderTransaction',
-  ProviderTransactionReversal: 'ProviderTransactionReversal'
+  ProviderTransactionReversal: 'ProviderTransactionReversal',
+  ProviderTransactionReconciliation: 'ProviderTransactionReconciliation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -140,7 +141,12 @@ export const ProviderTransactionScalarFieldEnum = {
   commissionWalletTransactionReference: 'commissionWalletTransactionReference',
   commissionAmount: 'commissionAmount',
   commissionFailureReason: 'commissionFailureReason',
-  commissionSettledAt: 'commissionSettledAt'
+  commissionSettledAt: 'commissionSettledAt',
+  sourceRole: 'sourceRole',
+  providerIncomeSource: 'providerIncomeSource',
+  providerIncomeExternalReference: 'providerIncomeExternalReference',
+  providerIncomeReconciledAt: 'providerIncomeReconciledAt',
+  providerIncomeReconciledBy: 'providerIncomeReconciledBy'
 } as const
 
 export type ProviderTransactionScalarFieldEnum = (typeof ProviderTransactionScalarFieldEnum)[keyof typeof ProviderTransactionScalarFieldEnum]
@@ -160,10 +166,43 @@ export const ProviderTransactionReversalScalarFieldEnum = {
   completedAt: 'completedAt',
   failedReason: 'failedReason',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  principalStatus: 'principalStatus',
+  principalCompensationReference: 'principalCompensationReference',
+  principalFailureReason: 'principalFailureReason',
+  commissionStatus: 'commissionStatus',
+  commissionReversalReference: 'commissionReversalReference',
+  commissionFailureReason: 'commissionFailureReason',
+  processedBy: 'processedBy'
 } as const
 
 export type ProviderTransactionReversalScalarFieldEnum = (typeof ProviderTransactionReversalScalarFieldEnum)[keyof typeof ProviderTransactionReversalScalarFieldEnum]
+
+
+export const ProviderTransactionReconciliationScalarFieldEnum = {
+  id: 'id',
+  referenceId: 'referenceId',
+  providerTransactionId: 'providerTransactionId',
+  originalStatus: 'originalStatus',
+  resolution: 'resolution',
+  status: 'status',
+  action: 'action',
+  resolvedBy: 'resolvedBy',
+  note: 'note',
+  providerTxnRefId: 'providerTxnRefId',
+  rrn: 'rrn',
+  npciCode: 'npciCode',
+  npciMessage: 'npciMessage',
+  walletTransactionReference: 'walletTransactionReference',
+  attemptCount: 'attemptCount',
+  failureReason: 'failureReason',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProviderTransactionReconciliationScalarFieldEnum = (typeof ProviderTransactionReconciliationScalarFieldEnum)[keyof typeof ProviderTransactionReconciliationScalarFieldEnum]
 
 
 export const SortOrder = {

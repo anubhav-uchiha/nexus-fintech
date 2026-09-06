@@ -443,6 +443,13 @@ export type EnumProviderTransactionReversalStatusFilter<$PrismaModel = never> = 
   not?: Prisma.NestedEnumProviderTransactionReversalStatusFilter<$PrismaModel> | $Enums.ProviderTransactionReversalStatus
 }
 
+export type EnumProviderReversalComponentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReversalComponentStatus | Prisma.EnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReversalComponentStatus[] | Prisma.ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReversalComponentStatus[] | Prisma.ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReversalComponentStatusFilter<$PrismaModel> | $Enums.ProviderReversalComponentStatus
+}
+
 export type EnumProviderTransactionReversalStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ProviderTransactionReversalStatus | Prisma.EnumProviderTransactionReversalStatusFieldRefInput<$PrismaModel>
   in?: $Enums.ProviderTransactionReversalStatus[] | Prisma.ListEnumProviderTransactionReversalStatusFieldRefInput<$PrismaModel>
@@ -451,6 +458,94 @@ export type EnumProviderTransactionReversalStatusWithAggregatesFilter<$PrismaMod
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumProviderTransactionReversalStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumProviderTransactionReversalStatusFilter<$PrismaModel>
+}
+
+export type EnumProviderReversalComponentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReversalComponentStatus | Prisma.EnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReversalComponentStatus[] | Prisma.ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReversalComponentStatus[] | Prisma.ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReversalComponentStatusWithAggregatesFilter<$PrismaModel> | $Enums.ProviderReversalComponentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProviderReversalComponentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProviderReversalComponentStatusFilter<$PrismaModel>
+}
+
+export type EnumProviderReconciliationResolutionFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationResolution | Prisma.EnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationResolution[] | Prisma.ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationResolution[] | Prisma.ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationResolutionFilter<$PrismaModel> | $Enums.ProviderReconciliationResolution
+}
+
+export type EnumProviderReconciliationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationStatus | Prisma.EnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationStatus[] | Prisma.ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationStatus[] | Prisma.ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationStatusFilter<$PrismaModel> | $Enums.ProviderReconciliationStatus
+}
+
+export type EnumProviderReconciliationActionFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationAction | Prisma.EnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationAction[] | Prisma.ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationAction[] | Prisma.ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationActionFilter<$PrismaModel> | $Enums.ProviderReconciliationAction
+}
+
+export type IntFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedIntFilter<$PrismaModel> | number
+}
+
+export type EnumProviderReconciliationResolutionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationResolution | Prisma.EnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationResolution[] | Prisma.ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationResolution[] | Prisma.ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationResolutionWithAggregatesFilter<$PrismaModel> | $Enums.ProviderReconciliationResolution
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProviderReconciliationResolutionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProviderReconciliationResolutionFilter<$PrismaModel>
+}
+
+export type EnumProviderReconciliationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationStatus | Prisma.EnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationStatus[] | Prisma.ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationStatus[] | Prisma.ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationStatusWithAggregatesFilter<$PrismaModel> | $Enums.ProviderReconciliationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProviderReconciliationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProviderReconciliationStatusFilter<$PrismaModel>
+}
+
+export type EnumProviderReconciliationActionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationAction | Prisma.EnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationAction[] | Prisma.ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationAction[] | Prisma.ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationActionWithAggregatesFilter<$PrismaModel> | $Enums.ProviderReconciliationAction
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProviderReconciliationActionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProviderReconciliationActionFilter<$PrismaModel>
+}
+
+export type IntWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedIntWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedIntFilter<$PrismaModel>
+  _max?: Prisma.NestedIntFilter<$PrismaModel>
 }
 
 export type NestedStringFilter<$PrismaModel = never> = {
@@ -875,6 +970,13 @@ export type NestedEnumProviderTransactionReversalStatusFilter<$PrismaModel = nev
   not?: Prisma.NestedEnumProviderTransactionReversalStatusFilter<$PrismaModel> | $Enums.ProviderTransactionReversalStatus
 }
 
+export type NestedEnumProviderReversalComponentStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReversalComponentStatus | Prisma.EnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReversalComponentStatus[] | Prisma.ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReversalComponentStatus[] | Prisma.ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReversalComponentStatusFilter<$PrismaModel> | $Enums.ProviderReversalComponentStatus
+}
+
 export type NestedEnumProviderTransactionReversalStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ProviderTransactionReversalStatus | Prisma.EnumProviderTransactionReversalStatusFieldRefInput<$PrismaModel>
   in?: $Enums.ProviderTransactionReversalStatus[] | Prisma.ListEnumProviderTransactionReversalStatusFieldRefInput<$PrismaModel>
@@ -883,6 +985,83 @@ export type NestedEnumProviderTransactionReversalStatusWithAggregatesFilter<$Pri
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumProviderTransactionReversalStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumProviderTransactionReversalStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumProviderReversalComponentStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReversalComponentStatus | Prisma.EnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReversalComponentStatus[] | Prisma.ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReversalComponentStatus[] | Prisma.ListEnumProviderReversalComponentStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReversalComponentStatusWithAggregatesFilter<$PrismaModel> | $Enums.ProviderReversalComponentStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProviderReversalComponentStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProviderReversalComponentStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumProviderReconciliationResolutionFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationResolution | Prisma.EnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationResolution[] | Prisma.ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationResolution[] | Prisma.ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationResolutionFilter<$PrismaModel> | $Enums.ProviderReconciliationResolution
+}
+
+export type NestedEnumProviderReconciliationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationStatus | Prisma.EnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationStatus[] | Prisma.ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationStatus[] | Prisma.ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationStatusFilter<$PrismaModel> | $Enums.ProviderReconciliationStatus
+}
+
+export type NestedEnumProviderReconciliationActionFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationAction | Prisma.EnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationAction[] | Prisma.ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationAction[] | Prisma.ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationActionFilter<$PrismaModel> | $Enums.ProviderReconciliationAction
+}
+
+export type NestedEnumProviderReconciliationResolutionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationResolution | Prisma.EnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationResolution[] | Prisma.ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationResolution[] | Prisma.ListEnumProviderReconciliationResolutionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationResolutionWithAggregatesFilter<$PrismaModel> | $Enums.ProviderReconciliationResolution
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProviderReconciliationResolutionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProviderReconciliationResolutionFilter<$PrismaModel>
+}
+
+export type NestedEnumProviderReconciliationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationStatus | Prisma.EnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationStatus[] | Prisma.ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationStatus[] | Prisma.ListEnumProviderReconciliationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationStatusWithAggregatesFilter<$PrismaModel> | $Enums.ProviderReconciliationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProviderReconciliationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProviderReconciliationStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumProviderReconciliationActionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ProviderReconciliationAction | Prisma.EnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  in?: $Enums.ProviderReconciliationAction[] | Prisma.ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ProviderReconciliationAction[] | Prisma.ListEnumProviderReconciliationActionFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumProviderReconciliationActionWithAggregatesFilter<$PrismaModel> | $Enums.ProviderReconciliationAction
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumProviderReconciliationActionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumProviderReconciliationActionFilter<$PrismaModel>
+}
+
+export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  in?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  notIn?: number[] | Prisma.ListIntFieldRefInput<$PrismaModel>
+  lt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.IntFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedIntWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedIntFilter<$PrismaModel>
+  _max?: Prisma.NestedIntFilter<$PrismaModel>
 }
 
 

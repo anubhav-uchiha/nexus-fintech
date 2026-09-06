@@ -545,34 +545,41 @@ export class VimopayService {
       VIMOPAY_ENDPOINTS.AEPS_TRANSACTION,
       encryptedBody,
     );
+    return this.inspectAepsTransactionResponse<VimopayBalanceEnquiryResponse>(
+      'BE',
 
-    if (!response.data) {
-      throw new BadGatewayException({
-        message:
-          response.message ||
-          'VimoPay Balance Enquiry response does not contain data',
+      response,
 
-        responseCode: response.responseCode,
-      });
-    }
-
-    const result = this.crypto.decryptJson<VimopayBalanceEnquiryResponse>(
-      response.data,
+      'VimoPay Balance Enquiry response does not contain data',
     );
 
-    /*
-     * Abhi provider ka decrypted response as-is return
-     * karenge.
-     *
-     * Transactions mein future mein status:
-     * 000 success
-     * 001 failed
-     * 002 pending
-     * 003 validation failed
-     *
-     * ko properly persist/map karenge.
-     */
-    return result;
+    // if (!response.data) {
+    //   throw new BadGatewayException({
+    //     message:
+    //       response.message ||
+    //       'VimoPay Balance Enquiry response does not contain data',
+
+    //     responseCode: response.responseCode,
+    //   });
+    // }
+
+    // const result = this.crypto.decryptJson<VimopayBalanceEnquiryResponse>(
+    //   response.data,
+    // );
+
+    // /*
+    //  * Abhi provider ka decrypted response as-is return
+    //  * karenge.
+    //  *
+    //  * Transactions mein future mein status:
+    //  * 000 success
+    //  * 001 failed
+    //  * 002 pending
+    //  * 003 validation failed
+    //  *
+    //  * ko properly persist/map karenge.
+    //  */
+    // return result;
   }
   async miniStatement(
     payload: VimopayMiniStatementDto,
@@ -617,18 +624,25 @@ export class VimopayService {
       VIMOPAY_ENDPOINTS.AEPS_TRANSACTION,
       encryptedBody,
     );
+    return this.inspectAepsTransactionResponse<VimopayMiniStatementResponse>(
+      'MS',
 
-    if (!response.data) {
-      throw new BadGatewayException({
-        message:
-          response.message ||
-          'VimoPay Mini Statement response does not contain data',
+      response,
 
-        responseCode: response.responseCode,
-      });
-    }
+      'VimoPay Mini Statement response does not contain data',
+    );
 
-    return this.crypto.decryptJson<VimopayMiniStatementResponse>(response.data);
+    // if (!response.data) {
+    //   throw new BadGatewayException({
+    //     message:
+    //       response.message ||
+    //       'VimoPay Mini Statement response does not contain data',
+
+    //     responseCode: response.responseCode,
+    //   });
+    // }
+
+    // return this.crypto.decryptJson<VimopayMiniStatementResponse>(response.data);
   }
 
   async cashWithdrawal(
@@ -690,20 +704,26 @@ export class VimopayService {
       VIMOPAY_ENDPOINTS.AEPS_TRANSACTION,
       encryptedBody,
     );
+    return this.inspectAepsTransactionResponse<VimopayCashWithdrawalResponse>(
+      'CW',
 
-    if (!response.data) {
-      throw new BadGatewayException({
-        message:
-          response.message ||
-          'VimoPay Cash Withdrawal response does not contain data',
+      response,
 
-        responseCode: response.responseCode,
-      });
-    }
-
-    return this.crypto.decryptJson<VimopayCashWithdrawalResponse>(
-      response.data,
+      'VimoPay Cash Withdrawal response does not contain data',
     );
+    // if (!response.data) {
+    //   throw new BadGatewayException({
+    //     message:
+    //       response.message ||
+    //       'VimoPay Cash Withdrawal response does not contain data',
+
+    //     responseCode: response.responseCode,
+    //   });
+    // }
+
+    // return this.crypto.decryptJson<VimopayCashWithdrawalResponse>(
+    //   response.data,
+    // );
   }
 
   async sendAepsTransactionOtp(
@@ -836,18 +856,23 @@ export class VimopayService {
       VIMOPAY_ENDPOINTS.AEPS_TRANSACTION,
       encryptedBody,
     );
+    return this.inspectAepsTransactionResponse<VimopayAadhaarPayResponse>(
+      'AP',
+      response,
+      'VimoPay Aadhaar Pay response does not contain data',
+    );
 
-    if (!response.data) {
-      throw new BadGatewayException({
-        message:
-          response.message ||
-          'VimoPay Aadhaar Pay response does not contain data',
+    // if (!response.data) {
+    //   throw new BadGatewayException({
+    //     message:
+    //       response.message ||
+    //       'VimoPay Aadhaar Pay response does not contain data',
 
-        responseCode: response.responseCode,
-      });
-    }
+    //     responseCode: response.responseCode,
+    //   });
+    // }
 
-    return this.crypto.decryptJson<VimopayAadhaarPayResponse>(response.data);
+    // return this.crypto.decryptJson<VimopayAadhaarPayResponse>(response.data);
   }
 
   private async authenticatedGet<T>(endpoint: string): Promise<T> {
@@ -1008,17 +1033,216 @@ export class VimopayService {
       VIMOPAY_ENDPOINTS.AEPS_TRANSACTION,
       encryptedBody,
     );
+    return this.inspectAepsTransactionResponse<VimopayCashDepositResponse>(
+      'CD',
+
+      response,
+
+      'VimoPay Cash Deposit response does not contain data',
+    );
+
+    // if (!response.data) {
+    //   throw new BadGatewayException({
+    //     message:
+    //       response.message ||
+    //       'VimoPay Cash Deposit response does not contain data',
+
+    //     responseCode: response.responseCode,
+    //   });
+    // }
+
+    // return this.crypto.decryptJson<VimopayCashDepositResponse>(response.data);
+  }
+
+  private sanitizeProviderValue(value: unknown): unknown {
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitizeProviderValue(item));
+    }
+
+    if (value && typeof value === 'object') {
+      const output: Record<string, unknown> = {};
+
+      for (const [key, item] of Object.entries(
+        value as Record<string, unknown>,
+      )) {
+        const normalized = key.toLowerCase();
+
+        /*
+         * Never log sensitive provider/customer data.
+         */
+        if (
+          normalized.includes('aadhaar') ||
+          normalized.includes('aadhar') ||
+          normalized.includes('pid') ||
+          normalized.includes('biometric') ||
+          normalized.includes('secret') ||
+          normalized.includes('salt') ||
+          normalized.includes('encrypt') ||
+          normalized.includes('token') ||
+          normalized.includes('password') ||
+          normalized.includes('authorization') ||
+          normalized.includes('accountnumber') ||
+          normalized.includes('bankaccount')
+        ) {
+          output[key] = '[REDACTED]';
+          continue;
+        }
+
+        /*
+         * Customer/merchant mobile mask.
+         */
+        if (normalized.includes('mobile') || normalized.includes('phone')) {
+          const str = String(item ?? '');
+
+          output[key] =
+            str.length >= 4 ? `XXXXXX${str.slice(-4)}` : '[REDACTED]';
+
+          continue;
+        }
+
+        output[key] = this.sanitizeProviderValue(item);
+      }
+
+      return output;
+    }
+
+    return value;
+  }
+
+  private logProviderEnvelope(
+    label: string,
+    response: VimopayEncryptedResponse,
+  ): void {
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
+
+    /*
+     * Encrypted data itself log nahi karenge.
+     *
+     * But agar VimoPay outer envelope mein
+     * undocumented commission field deta hai,
+     * wo visible rahegi.
+     */
+    const { data, ...providerEnvelope } = response as VimopayEncryptedResponse &
+      Record<string, unknown>;
+
+    const safeEnvelope = {
+      ...providerEnvelope,
+
+      data: data ? '[ENCRYPTED_RESPONSE_DATA]' : null,
+    };
+
+    this.logger.log(
+      `[VIMOPAY OUTER ${label}] ${JSON.stringify(
+        this.sanitizeProviderValue(safeEnvelope),
+        null,
+        2,
+      )}`,
+    );
+
+    this.logCommissionCandidates(`${label}:OUTER`, providerEnvelope);
+  }
+
+  private logProviderResponse(label: string, data: unknown): void {
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
+
+    /*
+     * Top-level runtime fields bhi print karo.
+     *
+     * Important:
+     * TypeScript interface extra provider
+     * fields ko runtime par remove nahi karti.
+     */
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      this.logger.log(
+        `[VIMOPAY ${label} RESPONSE KEYS] ${Object.keys(
+          data as Record<string, unknown>,
+        ).join(', ')}`,
+      );
+    }
+
+    this.logger.log(
+      `[VIMOPAY RAW DECRYPTED ${label}] ${JSON.stringify(
+        this.sanitizeProviderValue(data),
+        null,
+        2,
+      )}`,
+    );
+  }
+
+  private logCommissionCandidates(
+    label: string,
+    data: unknown,
+    path = 'response',
+  ): void {
+    if (!data || typeof data !== 'object') {
+      return;
+    }
+
+    for (const [key, value] of Object.entries(
+      data as Record<string, unknown>,
+    )) {
+      const currentPath = `${path}.${key}`;
+
+      /*
+       * Possible provider commission naming.
+       */
+      const isCandidate =
+        /commission|commision|cashback|income|earning|incentive|margin|charge|charges|fee|fees|mdr|tds|gst|settlement|payout|wallet|balance/i.test(
+          key,
+        );
+
+      if (isCandidate) {
+        const safeValue = this.sanitizeProviderValue(value);
+
+        this.logger.warn(
+          `[VIMOPAY POSSIBLE COMMISSION FIELD ${label}] ` +
+            `${currentPath} = ${JSON.stringify(safeValue)}`,
+        );
+      }
+
+      if (value && typeof value === 'object') {
+        this.logCommissionCandidates(label, value, currentPath);
+      }
+    }
+  }
+
+  private inspectAepsTransactionResponse<T>(
+    label: 'BE' | 'MS' | 'CW' | 'AP' | 'CD',
+
+    response: VimopayEncryptedResponse,
+
+    emptyResponseMessage: string,
+  ): T {
+    /*
+     * Check outer response BEFORE decrypting.
+     */
+    this.logProviderEnvelope(label, response);
 
     if (!response.data) {
       throw new BadGatewayException({
-        message:
-          response.message ||
-          'VimoPay Cash Deposit response does not contain data',
+        message: response.message || emptyResponseMessage,
 
         responseCode: response.responseCode,
       });
     }
 
-    return this.crypto.decryptJson<VimopayCashDepositResponse>(response.data);
+    const result = this.crypto.decryptJson<T>(response.data);
+
+    /*
+     * Full sanitized decrypted provider
+     * response.
+     */
+    this.logProviderResponse(label, result);
+
+    /*
+     * Highlight likely commission fields.
+     */
+    this.logCommissionCandidates(label, result);
+
+    return result;
   }
 }

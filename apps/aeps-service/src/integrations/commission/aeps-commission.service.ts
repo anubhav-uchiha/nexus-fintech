@@ -66,6 +66,40 @@ interface SettleAepsCommissionInput {
   amount: number;
 }
 
+interface SettleProviderIncomeInput {
+  providerTransactionId: string;
+
+  providerTransactionReference: string;
+
+  userId: string;
+
+  role?: string;
+
+  operation: 'CW' | 'AP' | 'CD';
+
+  /*
+   * Actual VimoPay transaction amount.
+   *
+   * Example:
+   * CW ₹500
+   */
+  transactionAmount: number;
+
+  /*
+   * VimoPay generated income.
+   *
+   * Currently dummy 2%.
+   * Future mein actual MS/API income.
+   */
+  providerIncomeAmount: number;
+
+  incomeSource: 'DUMMY_VIMOPAY_2_PERCENT' | 'VIMOPAY_WALLET' | 'VIMOPAY_MS';
+
+  externalReference?: string;
+
+  reconciledBy?: string;
+}
+
 export interface AepsCommissionQuoteResult {
   commissionRequired: boolean;
 
@@ -486,6 +520,12 @@ export class AepsCommissionService implements OnModuleInit {
 
         commissionReference: commission.referenceId,
 
+        /*
+         * Exact PTXN which funds this
+         * commission distribution.
+         */
+        providerTransactionReference: input.providerTransactionReference,
+
         serviceType,
       });
 
@@ -673,11 +713,47 @@ export class AepsCommissionService implements OnModuleInit {
 
     commissionReference: string;
 
+    /*
+     * NEW:
+     * Exact PTXN whose gross amount
+     * funds this commission.
+     */
+    providerTransactionReference: string;
+
     serviceType: string;
   }) {
     /*
-     * Always fresh snapshot execution state.
+     * =====================================================
+     * 1. BASIC VALIDATION
+     * =====================================================
      */
+
+    if (!input.commissionId?.trim()) {
+      throw new Error('Commission ID is required for distribution execution');
+    }
+
+    if (!input.commissionReference?.trim()) {
+      throw new Error(
+        'Commission reference is required for distribution execution',
+      );
+    }
+
+    if (!input.providerTransactionReference?.trim()) {
+      throw new Error(
+        'Provider transaction reference is required for commission funding',
+      );
+    }
+
+    if (!input.serviceType?.trim()) {
+      throw new Error('Commission service type is required');
+    }
+
+    /*
+     * =====================================================
+     * 2. FRESH COMMISSION EXECUTION SNAPSHOT
+     * =====================================================
+     */
+
     const execution: any = await firstValueFrom(
       this.client.send(
         COMMISSION_PATTERNS.GET_PROVIDER_COMMISSION_EXECUTION,
@@ -697,9 +773,9 @@ export class AepsCommissionService implements OnModuleInit {
     }
 
     /*
-     * ===================================================
-     * MONEY CONSERVATION BEFORE ANY CREDIT
-     * ===================================================
+     * =====================================================
+     * 3. MONEY CONSERVATION BEFORE ANY CREDIT
+     * =====================================================
      */
 
     const commissionPaise = Math.round(
@@ -717,44 +793,57 @@ export class AepsCommissionService implements OnModuleInit {
       throw new Error('Invalid commission pool amount');
     }
 
+    if (!Number.isFinite(allocatedPaise) || allocatedPaise <= 0) {
+      throw new Error('Invalid commission allocation total');
+    }
+
     if (allocatedPaise !== commissionPaise) {
       throw new Error(
-        `Commission allocation mismatch before wallet execution. Commission ₹${(
-          commissionPaise / 100
-        ).toFixed(2)}, allocations ₹${(allocatedPaise / 100).toFixed(2)}`,
+        `Commission allocation mismatch before wallet execution. ` +
+          `Commission ₹${(commissionPaise / 100).toFixed(2)}, allocations ₹${(
+            allocatedPaise / 100
+          ).toFixed(2)}`,
       );
     }
 
     /*
-     * ===================================================
-     * PROCESS ALL ALLOCATIONS
-     * ===================================================
+     * =====================================================
+     * 4. PROCESS EVERY FROZEN ALLOCATION
+     * =====================================================
      *
-     * IMPORTANT:
+     * Important:
      *
-     * Ek allocation fail hone se
-     * loop stop nahi hogi.
+     * Ek allocation fail hone par
+     * remaining allocations continue hongi.
+     *
+     * Successful allocations retry par
+     * dobara credit nahi hongi.
      */
 
     for (const allocation of allocations) {
       /*
-       * Already successful allocation
-       * skip.
+       * Already successful.
        */
       if (allocation.status === 'SUCCESS') {
         continue;
       }
 
       /*
-       * Reversed allocations current
-       * forward settlement mein retry
-       * nahi hongi.
+       * Reversed allocation ko
+       * forward settlement dobara
+       * execute nahi karega.
        */
       if (allocation.status === 'REVERSED') {
         continue;
       }
 
       const amount = Number(allocation.amount);
+
+      /*
+       * ===================================================
+       * ALLOCATION VALIDATION
+       * ===================================================
+       */
 
       if (!Number.isFinite(amount) || amount <= 0) {
         await this.markAllocationFailedSafely(
@@ -776,6 +865,16 @@ export class AepsCommissionService implements OnModuleInit {
         continue;
       }
 
+      if (!allocation.recipientRole) {
+        await this.markAllocationFailedSafely(
+          allocation.id,
+
+          'Commission recipient role is missing',
+        );
+
+        continue;
+      }
+
       if (!allocation.idempotencyKey) {
         await this.markAllocationFailedSafely(
           allocation.id,
@@ -786,11 +885,13 @@ export class AepsCommissionService implements OnModuleInit {
         continue;
       }
 
+      /*
+       * ===================================================
+       * 5. CREDIT RECIPIENT PROFIT WALLET
+       * ===================================================
+       */
+
       try {
-        /*
-         * Individual recipient PROFIT
-         * wallet credit.
-         */
         const walletTransaction: any =
           await this.walletService.creditCommissionDistribution({
             recipientUserId: allocation.recipientUserId,
@@ -801,6 +902,15 @@ export class AepsCommissionService implements OnModuleInit {
 
             commissionReference: input.commissionReference,
 
+            /*
+             * NEW:
+             *
+             * Transaction-service now
+             * commission funding pool ko
+             * exact PTXN ke against verify karega.
+             */
+            providerTransactionReference: input.providerTransactionReference,
+
             distributionTransactionId: allocation.id,
 
             amount,
@@ -808,8 +918,8 @@ export class AepsCommissionService implements OnModuleInit {
             serviceType: `${input.serviceType}_COMMISSION`,
 
             /*
-             * Individual snapshot row
-             * has its own idempotency.
+             * Each frozen allocation has
+             * its own unique idempotency key.
              */
             idempotencyKey: allocation.idempotencyKey,
           });
@@ -821,10 +931,11 @@ export class AepsCommissionService implements OnModuleInit {
         }
 
         /*
-         * Wallet credit ho chuki.
-         *
-         * Mark allocation successful.
+         * =================================================
+         * 6. MARK ALLOCATION SUCCESS
+         * =================================================
          */
+
         await firstValueFrom(
           this.client.send(
             COMMISSION_PATTERNS.MARK_DISTRIBUTION_SUCCESS,
@@ -842,14 +953,13 @@ export class AepsCommissionService implements OnModuleInit {
         const message = this.extractErrorMessage(error);
 
         /*
-         * Same commission ke remaining
-         * allocations process hote rahenge.
+         * Wallet credit ya success marking
+         * fail hui.
+         *
+         * Remaining allocations continue.
          */
-        await this.markAllocationFailedSafely(
-          allocation.id,
 
-          message,
-        );
+        await this.markAllocationFailedSafely(allocation.id, message);
 
         this.logger.error(
           `Commission distribution ${allocation.id} failed: ${message}`,
@@ -860,9 +970,15 @@ export class AepsCommissionService implements OnModuleInit {
     }
 
     /*
-     * ===================================================
-     * FINALIZE OVERALL COMMISSION
-     * ===================================================
+     * =====================================================
+     * 7. FINALIZE OVERALL COMMISSION
+     * =====================================================
+     *
+     * Commission service fresh allocation
+     * statuses dekh kar:
+     *
+     * all SUCCESS → SUCCESS
+     * anything remaining → PENDING
      */
 
     return firstValueFrom(
@@ -1233,5 +1349,415 @@ export class AepsCommissionService implements OnModuleInit {
       },
       statusCode,
     );
+  }
+
+  async settleProviderIncome(
+    input: SettleProviderIncomeInput,
+  ): Promise<AepsCommissionSettlementResult> {
+    /*
+     * =====================================================
+     * 1. VALIDATION
+     * =====================================================
+     */
+
+    if (!input.providerTransactionId?.trim()) {
+      throw new Error(
+        'Provider transaction ID is required for provider income settlement',
+      );
+    }
+
+    if (!input.providerTransactionReference?.trim()) {
+      throw new Error(
+        'Provider transaction reference is required for provider income settlement',
+      );
+    }
+
+    if (!input.userId?.trim()) {
+      throw new Error('User ID is required for provider income settlement');
+    }
+
+    if (!input.role?.trim()) {
+      throw new Error(
+        'Authenticated role is required for provider income settlement',
+      );
+    }
+
+    if (
+      !Number.isFinite(input.transactionAmount) ||
+      input.transactionAmount <= 0
+    ) {
+      throw new Error('Provider transaction amount must be greater than 0');
+    }
+
+    if (
+      !Number.isFinite(input.providerIncomeAmount) ||
+      input.providerIncomeAmount < 0
+    ) {
+      throw new Error('Provider income amount is invalid');
+    }
+
+    const serviceType = this.mapServiceType(input.operation);
+
+    /*
+     * Separate idempotency key from old
+     * rule-based commission flow.
+     */
+    const commissionIdempotencyKey = `AEPS:${input.providerTransactionReference}:PROVIDER-INCOME`;
+
+    try {
+      /*
+       * =====================================================
+       * 2. CREATE COMMISSION FROM PROVIDER INCOME
+       * =====================================================
+       *
+       * IMPORTANT:
+       *
+       * transactionAmount = FULL principal
+       *
+       * providerCommissionAmount =
+       * actual/dummy VimoPay income.
+       *
+       * Principal ko income se minus nahi karna.
+       */
+
+      const commission: any = await firstValueFrom(
+        this.client.send(
+          COMMISSION_PATTERNS.CREATE_PROVIDER_COMMISSION,
+
+          {
+            providerTransactionId: input.providerTransactionId,
+
+            providerTransactionReference: input.providerTransactionReference,
+
+            userId: input.userId,
+
+            role: input.role,
+
+            serviceType,
+
+            operator: 'VIMOPAY',
+
+            /*
+             * Full transaction amount.
+             */
+            transactionAmount: input.transactionAmount,
+
+            /*
+             * Actual provider-generated
+             * commission/income pool.
+             */
+            providerCommissionAmount: input.providerIncomeAmount,
+
+            commissionAmountSource: 'PROVIDER',
+
+            providerIncomeSource: input.incomeSource,
+
+            idempotencyKey: commissionIdempotencyKey,
+          },
+        ),
+      );
+
+      /*
+       * =====================================================
+       * 3. NO PROVIDER INCOME / NO DISTRIBUTION PROFILE
+       * =====================================================
+       */
+
+      if (commission?.commissionRequired === false) {
+        await this.providerTransactionService.updateCommissionState({
+          referenceId: input.providerTransactionReference,
+
+          status: 'NOT_REQUIRED',
+        });
+
+        return {
+          status: 'NOT_REQUIRED',
+
+          amount: '0.00',
+
+          /*
+           * Principal remains FULL.
+           */
+          grossAmount: input.transactionAmount.toFixed(2),
+
+          netAmount: input.transactionAmount.toFixed(2),
+
+          commissionReference: null,
+
+          walletTransactionReference: null,
+
+          distributions: [],
+
+          reason: commission?.reason ?? 'NO_PROVIDER_INCOME',
+        };
+      }
+
+      if (!commission?.id || !commission?.referenceId) {
+        throw new Error('Provider income commission record was not received');
+      }
+
+      /*
+       * =====================================================
+       * 4. ACCOUNTING
+       * =====================================================
+       */
+
+      const commissionAmount = Number(commission.commissionAmount);
+
+      const transactionAmount = Number(
+        commission.grossAmount ??
+          commission.transactionAmount ??
+          input.transactionAmount,
+      );
+
+      if (!Number.isFinite(commissionAmount) || commissionAmount <= 0) {
+        throw new Error('Invalid provider income amount received');
+      }
+
+      if (!Number.isFinite(transactionAmount) || transactionAmount <= 0) {
+        throw new Error('Invalid provider transaction amount received');
+      }
+
+      /*
+       * IMPORTANT:
+       *
+       * Provider-funded income DOES NOT
+       * reduce principal.
+       *
+       * CW ₹500:
+       *
+       * principal = ₹500
+       * income    = ₹10
+       */
+      const principalAmount = transactionAmount;
+
+      /*
+       * =====================================================
+       * 5. PTXN COMMISSION → PENDING
+       * =====================================================
+       */
+
+      if (commission.status !== 'SUCCESS') {
+        await this.providerTransactionService.updateCommissionState({
+          referenceId: input.providerTransactionReference,
+
+          status: 'PENDING',
+
+          providerIncomeSource: input.incomeSource,
+
+          ...(input.externalReference
+            ? {
+                providerIncomeExternalReference: input.externalReference,
+              }
+            : {}),
+
+          ...(input.reconciledBy
+            ? {
+                providerIncomeReconciledBy: input.reconciledBy,
+              }
+            : {}),
+
+          commissionReferenceId: commission.referenceId,
+
+          commissionAmount,
+        });
+      }
+
+      /*
+       * =====================================================
+       * 6. EXECUTE SNAPSHOTTED DISTRIBUTIONS
+       * =====================================================
+       */
+
+      const executionResult = await this.executeDistributions({
+        commissionId: commission.id,
+
+        commissionReference: commission.referenceId,
+
+        providerTransactionReference: input.providerTransactionReference,
+
+        serviceType,
+      });
+
+      /*
+       * =====================================================
+       * 7. READ FRESH DISTRIBUTION STATE
+       * =====================================================
+       */
+
+      const execution: any = await firstValueFrom(
+        this.client.send(
+          COMMISSION_PATTERNS.GET_PROVIDER_COMMISSION_EXECUTION,
+
+          {
+            commissionReference: commission.referenceId,
+          },
+        ),
+      );
+
+      const allocations: any[] = Array.isArray(execution?.allocations)
+        ? execution.allocations
+        : [];
+
+      const distributions = allocations.map(
+        (allocation): AepsCommissionDistributionResult => ({
+          id: allocation.id,
+
+          distributionId: allocation.distributionId ?? null,
+
+          recipientUserId: allocation.recipientUserId,
+
+          recipientRole: allocation.recipientRole,
+
+          amount: String(allocation.amount),
+
+          status: allocation.status,
+
+          transactionId: allocation.transactionId ?? null,
+
+          transactionReference: allocation.transactionReference ?? null,
+
+          failureReason: allocation.failureReason ?? null,
+        }),
+      );
+
+      /*
+       * =====================================================
+       * 8. ALL DISTRIBUTIONS SUCCESS
+       * =====================================================
+       */
+
+      if (executionResult?.status === 'SUCCESS') {
+        await this.providerTransactionService.updateCommissionState({
+          referenceId: input.providerTransactionReference,
+
+          status: 'SETTLED',
+
+          commissionReferenceId: commission.referenceId,
+
+          commissionAmount,
+
+          /*
+           * Multiple allocations:
+           * no single wallet reference.
+           */
+          ...(distributions.length === 1 &&
+          distributions[0]?.transactionReference
+            ? {
+                commissionWalletTransactionReference:
+                  distributions[0].transactionReference!,
+              }
+            : {}),
+        });
+
+        return {
+          status: 'SETTLED',
+
+          amount: commissionAmount.toFixed(2),
+
+          grossAmount: transactionAmount.toFixed(2),
+
+          /*
+           * FULL principal.
+           */
+          netAmount: principalAmount.toFixed(2),
+
+          commissionReference: commission.referenceId,
+
+          walletTransactionReference:
+            distributions.length === 1
+              ? (distributions[0]?.transactionReference ?? null)
+              : null,
+
+          distributions,
+        };
+      }
+
+      /*
+       * =====================================================
+       * 9. PARTIAL / FAILED DISTRIBUTION
+       * =====================================================
+       */
+
+      const failedCount = distributions.filter(
+        (item) => item.status === 'FAILED',
+      ).length;
+
+      const pendingCount = distributions.filter(
+        (item) => item.status === 'PENDING',
+      ).length;
+
+      await this.safeMarkPending(
+        input.providerTransactionReference,
+
+        failedCount > 0
+          ? `${failedCount} provider income distribution(s) failed and require retry`
+          : `${pendingCount} provider income distribution(s) are pending`,
+      );
+
+      return {
+        status: 'PENDING',
+
+        amount: commissionAmount.toFixed(2),
+
+        grossAmount: transactionAmount.toFixed(2),
+
+        /*
+         * Still full transaction amount.
+         */
+        netAmount: principalAmount.toFixed(2),
+
+        commissionReference: commission.referenceId,
+
+        walletTransactionReference: null,
+
+        distributions,
+
+        reason:
+          failedCount > 0
+            ? 'PROVIDER_INCOME_DISTRIBUTION_PARTIAL_FAILURE'
+            : 'PROVIDER_INCOME_DISTRIBUTION_PENDING',
+      };
+    } catch (error) {
+      const message = this.extractErrorMessage(error);
+
+      console.error('[CD/AEPS PROVIDER INCOME ERROR]', error);
+
+      console.error('[CD/AEPS PROVIDER INCOME MESSAGE]', message);
+
+      await this.safeMarkPending(input.providerTransactionReference, message);
+
+      // existing code...
+
+      this.logger.error(
+        `AEPS provider income settlement pending for ${input.providerTransactionReference}: ${message}`,
+
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      return {
+        status: 'PENDING',
+
+        amount:
+          input.providerIncomeAmount > 0
+            ? input.providerIncomeAmount.toFixed(2)
+            : null,
+
+        grossAmount: input.transactionAmount.toFixed(2),
+
+        /*
+         * Never gross - income.
+         */
+        netAmount: input.transactionAmount.toFixed(2),
+
+        commissionReference: null,
+
+        walletTransactionReference: null,
+
+        distributions: [],
+
+        reason: 'PROVIDER_INCOME_SETTLEMENT_PENDING',
+      };
+    }
   }
 }

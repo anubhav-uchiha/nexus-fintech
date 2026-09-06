@@ -246,4 +246,34 @@ export class CommissionKafkaController {
       dto.reason,
     );
   }
+
+  @MessagePattern(COMMISSION_PATTERNS.MARK_DISTRIBUTION_REVERSED)
+  markDistributionReversed(
+    @Payload()
+    dto: {
+      distributionTransactionId: string;
+
+      reversalWalletTransactionId: string;
+
+      reversalWalletTransactionReference: string;
+    },
+  ) {
+    return this.commissionService.markDistributionReversed(dto);
+  }
+
+  @MessagePattern(COMMISSION_PATTERNS.FINALIZE_PROVIDER_COMMISSION_REVERSAL)
+  finalizeProviderCommissionReversal(
+    @Payload()
+    dto: {
+      commissionReference: string;
+
+      reason: string;
+    },
+  ) {
+    return this.commissionService.finalizeProviderCommissionReversal(
+      dto.commissionReference,
+
+      dto.reason,
+    );
+  }
 }

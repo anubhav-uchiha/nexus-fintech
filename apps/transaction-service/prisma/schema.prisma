@@ -80,9 +80,16 @@ enum ProviderSettlementStatus {
 
 enum ProviderCommissionStatus {
   NOT_REQUIRED
+
+  WAITING_PROVIDER_INCOME
+
   PENDING
+
   SETTLED
+
   FAILED
+
+  REVERSED
 }
 
 model ProviderTransaction {
@@ -200,6 +207,8 @@ model ProviderTransaction {
 
   needsReconciliation Boolean @default(false) @map("needs_reconciliation")
 
+  reconciliation ProviderTransactionReconciliation?
+
   reconciliationReason String? @map("reconciliation_reason") @db.VarChar(500)
 
   reconciledAt DateTime? @map("reconciled_at")
@@ -236,6 +245,17 @@ model ProviderTransaction {
 
   commissionSettledAt DateTime? @map("commission_settled_at")
 
+  sourceRole String? @map("source_role") @db.VarChar(50)
+
+  providerIncomeSource String? @map("provider_income_source") @db.VarChar(50)
+
+  providerIncomeExternalReference String? @map("provider_income_external_reference") @db.VarChar(150)
+
+  providerIncomeReconciledAt DateTime? @map("provider_income_reconciled_at")
+
+  providerIncomeReconciledBy String? @map("provider_income_reconciled_by") @db.VarChar(100)
+
+  @@unique([provider, providerIncomeExternalReference], map: "provider_transactions_provider_income_external_reference_key")
   @@index([commissionStatus])
   @@index([settlementStatus])
   @@index([needsReconciliation, status])
@@ -255,6 +275,14 @@ enum ProviderTransactionReversalStatus {
   COMPLETED
   FAILED
   UNKNOWN
+}
+
+enum ProviderReversalComponentStatus {
+  NOT_REQUIRED
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 model ProviderTransactionReversal {
@@ -296,8 +324,105 @@ model ProviderTransactionReversal {
 
   providerTransaction ProviderTransaction @relation(fields: [providerTransactionId], references: [id], onDelete: Restrict)
 
+  principalStatus ProviderReversalComponentStatus @default(PENDING) @map("principal_status")
+
+  principalCompensationReference String? @map("principal_compensation_reference") @db.VarChar(150)
+
+  principalFailureReason String? @map("principal_failure_reason") @db.VarChar(500)
+
+  commissionStatus ProviderReversalComponentStatus @default(PENDING) @map("commission_status")
+
+  commissionReversalReference String? @map("commission_reversal_reference") @db.VarChar(150)
+
+  commissionFailureReason String? @map("commission_failure_reason") @db.VarChar(500)
+
+  processedBy String? @map("processed_by") @db.VarChar(100)
+
   @@index([status])
   @@index([requestedBy])
   @@index([createdAt])
   @@map("provider_transaction_reversals")
+}
+
+enum ProviderReconciliationStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ProviderReconciliationResolution {
+  SUCCESS
+  FAILED
+}
+
+enum ProviderReconciliationAction {
+  NONE
+
+  /**
+   * CW / AP:
+   * unresolved → SUCCESS
+   */
+  SETTLE_PRINCIPAL
+
+  /**
+   * CD:
+   * RESERVED → SUCCESS
+   */
+  CONFIRM_RESERVATION
+
+  /**
+   * CD:
+   * RESERVED → FAILED
+   */
+  COMPENSATE_RESERVATION
+}
+
+model ProviderTransactionReconciliation {
+  id String @id @default(uuid()) @db.Uuid
+
+  referenceId String @unique @map("reference_id") @db.VarChar(100)
+
+  providerTransactionId String @unique @map("provider_transaction_id") @db.Uuid
+
+  originalStatus ProviderTransactionStatus @map("original_status")
+
+  resolution ProviderReconciliationResolution
+
+  status ProviderReconciliationStatus @default(PROCESSING)
+
+  action ProviderReconciliationAction @default(NONE)
+
+  resolvedBy String @map("resolved_by") @db.VarChar(100)
+
+  note String? @db.VarChar(500)
+
+  providerTxnRefId String? @map("provider_txn_ref_id") @db.VarChar(150)
+
+  rrn String? @db.VarChar(50)
+
+  npciCode String? @map("npci_code") @db.VarChar(20)
+
+  npciMessage String? @map("npci_message") @db.VarChar(250)
+
+  walletTransactionReference String? @map("wallet_transaction_reference") @db.VarChar(150)
+
+  attemptCount Int @default(1) @map("attempt_count")
+
+  failureReason String? @map("failure_reason") @db.VarChar(500)
+
+  startedAt DateTime @default(now()) @map("started_at")
+
+  completedAt DateTime? @map("completed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  providerTransaction ProviderTransaction @relation(fields: [providerTransactionId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([resolution])
+  @@index([resolvedBy])
+  @@index([createdAt])
+  @@map("provider_transaction_reconciliations")
 }

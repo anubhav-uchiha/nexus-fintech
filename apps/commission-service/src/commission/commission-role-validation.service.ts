@@ -2,12 +2,32 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 
 import { ClientKafka, RpcException } from '@nestjs/microservices';
 
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 import { ROLE_PATTERNS } from '@nexus/common/role';
 
 export const COMMISSION_AUTH_CLIENT = 'COMMISSION_AUTH_CLIENT';
 import { AUTH_PATTERNS } from '@nexus/common/auth';
+
+interface RecipientEligibilityResponse {
+  identityId: string;
+
+  eligible: boolean;
+
+  status?: string;
+
+  role?: string;
+
+  expectedRole?: string;
+
+  reason:
+    | 'IDENTITY_NOT_FOUND'
+    | 'IDENTITY_NOT_ACTIVE'
+    | 'ROLE_NOT_ACTIVE'
+    | 'ROLE_MISMATCH'
+    | null;
+}
+
 interface RecipientEligibilityResponse {
   identityId: string;
 
@@ -65,67 +85,60 @@ export class CommissionRoleValidationService implements OnModuleInit {
     if (!normalizedRole) {
       throw new RpcException({
         statusCode: 400,
-
         message: 'Recipient role is required',
       });
     }
+
+    console.log('[COMMISSION AUTH] SENDING ROLE LOOKUP', normalizedRole);
 
     let role: AuthRoleResponse | null;
 
     try {
       role = await firstValueFrom(
-        this.authClient.send<AuthRoleResponse | null>(
-          ROLE_PATTERNS.FIND_BY_NAME,
-
-          {
+        this.authClient
+          .send<AuthRoleResponse | null>(ROLE_PATTERNS.FIND_BY_NAME, {
             name: normalizedRole,
-          },
-        ),
+          })
+          .pipe(timeout(5000)),
       );
-    } catch (error: any) {
-      /*
-       * Auth-service RPC error
-       * preserve karne ki try.
-       */
 
-      let payload = error?.error ?? error;
+      console.log('[COMMISSION AUTH] ROLE LOOKUP RESPONSE', role);
+    } catch (error: any) {
+      console.error('[COMMISSION AUTH] ROLE LOOKUP FAILED', error);
+
+      let payload = error?.error ?? error?.response ?? error;
 
       if (typeof payload === 'string') {
         try {
           payload = JSON.parse(payload);
         } catch {
-          // keep original
+          // keep string
         }
       }
 
-      const statusCode = Number(payload?.statusCode ?? payload?.status) || 500;
+      const isTimeout = error?.name === 'TimeoutError';
 
       throw new RpcException({
-        statusCode,
+        statusCode: isTimeout
+          ? 503
+          : Number(payload?.statusCode ?? payload?.status) || 500,
 
-        message:
-          payload?.message ?? error?.message ?? 'Unable to validate role',
+        message: isTimeout
+          ? 'Auth service role validation timed out'
+          : (payload?.message ?? error?.message ?? 'Unable to validate role'),
       });
     }
 
-    /*
-     * Role master mein exist hi nahi.
-     */
     if (!role) {
       throw new RpcException({
         statusCode: 404,
-
         message: `Recipient role ${normalizedRole} does not exist`,
       });
     }
 
-    /*
-     * Role exists but disabled.
-     */
     if (!role.isActive) {
       throw new RpcException({
         statusCode: 409,
-
         message: `Recipient role ${normalizedRole} is inactive`,
       });
     }
@@ -137,40 +150,60 @@ export class CommissionRoleValidationService implements OnModuleInit {
     identityId: string,
     expectedRole: string,
   ): Promise<RecipientEligibilityResponse> {
+    if (!identityId?.trim()) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Commission recipient identity ID is required',
+      });
+    }
+
     const role = this.normalizeRole(expectedRole);
+
+    if (!role) {
+      throw new RpcException({
+        statusCode: 400,
+        message: 'Commission recipient role is required',
+      });
+    }
 
     try {
       return await firstValueFrom(
-        this.authClient.send<RecipientEligibilityResponse>(
-          AUTH_PATTERNS.RESOLVE_COMMISSION_RECIPIENT_ELIGIBILITY,
+        this.authClient
+          .send<RecipientEligibilityResponse>(
+            AUTH_PATTERNS.RESOLVE_COMMISSION_RECIPIENT_ELIGIBILITY,
 
-          {
-            identityId,
-            expectedRole: role,
-          },
-        ),
+            {
+              identityId,
+              expectedRole: role,
+            },
+          )
+          .pipe(timeout(5000)),
       );
     } catch (error: any) {
-      /*
-       * IMPORTANT:
-       *
-       * Auth service unavailable ko
-       * "recipient inactive" maan kar skip
-       * NAHI karna.
-       *
-       * Warna temporary auth outage mein
-       * distributor ka commission retailer
-       * ko galat chala jayega.
-       */
+      console.error('[COMMISSION AUTH] RECIPIENT ELIGIBILITY FAILED', error);
 
-      const payload = error?.error ?? error?.response ?? error;
+      let payload = error?.error ?? error?.response ?? error;
+
+      if (typeof payload === 'string') {
+        try {
+          payload = JSON.parse(payload);
+        } catch {
+          // keep string
+        }
+      }
+
+      const isTimeout = error?.name === 'TimeoutError';
 
       throw new RpcException({
-        statusCode: Number(payload?.statusCode) || 503,
+        statusCode: isTimeout
+          ? 503
+          : Number(payload?.statusCode ?? payload?.status) || 503,
 
-        message:
-          payload?.message ??
-          'Unable to verify commission recipient eligibility',
+        message: isTimeout
+          ? 'Auth service recipient eligibility check timed out'
+          : (payload?.message ??
+            error?.message ??
+            'Unable to verify commission recipient eligibility'),
       });
     }
   }

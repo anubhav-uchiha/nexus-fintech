@@ -870,7 +870,9 @@ export const CommissionScalarFieldEnum = {
   walletTransactionId: 'walletTransactionId',
   walletTransactionReference: 'walletTransactionReference',
   creditedAt: 'creditedAt',
-  failureReason: 'failureReason'
+  failureReason: 'failureReason',
+  reversedAt: 'reversedAt',
+  reversalReason: 'reversalReason'
 } as const
 
 export type CommissionScalarFieldEnum = (typeof CommissionScalarFieldEnum)[keyof typeof CommissionScalarFieldEnum]
@@ -908,7 +910,11 @@ export const CommissionDistributionTransactionScalarFieldEnum = {
   updatedAt: 'updatedAt',
   transactionReference: 'transactionReference',
   creditedAt: 'creditedAt',
-  failureReason: 'failureReason'
+  failureReason: 'failureReason',
+  reversalTransactionId: 'reversalTransactionId',
+  reversalTransactionReference: 'reversalTransactionReference',
+  reversedAt: 'reversedAt',
+  reversalFailureReason: 'reversalFailureReason'
 } as const
 
 export type CommissionDistributionTransactionScalarFieldEnum = (typeof CommissionDistributionTransactionScalarFieldEnum)[keyof typeof CommissionDistributionTransactionScalarFieldEnum]

@@ -12,6 +12,8 @@ export interface PrepareAepsCashDepositDto {
   bankIIN: string;
 
   aadhaarLast4: string;
+
+  sourceRole?: string;
 }
 
 export interface ConfirmAepsCashDepositDto {

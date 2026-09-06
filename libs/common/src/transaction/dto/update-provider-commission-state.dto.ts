@@ -1,5 +1,10 @@
 export type ProviderCommissionState =
-  'NOT_REQUIRED' | 'PENDING' | 'SETTLED' | 'FAILED';
+  | 'NOT_REQUIRED'
+  | 'WAITING_PROVIDER_INCOME'
+  | 'PENDING'
+  | 'SETTLED'
+  | 'FAILED'
+  | 'REVERSED';
 
 export interface UpdateProviderCommissionStateDto {
   referenceId: string;
@@ -13,4 +18,13 @@ export interface UpdateProviderCommissionStateDto {
   commissionAmount?: number;
 
   failureReason?: string;
+
+  /*
+   * Provider income audit.
+   */
+  providerIncomeSource?: string;
+
+  providerIncomeExternalReference?: string;
+
+  providerIncomeReconciledBy?: string;
 }

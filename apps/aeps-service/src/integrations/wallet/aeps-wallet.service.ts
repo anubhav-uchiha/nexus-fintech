@@ -7,6 +7,7 @@ import { firstValueFrom } from 'rxjs';
 import { WALLET_PATTERNS } from '@nexus/common/wallet/wallet.patterns';
 
 export const AEPS_WALLET_CLIENT = 'AEPS_WALLET_CLIENT';
+import { CreditCommissionDistributionDto } from '@nexus/common/wallet/dto/credit-commission-distribution.dto';
 
 @Injectable()
 export class AepsWalletService implements OnModuleInit {
@@ -47,11 +48,7 @@ export class AepsWalletService implements OnModuleInit {
     netAmount: number;
   }) {
     return firstValueFrom(
-      this.client.send(
-        WALLET_PATTERNS.SETTLE_AEPS_PRINCIPAL,
-
-        input,
-      ),
+      this.client.send(WALLET_PATTERNS.SETTLE_AEPS_PRINCIPAL, input),
     );
   }
 
@@ -69,6 +66,8 @@ export class AepsWalletService implements OnModuleInit {
     bankIIN: string;
 
     aadhaarLast4: string;
+
+    sourceRole?: string;
   }) {
     return firstValueFrom(
       this.client.send(
@@ -131,29 +130,9 @@ export class AepsWalletService implements OnModuleInit {
     );
   }
 
-  creditCommissionDistribution(input: {
-    recipientUserId: string;
-
-    recipientRole: string;
-
-    commissionId: string;
-
-    commissionReference: string;
-
-    distributionTransactionId: string;
-
-    amount: number;
-
-    serviceType: string;
-
-    idempotencyKey: string;
-  }) {
+  creditCommissionDistribution(dto: CreditCommissionDistributionDto) {
     return firstValueFrom(
-      this.client.send(
-        WALLET_PATTERNS.CREDIT_COMMISSION_DISTRIBUTION,
-
-        input,
-      ),
+      this.client.send(WALLET_PATTERNS.CREDIT_COMMISSION_DISTRIBUTION, dto),
     );
   }
 }

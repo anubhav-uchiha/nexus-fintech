@@ -7,6 +7,7 @@ import {
   Ip,
   Post,
   Query,
+  Param,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,6 +22,14 @@ import { JwtPayload } from '../../auth/intercaces/jwt-payload.interface';
 import { RpcToHttpExceptionInterceptor } from '../../common/interceptors/rpc-to-http-exception';
 
 import { VimopayAepsService } from './vimopay-aeps.service';
+
+import { PermissionGuard } from '../../auth/guards/permission.guard';
+
+import { RequirePermissions } from '../../auth/decorator/require-permissions.decorator';
+
+import { TRANSACTION_PERMISSIONS } from '@nexus/common/transaction/transaction.permissions';
+
+import { VimopayProviderIncomeGatewayDto } from './dto/vimopay-provider-income-gateway.dto';
 
 import {
   VimopayBankIinQueryDto,
@@ -363,5 +372,27 @@ export class VimopayAepsController {
     if (!isUUID(value)) {
       throw new BadRequestException('Idempotency-Key must be a valid UUID');
     }
+  }
+
+  @Post('admin/provider-income/:referenceId/reconcile')
+  // @UseGuards(PermissionGuard)
+  // @RequirePermissions(TRANSACTION_PERMISSIONS.RECONCILIATION_RESOLVE)
+  reconcileProviderIncome(
+    @CurrentUser()
+    user: JwtPayload,
+
+    @Param('referenceId')
+    referenceId: string,
+
+    @Body()
+    dto: VimopayProviderIncomeGatewayDto,
+  ) {
+    return this.service.reconcileProviderIncome({
+      referenceId,
+
+      reconciledBy: user.sub,
+
+      ...dto,
+    });
   }
 }

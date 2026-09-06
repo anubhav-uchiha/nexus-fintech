@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 
 import { ConfigService } from '@nestjs/config';
 import { randomInt } from 'crypto';
@@ -46,11 +51,34 @@ import {
   AepsCommissionService,
   AepsCommissionSettlementResult,
 } from '../../../integrations/commission/aeps-commission.service';
+import { VimopayIncomeService } from '../income/vimopay-income.service';
 
 export interface VimopayTransactionContext {
   identityId: string;
   role?: string;
   ipAddress: string;
+}
+
+export interface VimopayProviderIncomeReconciliationInput {
+  referenceId: string;
+
+  reconciledBy: string;
+
+  /*
+   * Production only.
+   *
+   * UAT mein ignored —
+   * system simulated 2% calculate karega.
+   */
+  providerIncomeAmount?: number;
+
+  incomeSource?: 'VIMOPAY_WALLET' | 'VIMOPAY_MS';
+
+  /*
+   * Production wallet/MS ledger
+   * transaction reference.
+   */
+  externalReference?: string;
 }
 
 @Injectable()
@@ -66,6 +94,7 @@ export class VimopayTransactionService {
     private readonly txnAuthCleanupService: VimopayTxnAuthCleanupService,
     private readonly walletService: AepsWalletService,
     private readonly commissionService: AepsCommissionService,
+    private readonly vimopayIncomeService: VimopayIncomeService,
   ) {}
 
   /*
@@ -122,6 +151,7 @@ export class VimopayTransactionService {
 
       metadata: {
         category: 'NON_FINANCIAL',
+        
       },
     });
 
@@ -233,6 +263,7 @@ export class VimopayTransactionService {
 
           metadata: {
             category: 'NON_FINANCIAL',
+            ...this.getSafeReceiptMetadata(result),
           },
         });
       } else {
@@ -358,6 +389,7 @@ export class VimopayTransactionService {
 
       metadata: {
         category: 'NON_FINANCIAL',
+        
       },
     });
 
@@ -466,6 +498,7 @@ export class VimopayTransactionService {
            */
           metadata: {
             category: 'NON_FINANCIAL',
+            ...this.getSafeReceiptMetadata(result),
           },
         });
       } else {
@@ -553,37 +586,34 @@ export class VimopayTransactionService {
     );
 
     /*
-     * Customer/provider-facing GROSS amount.
+     * Financial transactions mein role
+     * mandatory hai because delayed
+     * provider-income reconciliation later
+     * same source role use karegi.
      */
-    const grossAmount = Number(dto.amount);
+    const sourceRole = this.requireFinancialSourceRole(context);
 
-    if (
-      !Number.isFinite(grossAmount) ||
-      grossAmount < 100 ||
-      grossAmount > 10000
-    ) {
+    const amount = Number(dto.amount);
+
+    if (!Number.isFinite(amount) || amount < 100 || amount > 10000) {
       throw new BadRequestException(
         'Cash Withdrawal amount must be between 100 and 10000',
       );
     }
 
     /*
-     * <=5000:
-     * CWTFA authorization nahi.
+     * <= 5000 → transaction OTP nahi.
      */
-    if (grossAmount <= 5000 && dto.authRequestId) {
+    if (amount <= 5000 && dto.authRequestId) {
       throw new BadRequestException(
         'authRequestId must not be provided for Cash Withdrawal up to 5000',
       );
     }
 
     /*
-     * >5000:
-     * CWTFA authorization mandatory.
-     *
-     * Authorization GROSS amount par hai.
+     * > 5000 → CWTFA mandatory.
      */
-    if (grossAmount > 5000 && !dto.authRequestId) {
+    if (amount > 5000 && !dto.authRequestId) {
       throw new BadRequestException({
         message:
           'Cash Withdrawal above 5000 requires transaction authorization',
@@ -601,10 +631,7 @@ export class VimopayTransactionService {
     const requestHash = this.idempotencyService.createRequestHash({
       transactionType: 'CW',
 
-      /*
-       * Financial intent GROSS amount.
-       */
-      amount: grossAmount.toFixed(2),
+      amount: amount.toFixed(2),
 
       bankIIN: dto.bankIIN,
 
@@ -624,11 +651,7 @@ export class VimopayTransactionService {
 
       requestHash,
     });
-    this.logger.log(`[CW] BEFORE PROVIDER TXN CREATE key=${idempotency.shouldExecute}`);
 
-    /*
-     * Completed/PENDING cached request.
-     */
     if (!idempotency.shouldExecute) {
       return idempotency.response;
     }
@@ -651,38 +674,22 @@ export class VimopayTransactionService {
 
     let merchantRefId: string | null = null;
 
-    /*
-     * Commission snapshot.
-     */
-    let commissionPreparation: Awaited<
-      ReturnType<AepsCommissionService['prepare']>
-    > | null = null;
-
-    /*
-     * Defaults:
-     *
-     * no commission → full amount principal.
-     */
-    let commissionAmount = 0;
-
-    let netPrincipalAmount = grossAmount;
-
     let result: Awaited<ReturnType<VimopayService['cashWithdrawal']>>;
 
     /*
      * =====================================================
-     * 4. PRE-PROVIDER
+     * 4. PRE-PROVIDER + PROVIDER CALL
      * =====================================================
      */
 
     try {
       /*
        * ===================================================
-       * >5000 CWTFA AUTHORIZATION
+       * >5000 CWTFA
        * ===================================================
        */
 
-      if (grossAmount > 5000) {
+      if (amount > 5000) {
         const authorization =
           await this.prisma.vimopayTxnAuthorization.findFirst({
             where: {
@@ -722,11 +729,7 @@ export class VimopayTransactionService {
           );
         }
 
-        /*
-         * Authorization amount =
-         * GROSS provider transaction.
-         */
-        if (Number(authorization.amount) !== grossAmount) {
+        if (Number(authorization.amount) !== amount) {
           throw new BadRequestException(
             'Cash Withdrawal amount does not match the transaction authorization',
           );
@@ -751,8 +754,9 @@ export class VimopayTransactionService {
         }
 
         /*
-         * Atomic authorization claim.
+         * Atomic claim.
          */
+
         const claimed = await this.prisma.vimopayTxnAuthorization.updateMany({
           where: {
             id: authorization.id,
@@ -780,10 +784,8 @@ export class VimopayTransactionService {
 
       /*
        * ===================================================
-       * 5. CREATE CANONICAL PROVIDER TRANSACTION
+       * 5. CANONICAL PTXN
        * ===================================================
-       *
-       * PTXN amount always GROSS.
        */
 
       const providerTransaction = await this.providerTransactionService.create({
@@ -795,7 +797,17 @@ export class VimopayTransactionService {
 
         operation: 'CW',
 
-        amount: grossAmount,
+        /*
+         * IMPORTANT:
+         * Authenticated business role
+         * explicitly persisted.
+         */
+        sourceRole,
+
+        /*
+         * FULL actual amount.
+         */
+        amount,
 
         settlementRequired: true,
 
@@ -812,9 +824,13 @@ export class VimopayTransactionService {
         metadata: {
           category: 'FINANCIAL',
 
-          accountingModel: 'GROSS_MINUS_COMMISSION',
+          transactionOtpRequired: amount > 5000,
 
-          transactionOtpRequired: grossAmount > 5000,
+          /*
+           * Commission/income does NOT
+           * reduce principal anymore.
+           */
+          incomeModel: 'PROVIDER_INCOME',
 
           ...(dto.authRequestId
             ? {
@@ -824,109 +840,28 @@ export class VimopayTransactionService {
         },
       });
 
-      /*
-       * Local non-null values.
-       *
-       * Inke through TypeScript ko clear hai
-       * ki yahan null possible nahi hai.
-       */
-      const currentProviderTransactionId: string = providerTransaction.id;
+      providerTransactionReferenceId = providerTransaction.referenceId;
 
-      const currentProviderTransactionReferenceId: string =
-        providerTransaction.referenceId;
-      this.logger.log(
-        `[CW] PROVIDER TXN CREATED ref=${providerTransaction.referenceId}`,
-      );
-      /*
-       * Outer state mein bhi preserve,
-       * because catch/finalization sections
-       * later in method use karte hain.
-       */
-      providerTransactionId = currentProviderTransactionId;
-
-      providerTransactionReferenceId = currentProviderTransactionReferenceId;
+      providerTransactionId = providerTransaction.id;
 
       /*
        * ===================================================
-       * 6. PREPARE + SNAPSHOT COMMISSION
+       * 6. PROVIDER REF
        * ===================================================
        */
 
-      commissionPreparation = await this.commissionService.prepare({
-        providerTransactionId: currentProviderTransactionId,
+      merchantRefId = this.generateMerchantRefId('CW');
 
-        providerTransactionReference: currentProviderTransactionReferenceId,
-
-        userId: context.identityId,
-
-        role: context.role,
-
-        operation: 'CW',
-
-        amount: grossAmount,
-      });
-
-      commissionAmount = Number(commissionPreparation.commissionAmount);
-
-      netPrincipalAmount = Number(commissionPreparation.netAmount);
-
-      /*
-       * ===================================================
-       * ACCOUNTING SAFETY
-       * ===================================================
-       */
-
-      if (!Number.isFinite(commissionAmount) || commissionAmount < 0) {
-        throw new Error('Invalid prepared commission amount');
-      }
-
-      if (!Number.isFinite(netPrincipalAmount) || netPrincipalAmount <= 0) {
-        throw new Error('Invalid prepared net principal amount');
-      }
-
-      const grossPaise = Math.round(grossAmount * 100);
-
-      const commissionPaise = Math.round(commissionAmount * 100);
-
-      const netPaise = Math.round(netPrincipalAmount * 100);
-
-      if (netPaise + commissionPaise !== grossPaise) {
-        throw new Error('Cash Withdrawal commission accounting mismatch');
-      }
-
-      /*
-       * ===================================================
-       * 7. PROVIDER MERCHANT REF
-       * ===================================================
-       */
-
-      const currentMerchantRefId: string = this.generateMerchantRefId('CW');
-
-      /*
-       * Outer variable later response/catch
-       * sections ke liye.
-       */
-      merchantRefId = currentMerchantRefId;
-
-      /*
-       * INITIATED → PROCESSING
-       */
       await this.providerTransactionService.markProcessing(
-        currentProviderTransactionReferenceId,
-        currentMerchantRefId,
+        providerTransaction.referenceId,
+
+        merchantRefId,
       );
 
       /*
        * ===================================================
-       * 8. PROVIDER DTO
+       * 7. VIMOPAY DTO
        * ===================================================
-       *
-       * IMPORTANT:
-       *
-       * VimoPay gets GROSS ₹150.
-       *
-       * Merchant/customer payout will be
-       * NET ₹140 according to current business model.
        */
 
       const providerDto: VimopayCashWithdrawalDto = {
@@ -939,9 +874,11 @@ export class VimopayTransactionService {
         mobileNumber: dto.mobileNumber,
 
         /*
-         * VimoPay = GROSS.
+         * FULL transaction amount.
+         *
+         * No commission deduction.
          */
-        amount: dto.amount,
+        amount: amount.toFixed(2),
 
         bankIIN: dto.bankIIN,
 
@@ -966,7 +903,7 @@ export class VimopayTransactionService {
 
       /*
        * ===================================================
-       * 9. PROVIDER CALL
+       * 8. PROVIDER CALL
        * ===================================================
        */
 
@@ -976,14 +913,11 @@ export class VimopayTransactionService {
     } catch (error) {
       /*
        * ===================================================
-       * PROVIDER CALL DID NOT START
+       * PROVIDER CALL NOT STARTED
        * ===================================================
        */
 
       if (!providerCallStarted) {
-        /*
-         * High-value auth release.
-         */
         if (claimedAuthorizationId) {
           await this.prisma.vimopayTxnAuthorization.updateMany({
             where: {
@@ -1000,16 +934,6 @@ export class VimopayTransactionService {
           });
         }
 
-        /*
-         * Provider wasn't called.
-         *
-         * AEPS execution idempotency
-         * can safely be abandoned.
-         *
-         * ProviderTransaction/Commission
-         * snapshots remain idempotently
-         * reusable on retry.
-         */
         await this.idempotencyService.abandonBeforeProvider(
           idempotency.recordId,
 
@@ -1021,14 +945,14 @@ export class VimopayTransactionService {
 
       /*
        * ===================================================
-       * PROVIDER CALL STARTED — RESULT UNKNOWN
+       * PROVIDER CALL STARTED → UNKNOWN
        * ===================================================
        */
 
       await this.idempotencyService.markUnknown(
         idempotency.recordId,
-
         idempotency.lockToken,
+        merchantRefId ?? undefined,
       );
 
       if (claimedAuthorizationId) {
@@ -1045,13 +969,6 @@ export class VimopayTransactionService {
         });
       }
 
-      /*
-       * Do NOT cancel commission snapshot.
-       *
-       * Provider transaction may have
-       * actually succeeded.
-       */
-
       if (providerTransactionReferenceId) {
         try {
           await this.providerTransactionService.markUnknown({
@@ -1066,7 +983,7 @@ export class VimopayTransactionService {
           });
         } catch {
           /*
-           * Preserve original error.
+           * Preserve provider error.
            */
         }
       }
@@ -1076,17 +993,11 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * Provider definitive response available.
+     * 9. CONSUME HIGH VALUE AUTH
      * =====================================================
      */
 
-    /*
-     * =====================================================
-     * 10. FINALIZE >5000 AUTHORIZATION
-     * =====================================================
-     */
-
-    if (grossAmount > 5000 && claimedAuthorizationId) {
+    if (amount > 5000 && claimedAuthorizationId) {
       try {
         await this.prisma.vimopayTxnAuthorization.update({
           where: {
@@ -1114,7 +1025,7 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 11. FINALIZE PROVIDER TRANSACTION
+     * 10. FINALIZE PROVIDER TRANSACTION
      * =====================================================
      */
 
@@ -1144,15 +1055,12 @@ export class VimopayTransactionService {
           metadata: {
             category: 'FINANCIAL',
 
-            accountingModel: 'GROSS_MINUS_COMMISSION',
+            transactionOtpRequired: amount > 5000,
 
-            grossAmount: grossAmount.toFixed(2),
+            principalAmount: amount.toFixed(2),
 
-            commissionAmount: commissionAmount.toFixed(2),
-
-            netPrincipalAmount: netPrincipalAmount.toFixed(2),
-
-            transactionOtpRequired: grossAmount > 5000,
+            incomeModel: 'PROVIDER_INCOME',
+            ...this.getSafeReceiptMetadata(result),
           },
         });
       } else {
@@ -1174,7 +1082,7 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 12. PRINCIPAL SETTLEMENT
+     * 11. FULL PRINCIPAL SETTLEMENT
      * =====================================================
      */
 
@@ -1185,52 +1093,7 @@ export class VimopayTransactionService {
 
     let settlementTransactionReference: string | null = null;
 
-    /*
-     * =====================================================
-     * COMMISSION RESPONSE DEFAULT
-     * =====================================================
-     */
-
-    let commissionResult: Awaited<ReturnType<AepsCommissionService['settle']>> =
-      {
-        status:
-          commissionPreparation?.status === 'PREPARED'
-            ? 'PENDING'
-            : 'NOT_REQUIRED',
-
-        /*
-         * Commission actually paid nahi hui
-         * yet, but pool amount known hai.
-         */
-        amount: commissionPreparation?.commissionAmount ?? '0.00',
-
-        grossAmount: grossAmount.toFixed(2),
-
-        netAmount: netPrincipalAmount.toFixed(2),
-
-        commissionReference: commissionPreparation?.commissionReference ?? null,
-
-        walletTransactionReference: null,
-
-        distributions: [],
-
-        ...(commissionPreparation?.reason
-          ? {
-              reason: commissionPreparation.reason,
-            }
-          : {}),
-      };
-
-    /*
-     * =====================================================
-     * PROVIDER SUCCESS
-     * =====================================================
-     */
-
     if (result.status === '000') {
-      /*
-       * CW principal AEPS wallet receives NET.
-       */
       try {
         const settlement = await this.walletService.settlePrincipal({
           userId: context.identityId,
@@ -1240,14 +1103,11 @@ export class VimopayTransactionService {
           operation: 'CW',
 
           /*
-           * Canonical provider amount.
+           * FULL transaction amount.
            */
-          grossAmount,
+          grossAmount: amount,
 
-          /*
-           * AEPS actual wallet movement.
-           */
-          netAmount: netPrincipalAmount,
+          netAmount: amount,
         });
 
         settlementStatus = 'SETTLED';
@@ -1257,254 +1117,24 @@ export class VimopayTransactionService {
         settlementStatus = 'PENDING';
 
         this.logger.error(
-          'CW provider success but AEPS net principal settlement is pending',
+          'CW provider success but full AEPS principal settlement is pending',
 
           error instanceof Error ? error.stack : undefined,
         );
-      }
 
-      /*
-       * ===================================================
-       * EXECUTE COMMISSION DISTRIBUTIONS
-       * ===================================================
-       *
-       * Only after principal settles.
-       */
-
-      if (settlementStatus === 'SETTLED') {
-        /*
-         * Commission was actually configured
-         * when transaction started.
-         */
-        if (
-          commissionPreparation?.status === 'PREPARED' &&
-          providerTransactionId
-        ) {
-          try {
-            /*
-             * settle() uses same commission
-             * idempotency key.
-             *
-             * Therefore it gets the PREVIOUSLY
-             * snapshotted allocations.
-             *
-             * CRUD changes after prepare()
-             * do not affect this transaction.
-             */
-            commissionResult = await this.commissionService.settle({
-              providerTransactionId,
-
-              providerTransactionReference: providerTransactionReferenceId!,
-
-              userId: context.identityId,
-
-              role: context.role,
-
-              operation: 'CW',
-
-              /*
-               * GROSS.
-               */
-              amount: grossAmount,
-            });
-          } catch (error) {
-            commissionResult = {
-              status: 'PENDING',
-
-              amount: commissionAmount.toFixed(2),
-
-              grossAmount: grossAmount.toFixed(2),
-
-              netAmount: netPrincipalAmount.toFixed(2),
-
-              commissionReference: commissionPreparation.commissionReference,
-
-              walletTransactionReference: null,
-
-              distributions: [],
-
-              reason: 'COMMISSION_SETTLEMENT_PENDING',
-            };
-
-            this.logger.error(
-              'CW commission distribution settlement failed',
-
-              error instanceof Error ? error.stack : undefined,
-            );
-
-            try {
-              await this.providerTransactionService.updateCommissionState({
-                referenceId: providerTransactionReferenceId!,
-
-                status: 'PENDING',
-
-                commissionReferenceId:
-                  commissionPreparation.commissionReference ?? undefined,
-
-                commissionAmount,
-
-                failureReason:
-                  error instanceof Error
-                    ? error.message
-                    : 'Commission settlement failed',
-              });
-            } catch {
-              /*
-               * Preserve provider result.
-               */
-            }
-          }
-        } else {
-          /*
-           * IMPORTANT:
-           *
-           * prepare() said NO commission.
-           *
-           * Do NOT call settle() again.
-           *
-           * Otherwise a CRUD rule created
-           * between provider call and settlement
-           * could incorrectly affect this
-           * already-started transaction.
-           */
-
-          commissionResult = {
-            status: 'NOT_REQUIRED',
-
-            amount: '0.00',
-
-            grossAmount: grossAmount.toFixed(2),
-
-            netAmount: netPrincipalAmount.toFixed(2),
-
-            commissionReference: null,
-
-            walletTransactionReference: null,
-
-            distributions: [],
-
-            reason: commissionPreparation?.reason ?? 'NO_COMMISSION',
-          };
-        }
-      } else {
-        /*
-         * Provider SUCCESS,
-         * principal still pending.
-         *
-         * Commission distributions MUST
-         * not execute yet.
-         */
-
-        if (commissionPreparation?.status === 'PREPARED') {
-          commissionResult = {
-            status: 'PENDING',
-
-            amount: commissionAmount.toFixed(2),
-
-            grossAmount: grossAmount.toFixed(2),
-
-            netAmount: netPrincipalAmount.toFixed(2),
-
-            commissionReference: commissionPreparation.commissionReference,
-
-            walletTransactionReference: null,
-
-            distributions: [],
-
-            reason: 'WAITING_FOR_PRINCIPAL_SETTLEMENT',
-          };
-
-          try {
-            await this.providerTransactionService.updateCommissionState({
-              referenceId: providerTransactionReferenceId!,
-
-              status: 'PENDING',
-
-              commissionReferenceId:
-                commissionPreparation.commissionReference ?? undefined,
-
-              commissionAmount,
-
-              failureReason: 'Waiting for AEPS net principal settlement',
-            });
-          } catch {
-            /*
-             * Continue response.
-             */
-          }
-        }
-      }
-    }
-
-    /*
-     * =====================================================
-     * PROVIDER DEFINITIVE FAILURE
-     * =====================================================
-     */
-
-    if (result.status === '001' || result.status === '003') {
-      /*
-       * No principal credit.
-       *
-       * Prepared commission snapshot
-       * must be cancelled.
-       */
-
-      if (commissionPreparation?.status === 'PREPARED') {
         try {
-          await this.commissionService.cancel({
-            providerTransactionReference: providerTransactionReferenceId!,
+          await this.providerTransactionService.markFinancialRecoveryRequired(
+            providerTransactionReferenceId!,
 
-            commissionReference: commissionPreparation.commissionReference,
-
-            reason: `Cash Withdrawal provider failed: ${result.statusDescription}`,
-          });
-
-          commissionResult = {
-            status: 'NOT_REQUIRED',
-
-            amount: '0.00',
-
-            grossAmount: grossAmount.toFixed(2),
-
-            netAmount: netPrincipalAmount.toFixed(2),
-
-            commissionReference: commissionPreparation.commissionReference,
-
-            walletTransactionReference: null,
-
-            distributions: [],
-
-            reason: 'PROVIDER_TRANSACTION_FAILED_COMMISSION_CANCELLED',
-          };
-        } catch (error) {
-          /*
-           * Commission cancellation requires
-           * internal retry/reconciliation.
-           */
-
-          commissionResult = {
-            status: 'PENDING',
-
-            amount: commissionAmount.toFixed(2),
-
-            grossAmount: grossAmount.toFixed(2),
-
-            netAmount: netPrincipalAmount.toFixed(2),
-
-            commissionReference: commissionPreparation.commissionReference,
-
-            walletTransactionReference: null,
-
-            distributions: [],
-
-            reason: 'COMMISSION_CANCELLATION_PENDING',
-          };
-
+            error instanceof Error
+              ? `CW principal settlement pending: ${error.message}`
+              : 'CW principal settlement pending',
+          );
+        } catch (trackingError) {
           this.logger.error(
-            'Unable to cancel failed CW commission snapshot',
+            'Unable to mark CW financial recovery required',
 
-            error instanceof Error ? error.stack : undefined,
+            trackingError instanceof Error ? trackingError.stack : undefined,
           );
         }
       }
@@ -1512,59 +1142,211 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * PROVIDER PENDING
+     * 12. PROVIDER INCOME
      * =====================================================
      */
 
-    if (result.status === '002') {
-      /*
-       * No wallet settlement.
-       *
-       * No commission distribution.
-       *
-       * Snapshot remains frozen for future
-       * provider reconciliation.
-       */
+    let providerIncomeAmount: number | null = null;
 
-      if (commissionPreparation?.status === 'PREPARED') {
+    let incomeSource: string | null = null;
+
+    let commissionResult: AepsCommissionSettlementResult = {
+      status: 'NOT_REQUIRED',
+
+      amount: null,
+
+      grossAmount: amount.toFixed(2),
+
+      netAmount: amount.toFixed(2),
+
+      commissionReference: null,
+
+      walletTransactionReference: null,
+
+      distributions: [],
+
+      reason:
+        result.status === '000'
+          ? 'WAITING_FOR_PRINCIPAL_SETTLEMENT'
+          : 'PROVIDER_TRANSACTION_NOT_SUCCESSFUL',
+    };
+
+    /*
+     * Provider income processing only after:
+     *
+     * provider SUCCESS
+     * +
+     * principal SETTLED
+     */
+
+    if (
+      result.status === '000' &&
+      settlementStatus === 'SETTLED' &&
+      providerTransactionId
+    ) {
+      try {
+        const income =
+          this.vimopayIncomeService.resolveForSuccessfulTransaction(amount);
+
+        /*
+         * ===================================================
+         * PRODUCTION:
+         * WAIT FOR PROVIDER WALLET INCOME
+         * ===================================================
+         */
+
+        if (!income.available) {
+          providerIncomeAmount = null;
+
+          incomeSource = null;
+
+          await this.providerTransactionService.updateCommissionState({
+            referenceId: providerTransactionReferenceId!,
+
+            status: 'WAITING_PROVIDER_INCOME',
+
+            failureReason:
+              income.reason ?? 'Waiting for VimoPay provider income',
+          });
+
+          commissionResult = {
+            status: 'PENDING',
+
+            amount: null,
+
+            grossAmount: amount.toFixed(2),
+
+            netAmount: amount.toFixed(2),
+
+            commissionReference: null,
+
+            walletTransactionReference: null,
+
+            distributions: [],
+
+            reason: 'WAITING_FOR_PROVIDER_INCOME',
+          };
+        } else {
+          /*
+           * ===================================================
+           * UAT / PROVIDER INCOME AVAILABLE
+           * ===================================================
+           */
+
+          if (
+            income.amount === null ||
+            !Number.isFinite(income.amount) ||
+            income.amount < 0
+          ) {
+            throw new Error('Resolved VimoPay income amount is invalid');
+          }
+
+          if (!income.source) {
+            throw new Error('Resolved VimoPay income source is missing');
+          }
+
+          providerIncomeAmount = income.amount;
+
+          incomeSource = income.source;
+
+          /*
+           * Existing provider-funded
+           * commission engine.
+           */
+          commissionResult = await this.commissionService.settleProviderIncome({
+            providerTransactionId,
+
+            providerTransactionReference: providerTransactionReferenceId!,
+
+            userId: context.identityId,
+
+            /*
+             * IMPORTANT:
+             * Frozen authenticated role.
+             */
+            role: sourceRole,
+
+            operation: 'CW',
+
+            transactionAmount: amount,
+
+            providerIncomeAmount: income.amount,
+
+            incomeSource: income.source,
+          });
+        }
+      } catch (error) {
         commissionResult = {
           status: 'PENDING',
 
-          amount: commissionAmount.toFixed(2),
+          amount:
+            providerIncomeAmount !== null
+              ? providerIncomeAmount.toFixed(2)
+              : null,
 
-          grossAmount: grossAmount.toFixed(2),
+          grossAmount: amount.toFixed(2),
 
-          netAmount: netPrincipalAmount.toFixed(2),
+          netAmount: amount.toFixed(2),
 
-          commissionReference: commissionPreparation.commissionReference,
+          commissionReference: null,
 
           walletTransactionReference: null,
 
           distributions: [],
 
-          reason: 'WAITING_FOR_PROVIDER_RESOLUTION',
+          reason: 'PROVIDER_INCOME_SETTLEMENT_PENDING',
         };
+
+        this.logger.error(
+          `CW provider income settlement pending for ${providerTransactionReferenceId}`,
+
+          error instanceof Error ? error.stack : undefined,
+        );
+
+        try {
+          await this.providerTransactionService.updateCommissionState({
+            referenceId: providerTransactionReferenceId!,
+
+            status: 'PENDING',
+
+            ...(providerIncomeAmount !== null
+              ? {
+                  commissionAmount: providerIncomeAmount,
+                }
+              : {}),
+
+            failureReason:
+              error instanceof Error
+                ? error.message
+                : 'Provider income settlement failed',
+          });
+        } catch (stateError) {
+          this.logger.error(
+            `Unable to persist CW commission pending state for ${providerTransactionReferenceId}`,
+
+            stateError instanceof Error ? stateError.stack : undefined,
+          );
+        }
       }
     }
 
     /*
-     * Unexpected provider status was
-     * canonical UNKNOWN.
+     * =====================================================
+     * PROVIDER ITSELF PENDING
+     * =====================================================
      */
-    if (
-      !['000', '001', '002', '003'].includes(result.status) &&
-      commissionPreparation?.status === 'PREPARED'
-    ) {
+
+    if (result.status === '002') {
       commissionResult = {
         status: 'PENDING',
 
-        amount: commissionAmount.toFixed(2),
+        amount: null,
 
-        grossAmount: grossAmount.toFixed(2),
+        grossAmount: amount.toFixed(2),
 
-        netAmount: netPrincipalAmount.toFixed(2),
+        netAmount: amount.toFixed(2),
 
-        commissionReference: commissionPreparation.commissionReference,
+        commissionReference: null,
 
         walletTransactionReference: null,
 
@@ -1576,7 +1358,7 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 13. FINAL RESPONSE
+     * 13. RESPONSE
      * =====================================================
      */
 
@@ -1593,58 +1375,39 @@ export class VimopayTransactionService {
 
       providerMerchantId: merchant.merchantId,
 
-      /*
-       * Existing field remains GROSS.
-       */
-      amount: dto.amount,
+      amount: amount.toFixed(2),
 
-      /*
-       * Explicit accounting information.
-       */
       accounting: {
-        grossAmount: grossAmount.toFixed(2),
+        transactionAmount: amount.toFixed(2),
 
-        commissionAmount: commissionAmount.toFixed(2),
+        principalAmount: amount.toFixed(2),
 
-        /*
-         * Under current business model,
-         * merchant gives this amount
-         * to customer.
-         */
-        customerPayoutAmount: netPrincipalAmount.toFixed(2),
+        providerIncomeAmount:
+          providerIncomeAmount !== null
+            ? providerIncomeAmount.toFixed(2)
+            : null,
 
-        netPrincipalAmount: netPrincipalAmount.toFixed(2),
+        incomeSource,
       },
 
       result,
 
-      /*
-       * AEPS net principal wallet credit.
-       */
       settlement: {
         status: settlementStatus,
 
         walletType: result.status === '000' ? 'AEPS' : null,
 
-        /*
-         * Amount actually posted to
-         * merchant AEPS wallet.
-         */
-        amount: result.status === '000' ? netPrincipalAmount.toFixed(2) : null,
+        amount: result.status === '000' ? amount.toFixed(2) : null,
 
         transactionReference: settlementTransactionReference,
       },
 
-      /*
-       * One commission can contain
-       * MULTIPLE distribution results.
-       */
       commission: commissionResult,
     };
 
     /*
      * =====================================================
-     * 14. COMPLETE IDEMPOTENCY
+     * 14. IDEMPOTENCY COMPLETE
      * =====================================================
      */
 
@@ -1922,40 +1685,38 @@ export class VimopayTransactionService {
     );
 
     /*
-     * GROSS transaction amount.
+     * Financial transaction ke liye
+     * authenticated business role mandatory.
      *
-     * Example:
-     * Customer transaction = ₹150
+     * Ye role PTXN mein freeze hoga aur
+     * delayed provider-income reconciliation
+     * mein later same role use hoga.
      */
-    const grossAmount = Number(dto.amount);
+    const sourceRole = this.requireFinancialSourceRole(context);
 
-    if (
-      !Number.isFinite(grossAmount) ||
-      grossAmount < 100 ||
-      grossAmount > 10000
-    ) {
+    const amount = Number(dto.amount);
+
+    if (!Number.isFinite(amount) || amount < 100 || amount > 10000) {
       throw new BadRequestException(
         'Aadhaar Pay amount must be between 100 and 10000',
       );
     }
 
     /*
-     * <=5000:
-     * APTFA authorization nahi.
+     * <= 5000:
+     * transaction OTP nahi.
      */
-    if (grossAmount <= 5000 && dto.authRequestId) {
+    if (amount <= 5000 && dto.authRequestId) {
       throw new BadRequestException(
         'authRequestId must not be provided for Aadhaar Pay up to 5000',
       );
     }
 
     /*
-     * >5000:
-     * APTFA authorization mandatory.
-     *
-     * Authorization GROSS amount par.
+     * > 5000:
+     * APTFA mandatory.
      */
-    if (grossAmount > 5000 && !dto.authRequestId) {
+    if (amount > 5000 && !dto.authRequestId) {
       throw new BadRequestException({
         message: 'Aadhaar Pay above 5000 requires transaction authorization',
 
@@ -1967,21 +1728,51 @@ export class VimopayTransactionService {
      * =====================================================
      * 2. IDEMPOTENCY
      * =====================================================
+     *
+     * requestHash:
+     * exact request replay protection.
+     *
+     * intentHash:
+     * same logical financial transaction
+     * with another Idempotency-Key protection.
      */
 
     const requestHash = this.idempotencyService.createRequestHash({
       transactionType: 'AP',
 
-      /*
-       * Financial intent = GROSS.
-       */
-      amount: grossAmount.toFixed(2),
+      amount: amount.toFixed(2),
 
       bankIIN: dto.bankIIN,
 
       aadhaarNumber: dto.aadhaarNumber,
 
       mobileNumber: dto.mobileNumber,
+
+      /*
+       * High-value transaction mein
+       * exact authorization bhi request
+       * fingerprint ka part hoga.
+       */
+      authRequestId: dto.authRequestId ?? null,
+    });
+
+    /*
+     * Stable financial intent.
+     *
+     * PID data nahi.
+     * IP nahi.
+     * merchantRefId nahi.
+     * fresh biometric data nahi.
+     * authRequestId nahi.
+     */
+    const intentHash = this.idempotencyService.createIntentHash({
+      transactionType: 'AP',
+
+      amount: amount.toFixed(2),
+
+      bankIIN: dto.bankIIN,
+
+      aadhaarNumber: dto.aadhaarNumber,
     });
 
     const idempotency = await this.idempotencyService.begin({
@@ -1994,10 +1785,14 @@ export class VimopayTransactionService {
       idempotencyKey,
 
       requestHash,
+
+      intentHash,
     });
 
     /*
-     * Already processed/cached.
+     * Same key already completed.
+     *
+     * Provider dobara call nahi hoga.
      */
     if (!idempotency.shouldExecute) {
       return idempotency.response;
@@ -2005,7 +1800,7 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 3. STATE
+     * 3. INTERNAL STATE
      * =====================================================
      */
 
@@ -2021,26 +1816,11 @@ export class VimopayTransactionService {
 
     let merchantRefId: string | null = null;
 
-    /*
-     * Commission snapshot created
-     * BEFORE provider call.
-     */
-    let commissionPreparation: Awaited<
-      ReturnType<AepsCommissionService['prepare']>
-    > | null = null;
-
-    /*
-     * Defaults if no commission rule exists.
-     */
-    let commissionAmount = 0;
-
-    let netPrincipalAmount = grossAmount;
-
     let result: Awaited<ReturnType<VimopayService['aadhaarPay']>>;
 
     /*
      * =====================================================
-     * 4. PRE-PROVIDER
+     * 4. PRE-PROVIDER + PROVIDER CALL
      * =====================================================
      */
 
@@ -2051,7 +1831,7 @@ export class VimopayTransactionService {
        * ===================================================
        */
 
-      if (grossAmount > 5000) {
+      if (amount > 5000) {
         const authorization =
           await this.prisma.vimopayTxnAuthorization.findFirst({
             where: {
@@ -2074,7 +1854,7 @@ export class VimopayTransactionService {
         }
 
         /*
-         * Expired auth.
+         * Authorization expired.
          */
         if (authorization.expiresAt <= new Date()) {
           await this.prisma.vimopayTxnAuthorization.update({
@@ -2093,10 +1873,11 @@ export class VimopayTransactionService {
         }
 
         /*
-         * Authorization amount must match
-         * GROSS transaction amount.
+         * Authorization must match
+         * exact transaction intent.
          */
-        if (Number(authorization.amount) !== grossAmount) {
+
+        if (Number(authorization.amount) !== amount) {
           throw new BadRequestException(
             'Aadhaar Pay amount does not match authorization',
           );
@@ -2119,8 +1900,11 @@ export class VimopayTransactionService {
         }
 
         /*
-         * Atomic APTFA claim.
+         * Atomic authorization claim.
+         *
+         * ISSUED -> CONSUMING
          */
+
         const claimed = await this.prisma.vimopayTxnAuthorization.updateMany({
           where: {
             id: authorization.id,
@@ -2143,15 +1927,21 @@ export class VimopayTransactionService {
 
         claimedAuthorizationId = authorization.id;
 
+        /*
+         * VimoPay APTFA txnRefId.
+         */
         cwAuthTxnId = authorization.providerTxnRefId;
       }
 
       /*
        * ===================================================
-       * 5. CREATE CANONICAL PROVIDER TRANSACTION
+       * 5. CANONICAL PROVIDER TRANSACTION
        * ===================================================
        *
-       * ProviderTransaction amount = GROSS.
+       * PTXN amount = FULL AP amount.
+       *
+       * Provider income principal se
+       * deduct nahi hogi.
        */
 
       const providerTransaction = await this.providerTransactionService.create({
@@ -2164,9 +1954,12 @@ export class VimopayTransactionService {
         operation: 'AP',
 
         /*
-         * GROSS.
+         * IMPORTANT:
+         * Persist authenticated role.
          */
-        amount: grossAmount,
+        sourceRole,
+
+        amount,
 
         settlementRequired: true,
 
@@ -2183,9 +1976,9 @@ export class VimopayTransactionService {
         metadata: {
           category: 'FINANCIAL',
 
-          accountingModel: 'GROSS_MINUS_COMMISSION',
+          transactionOtpRequired: amount > 5000,
 
-          transactionOtpRequired: grossAmount > 5000,
+          incomeModel: 'PROVIDER_INCOME',
 
           ...(dto.authRequestId
             ? {
@@ -2195,117 +1988,32 @@ export class VimopayTransactionService {
         },
       });
 
-      /*
-       * Non-null local values.
-       */
-      const currentProviderTransactionId: string = providerTransaction.id;
+      providerTransactionId = providerTransaction.id;
 
-      const currentProviderTransactionReferenceId: string =
-        providerTransaction.referenceId;
-
-      /*
-       * Preserve outer state for catch
-       * and later finalization.
-       */
-      providerTransactionId = currentProviderTransactionId;
-
-      providerTransactionReferenceId = currentProviderTransactionReferenceId;
+      providerTransactionReferenceId = providerTransaction.referenceId;
 
       /*
        * ===================================================
-       * 6. PREPARE + SNAPSHOT COMMISSION
-       * ===================================================
-       *
-       * IMPORTANT:
-       *
-       * Current dynamic CRUD state freezes here:
-       *
-       * - matched CommissionRule
-       * - ALL active CommissionDistribution rows
-       * - actual hierarchy recipients
-       * - merchant remainder
-       *
-       * Future CRUD edits transaction ko
-       * affect nahi karengi.
-       */
-
-      commissionPreparation = await this.commissionService.prepare({
-        providerTransactionId: currentProviderTransactionId,
-
-        providerTransactionReference: currentProviderTransactionReferenceId,
-
-        userId: context.identityId,
-
-        role: context.role,
-
-        operation: 'AP',
-
-        /*
-         * Commission calculated on GROSS.
-         */
-        amount: grossAmount,
-      });
-
-      commissionAmount = Number(commissionPreparation.commissionAmount);
-
-      netPrincipalAmount = Number(commissionPreparation.netAmount);
-
-      /*
-       * ===================================================
-       * ACCOUNTING SAFETY
+       * 6. PROVIDER MERCHANT REF
        * ===================================================
        */
 
-      if (!Number.isFinite(commissionAmount) || commissionAmount < 0) {
-        throw new Error('Invalid prepared commission amount');
-      }
+      merchantRefId = this.generateMerchantRefId('AP');
 
-      if (!Number.isFinite(netPrincipalAmount) || netPrincipalAmount <= 0) {
-        throw new Error('Invalid prepared net principal amount');
-      }
-
-      const grossPaise = Math.round(grossAmount * 100);
-
-      const commissionPaise = Math.round(commissionAmount * 100);
-
-      const netPaise = Math.round(netPrincipalAmount * 100);
-
-      /*
-       * GROSS = NET + COMMISSION.
-       */
-      if (netPaise + commissionPaise !== grossPaise) {
-        throw new Error('Aadhaar Pay commission accounting mismatch');
-      }
-
-      /*
-       * ===================================================
-       * 7. PROVIDER MERCHANT REF
-       * ===================================================
-       */
-
-      const currentMerchantRefId: string = this.generateMerchantRefId('AP');
-
-      merchantRefId = currentMerchantRefId;
-
-      /*
-       * INITIATED → PROCESSING
-       */
       await this.providerTransactionService.markProcessing(
-        currentProviderTransactionReferenceId,
+        providerTransaction.referenceId,
 
-        currentMerchantRefId,
+        merchantRefId,
       );
 
       /*
        * ===================================================
-       * 8. PROVIDER DTO
+       * 7. VIMOPAY DTO
        * ===================================================
-       *
-       * VimoPay gets GROSS amount.
        */
 
       const providerDto: VimopayAadhaarPayDto = {
-        merchantRefId: currentMerchantRefId,
+        merchantRefId,
 
         merchantId: merchant.merchantId,
 
@@ -2314,10 +2022,9 @@ export class VimopayTransactionService {
         mobileNumber: dto.mobileNumber,
 
         /*
-         * Provider-facing amount remains
-         * GROSS ₹150.
+         * FULL transaction amount.
          */
-        amount: dto.amount,
+        amount: amount.toFixed(2),
 
         bankIIN: dto.bankIIN,
 
@@ -2330,8 +2037,11 @@ export class VimopayTransactionService {
         deviceType: dto.deviceType,
 
         /*
-         * <=5000 → ''
-         * >5000  → APTFA txnRefId
+         * <= 5000:
+         * ''
+         *
+         * > 5000:
+         * APTFA provider txnRefId
          */
         cwAuthTxnId,
 
@@ -2346,7 +2056,7 @@ export class VimopayTransactionService {
 
       /*
        * ===================================================
-       * 9. VIMOPAY CALL
+       * 8. PROVIDER CALL
        * ===================================================
        */
 
@@ -2356,14 +2066,16 @@ export class VimopayTransactionService {
     } catch (error) {
       /*
        * ===================================================
-       * PROVIDER CALL DID NOT START
+       * PROVIDER CALL NOT STARTED
        * ===================================================
+       *
+       * Safe to release:
+       *
+       * - authorization claim
+       * - idempotency reservation
        */
 
       if (!providerCallStarted) {
-        /*
-         * High-value authorization release.
-         */
         if (claimedAuthorizationId) {
           await this.prisma.vimopayTxnAuthorization.updateMany({
             where: {
@@ -2380,15 +2092,6 @@ export class VimopayTransactionService {
           });
         }
 
-        /*
-         * Provider call nahi hui.
-         *
-         * Local execution lock safely
-         * release.
-         *
-         * PTXN + Commission snapshot
-         * idempotently retryable rahenge.
-         */
         await this.idempotencyService.abandonBeforeProvider(
           idempotency.recordId,
 
@@ -2400,19 +2103,24 @@ export class VimopayTransactionService {
 
       /*
        * ===================================================
-       * PROVIDER CALL STARTED — UNKNOWN RESULT
+       * PROVIDER CALL STARTED → UNKNOWN
        * ===================================================
+       *
+       * Never auto retry provider.
        */
 
       await this.idempotencyService.markUnknown(
         idempotency.recordId,
 
         idempotency.lockToken,
+
+        /*
+         * Preserve generated provider ref
+         * for later reconciliation.
+         */
+        merchantRefId ?? undefined,
       );
 
-      /*
-       * High-value authorization uncertain.
-       */
       if (claimedAuthorizationId) {
         await this.prisma.vimopayTxnAuthorization.updateMany({
           where: {
@@ -2426,14 +2134,6 @@ export class VimopayTransactionService {
           },
         });
       }
-
-      /*
-       * IMPORTANT:
-       *
-       * Commission snapshot cancel nahi
-       * karenge because provider may have
-       * actually succeeded.
-       */
 
       if (providerTransactionReferenceId) {
         try {
@@ -2459,17 +2159,11 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * Provider definitive response available.
+     * 9. FINALIZE HIGH VALUE AUTHORIZATION
      * =====================================================
      */
 
-    /*
-     * =====================================================
-     * 10. FINALIZE >5000 APTFA
-     * =====================================================
-     */
-
-    if (grossAmount > 5000 && claimedAuthorizationId) {
+    if (amount > 5000 && claimedAuthorizationId) {
       try {
         await this.prisma.vimopayTxnAuthorization.update({
           where: {
@@ -2497,7 +2191,7 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 11. FINALIZE PROVIDER TRANSACTION
+     * 10. FINALIZE PROVIDER TRANSACTION
      * =====================================================
      */
 
@@ -2527,18 +2221,22 @@ export class VimopayTransactionService {
           metadata: {
             category: 'FINANCIAL',
 
-            accountingModel: 'GROSS_MINUS_COMMISSION',
+            transactionOtpRequired: amount > 5000,
 
-            grossAmount: grossAmount.toFixed(2),
+            /*
+             * FULL AP principal.
+             */
+            principalAmount: amount.toFixed(2),
 
-            commissionAmount: commissionAmount.toFixed(2),
+            incomeModel: 'PROVIDER_INCOME',
 
-            netPrincipalAmount: netPrincipalAmount.toFixed(2),
-
-            transactionOtpRequired: grossAmount > 5000,
+            ...this.getSafeReceiptMetadata(result),
           },
         });
       } else {
+        /*
+         * Unexpected provider result.
+         */
         await this.providerTransactionService.markUnknown({
           referenceId: providerTransactionReferenceId!,
 
@@ -2548,6 +2246,11 @@ export class VimopayTransactionService {
         });
       }
     } catch (error) {
+      /*
+       * Provider response already received.
+       *
+       * Do not re-call provider.
+       */
       this.logger.error(
         'Unable to finalize canonical Aadhaar Pay transaction',
 
@@ -2557,8 +2260,14 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 12. PRINCIPAL SETTLEMENT STATE
+     * 11. FULL PRINCIPAL SETTLEMENT
      * =====================================================
+     *
+     * AP ₹500 SUCCESS:
+     *
+     * AEPS wallet +₹500
+     *
+     * Provider income separately.
      */
 
     let settlementStatus: 'NOT_REQUIRED' | 'PENDING' | 'SETTLED' =
@@ -2568,54 +2277,7 @@ export class VimopayTransactionService {
 
     let settlementTransactionReference: string | null = null;
 
-    /*
-     * =====================================================
-     * COMMISSION RESPONSE DEFAULT
-     * =====================================================
-     */
-
-    let commissionResult: Awaited<ReturnType<AepsCommissionService['settle']>> =
-      {
-        status:
-          commissionPreparation?.status === 'PREPARED'
-            ? 'PENDING'
-            : 'NOT_REQUIRED',
-
-        amount: commissionPreparation?.commissionAmount ?? '0.00',
-
-        grossAmount: grossAmount.toFixed(2),
-
-        netAmount: netPrincipalAmount.toFixed(2),
-
-        commissionReference: commissionPreparation?.commissionReference ?? null,
-
-        walletTransactionReference: null,
-
-        distributions: [],
-
-        ...(commissionPreparation?.reason
-          ? {
-              reason: commissionPreparation.reason,
-            }
-          : {}),
-      };
-
-    /*
-     * =====================================================
-     * 13. PROVIDER SUCCESS
-     * =====================================================
-     */
-
     if (result.status === '000') {
-      /*
-       * AP AEPS wallet receives NET.
-       *
-       * Example:
-       *
-       * Gross      ₹150
-       * Commission ₹10
-       * AEPS       +₹140
-       */
       try {
         const settlement = await this.walletService.settlePrincipal({
           userId: context.identityId,
@@ -2624,9 +2286,12 @@ export class VimopayTransactionService {
 
           operation: 'AP',
 
-          grossAmount,
+          /*
+           * FULL principal.
+           */
+          grossAmount: amount,
 
-          netAmount: netPrincipalAmount,
+          netAmount: amount,
         });
 
         settlementStatus = 'SETTLED';
@@ -2636,233 +2301,24 @@ export class VimopayTransactionService {
         settlementStatus = 'PENDING';
 
         this.logger.error(
-          'AP provider success but AEPS net principal settlement is pending',
+          'AP provider success but full AEPS principal settlement is pending',
 
           error instanceof Error ? error.stack : undefined,
         );
-      }
 
-      /*
-       * ===================================================
-       * EXECUTE ALL SNAPSHOTTED DISTRIBUTIONS
-       * ===================================================
-       */
-
-      if (settlementStatus === 'SETTLED') {
-        if (
-          commissionPreparation?.status === 'PREPARED' &&
-          providerTransactionId
-        ) {
-          try {
-            /*
-             * Same commission idempotency
-             * key is reused.
-             *
-             * Therefore settle() executes
-             * the PREVIOUSLY snapshotted
-             * multiple distributions.
-             */
-            commissionResult = await this.commissionService.settle({
-              providerTransactionId,
-
-              providerTransactionReference: providerTransactionReferenceId!,
-
-              userId: context.identityId,
-
-              role: context.role,
-
-              operation: 'AP',
-
-              /*
-               * GROSS.
-               */
-              amount: grossAmount,
-            });
-          } catch (error) {
-            commissionResult = {
-              status: 'PENDING',
-
-              amount: commissionAmount.toFixed(2),
-
-              grossAmount: grossAmount.toFixed(2),
-
-              netAmount: netPrincipalAmount.toFixed(2),
-
-              commissionReference: commissionPreparation.commissionReference,
-
-              walletTransactionReference: null,
-
-              distributions: [],
-
-              reason: 'COMMISSION_SETTLEMENT_PENDING',
-            };
-
-            this.logger.error(
-              'AP commission distribution settlement failed',
-
-              error instanceof Error ? error.stack : undefined,
-            );
-
-            try {
-              await this.providerTransactionService.updateCommissionState({
-                referenceId: providerTransactionReferenceId!,
-
-                status: 'PENDING',
-
-                commissionReferenceId:
-                  commissionPreparation.commissionReference ?? undefined,
-
-                commissionAmount,
-
-                failureReason:
-                  error instanceof Error
-                    ? error.message
-                    : 'Commission settlement failed',
-              });
-            } catch {
-              /*
-               * Preserve provider result.
-               */
-            }
-          }
-        } else {
-          /*
-           * No commission was configured
-           * at transaction start.
-           *
-           * IMPORTANT:
-           * do NOT recalculate now.
-           */
-          commissionResult = {
-            status: 'NOT_REQUIRED',
-
-            amount: '0.00',
-
-            grossAmount: grossAmount.toFixed(2),
-
-            netAmount: netPrincipalAmount.toFixed(2),
-
-            commissionReference: null,
-
-            walletTransactionReference: null,
-
-            distributions: [],
-
-            reason: commissionPreparation?.reason ?? 'NO_COMMISSION',
-          };
-        }
-      } else {
-        /*
-         * Provider success,
-         * principal settlement pending.
-         *
-         * Commission distributions wait.
-         */
-        if (commissionPreparation?.status === 'PREPARED') {
-          commissionResult = {
-            status: 'PENDING',
-
-            amount: commissionAmount.toFixed(2),
-
-            grossAmount: grossAmount.toFixed(2),
-
-            netAmount: netPrincipalAmount.toFixed(2),
-
-            commissionReference: commissionPreparation.commissionReference,
-
-            walletTransactionReference: null,
-
-            distributions: [],
-
-            reason: 'WAITING_FOR_PRINCIPAL_SETTLEMENT',
-          };
-
-          try {
-            await this.providerTransactionService.updateCommissionState({
-              referenceId: providerTransactionReferenceId!,
-
-              status: 'PENDING',
-
-              commissionReferenceId:
-                commissionPreparation.commissionReference ?? undefined,
-
-              commissionAmount,
-
-              failureReason: 'Waiting for AEPS net principal settlement',
-            });
-          } catch {
-            /*
-             * Continue response.
-             */
-          }
-        }
-      }
-    }
-
-    /*
-     * =====================================================
-     * 14. PROVIDER DEFINITIVE FAILURE
-     * =====================================================
-     */
-
-    if (result.status === '001' || result.status === '003') {
-      /*
-       * No AEPS principal credit.
-       *
-       * Prepared commission snapshot
-       * must be cancelled.
-       */
-
-      if (commissionPreparation?.status === 'PREPARED') {
         try {
-          await this.commissionService.cancel({
-            providerTransactionReference: providerTransactionReferenceId!,
+          await this.providerTransactionService.markFinancialRecoveryRequired(
+            providerTransactionReferenceId!,
 
-            commissionReference: commissionPreparation.commissionReference,
-
-            reason: `Aadhaar Pay provider failed: ${result.statusDescription}`,
-          });
-
-          commissionResult = {
-            status: 'NOT_REQUIRED',
-
-            amount: '0.00',
-
-            grossAmount: grossAmount.toFixed(2),
-
-            netAmount: netPrincipalAmount.toFixed(2),
-
-            commissionReference: commissionPreparation.commissionReference,
-
-            walletTransactionReference: null,
-
-            distributions: [],
-
-            reason: 'PROVIDER_TRANSACTION_FAILED_COMMISSION_CANCELLED',
-          };
-        } catch (error) {
-          commissionResult = {
-            status: 'PENDING',
-
-            amount: commissionAmount.toFixed(2),
-
-            grossAmount: grossAmount.toFixed(2),
-
-            netAmount: netPrincipalAmount.toFixed(2),
-
-            commissionReference: commissionPreparation.commissionReference,
-
-            walletTransactionReference: null,
-
-            distributions: [],
-
-            reason: 'COMMISSION_CANCELLATION_PENDING',
-          };
-
+            error instanceof Error
+              ? `AP principal settlement pending: ${error.message}`
+              : 'AP principal settlement pending',
+          );
+        } catch (trackingError) {
           this.logger.error(
-            'Unable to cancel failed AP commission snapshot',
+            'Unable to mark AP financial recovery required',
 
-            error instanceof Error ? error.stack : undefined,
+            trackingError instanceof Error ? trackingError.stack : undefined,
           );
         }
       }
@@ -2870,57 +2326,215 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 15. PROVIDER PENDING
+     * 12. PROVIDER INCOME
      * =====================================================
      */
 
-    if (result.status === '002') {
+    let providerIncomeAmount: number | null = null;
+
+    let incomeSource: string | null = null;
+
+    let commissionResult: AepsCommissionSettlementResult = {
+      status: result.status === '000' ? 'PENDING' : 'NOT_REQUIRED',
+
+      amount: null,
+
+      grossAmount: amount.toFixed(2),
+
       /*
-       * Snapshot remains frozen.
-       *
-       * No AEPS credit.
-       * No PROFIT distributions.
+       * Provider income does not
+       * reduce AP principal.
        */
-      if (commissionPreparation?.status === 'PREPARED') {
+      netAmount: amount.toFixed(2),
+
+      commissionReference: null,
+
+      walletTransactionReference: null,
+
+      distributions: [],
+
+      reason:
+        result.status === '000'
+          ? 'WAITING_FOR_PRINCIPAL_SETTLEMENT'
+          : 'PROVIDER_TRANSACTION_NOT_SUCCESSFUL',
+    };
+
+    /*
+     * Provider income only after:
+     *
+     * provider SUCCESS
+     * +
+     * principal SETTLED
+     */
+
+    if (
+      result.status === '000' &&
+      settlementStatus === 'SETTLED' &&
+      providerTransactionId
+    ) {
+      try {
+        const income =
+          this.vimopayIncomeService.resolveForSuccessfulTransaction(amount);
+
+        /*
+         * =================================================
+         * PRODUCTION:
+         * provider wallet income later.
+         * =================================================
+         */
+
+        if (!income.available) {
+          providerIncomeAmount = null;
+
+          incomeSource = null;
+
+          await this.providerTransactionService.updateCommissionState({
+            referenceId: providerTransactionReferenceId!,
+
+            status: 'WAITING_PROVIDER_INCOME',
+
+            failureReason:
+              income.reason ?? 'Waiting for VimoPay provider income',
+          });
+
+          commissionResult = {
+            status: 'PENDING',
+
+            amount: null,
+
+            grossAmount: amount.toFixed(2),
+
+            netAmount: amount.toFixed(2),
+
+            commissionReference: null,
+
+            walletTransactionReference: null,
+
+            distributions: [],
+
+            reason: 'WAITING_FOR_PROVIDER_INCOME',
+          };
+        } else {
+          /*
+           * =================================================
+           * UAT / PROVIDER INCOME AVAILABLE
+           * =================================================
+           */
+
+          if (
+            income.amount === null ||
+            !Number.isFinite(income.amount) ||
+            income.amount < 0
+          ) {
+            throw new Error('Resolved VimoPay income amount is invalid');
+          }
+
+          if (!income.source) {
+            throw new Error('Resolved VimoPay income source is missing');
+          }
+
+          providerIncomeAmount = income.amount;
+
+          incomeSource = income.source;
+
+          /*
+           * Provider-funded commission
+           * distribution.
+           */
+          commissionResult = await this.commissionService.settleProviderIncome({
+            providerTransactionId,
+
+            providerTransactionReference: providerTransactionReferenceId!,
+
+            userId: context.identityId,
+
+            /*
+             * IMPORTANT:
+             * Persisted/frozen source role.
+             */
+            role: sourceRole,
+
+            operation: 'AP',
+
+            transactionAmount: amount,
+
+            providerIncomeAmount: income.amount,
+
+            incomeSource: income.source,
+          });
+        }
+      } catch (error) {
         commissionResult = {
           status: 'PENDING',
 
-          amount: commissionAmount.toFixed(2),
+          amount:
+            providerIncomeAmount !== null
+              ? providerIncomeAmount.toFixed(2)
+              : null,
 
-          grossAmount: grossAmount.toFixed(2),
+          grossAmount: amount.toFixed(2),
 
-          netAmount: netPrincipalAmount.toFixed(2),
+          netAmount: amount.toFixed(2),
 
-          commissionReference: commissionPreparation.commissionReference,
+          commissionReference: null,
 
           walletTransactionReference: null,
 
           distributions: [],
 
-          reason: 'WAITING_FOR_PROVIDER_RESOLUTION',
+          reason: 'PROVIDER_INCOME_SETTLEMENT_PENDING',
         };
+
+        this.logger.error(
+          `AP provider income settlement pending for ${providerTransactionReferenceId}`,
+
+          error instanceof Error ? error.stack : undefined,
+        );
+
+        try {
+          await this.providerTransactionService.updateCommissionState({
+            referenceId: providerTransactionReferenceId!,
+
+            status: 'PENDING',
+
+            ...(providerIncomeAmount !== null
+              ? {
+                  commissionAmount: providerIncomeAmount,
+                }
+              : {}),
+
+            failureReason:
+              error instanceof Error
+                ? error.message
+                : 'Provider income settlement failed',
+          });
+        } catch (stateError) {
+          this.logger.error(
+            `Unable to persist AP commission pending state for ${providerTransactionReferenceId}`,
+
+            stateError instanceof Error ? stateError.stack : undefined,
+          );
+        }
       }
     }
 
     /*
-     * Unexpected provider status →
-     * canonical UNKNOWN.
+     * =====================================================
+     * PROVIDER PENDING
+     * =====================================================
      */
 
-    if (
-      !['000', '001', '002', '003'].includes(result.status) &&
-      commissionPreparation?.status === 'PREPARED'
-    ) {
+    if (result.status === '002') {
       commissionResult = {
         status: 'PENDING',
 
-        amount: commissionAmount.toFixed(2),
+        amount: null,
 
-        grossAmount: grossAmount.toFixed(2),
+        grossAmount: amount.toFixed(2),
 
-        netAmount: netPrincipalAmount.toFixed(2),
+        netAmount: amount.toFixed(2),
 
-        commissionReference: commissionPreparation.commissionReference,
+        commissionReference: null,
 
         walletTransactionReference: null,
 
@@ -2932,7 +2546,7 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 16. FINAL RESPONSE
+     * 13. RESPONSE
      * =====================================================
      */
 
@@ -2950,46 +2564,41 @@ export class VimopayTransactionService {
       providerMerchantId: merchant.merchantId,
 
       /*
-       * Existing amount remains GROSS.
+       * FULL AP amount.
        */
-      amount: dto.amount,
+      amount: amount.toFixed(2),
 
-      /*
-       * Explicit internal accounting.
-       */
       accounting: {
-        grossAmount: grossAmount.toFixed(2),
+        transactionAmount: amount.toFixed(2),
 
-        commissionAmount: commissionAmount.toFixed(2),
+        principalAmount: amount.toFixed(2),
 
-        netPrincipalAmount: netPrincipalAmount.toFixed(2),
+        providerIncomeAmount:
+          providerIncomeAmount !== null
+            ? providerIncomeAmount.toFixed(2)
+            : null,
+
+        incomeSource,
       },
 
       result,
 
-      /*
-       * Actual AEPS wallet movement.
-       */
       settlement: {
         status: settlementStatus,
 
         walletType: result.status === '000' ? 'AEPS' : null,
 
-        amount: result.status === '000' ? netPrincipalAmount.toFixed(2) : null,
+        amount: result.status === '000' ? amount.toFixed(2) : null,
 
         transactionReference: settlementTransactionReference,
       },
 
-      /*
-       * Can contain MULTIPLE
-       * distribution transactions.
-       */
       commission: commissionResult,
     };
 
     /*
      * =====================================================
-     * 17. COMPLETE IDEMPOTENCY
+     * 14. IDEMPOTENCY COMPLETE
      * =====================================================
      */
 
@@ -3042,6 +2651,263 @@ export class VimopayTransactionService {
     }
   }
 
+  async reconcileProviderIncome(
+    input: VimopayProviderIncomeReconciliationInput,
+  ) {
+    /*
+     * =====================================================
+     * 1. VALIDATION
+     * =====================================================
+     */
+
+    if (!input.referenceId?.trim()) {
+      throw new BadRequestException(
+        'Provider transaction reference is required',
+      );
+    }
+
+    if (!input.reconciledBy?.trim()) {
+      throw new BadRequestException('reconciledBy is required');
+    }
+
+    /*
+     * =====================================================
+     * 2. CANONICAL PROVIDER TRANSACTION
+     * =====================================================
+     */
+
+    const transaction: any = await this.providerTransactionService.get(
+      input.referenceId,
+    );
+
+    if (!transaction) {
+      throw new BadRequestException('Provider transaction not found');
+    }
+
+    if (transaction.provider !== 'VIMOPAY') {
+      throw new BadRequestException(
+        'Provider transaction is not a VimoPay transaction',
+      );
+    }
+
+    if (!['CW', 'AP', 'CD'].includes(transaction.operation)) {
+      throw new BadRequestException(
+        `Provider income is not supported for operation ${transaction.operation}`,
+      );
+    }
+
+    if (transaction.status === 'REVERSED') {
+      throw new BadRequestException(
+        'Provider income cannot be reconciled for a reversed transaction',
+      );
+    }
+
+    if (transaction.status !== 'SUCCESS') {
+      throw new BadRequestException(
+        `Provider income cannot be reconciled while transaction is ${transaction.status}`,
+      );
+    }
+
+    if (transaction.settlementStatus !== 'SETTLED') {
+      throw new BadRequestException(
+        `Provider income cannot be reconciled until principal is SETTLED. Current status: ${transaction.settlementStatus}`,
+      );
+    }
+
+    if (transaction.commissionStatus === 'REVERSED') {
+      throw new BadRequestException('Commission has already been reversed');
+    }
+
+    if (
+      !['WAITING_PROVIDER_INCOME', 'PENDING', 'SETTLED'].includes(
+        transaction.commissionStatus,
+      )
+    ) {
+      throw new BadRequestException(
+        `Provider income cannot be reconciled from commission state ${transaction.commissionStatus}`,
+      );
+    }
+
+    if (!transaction.sourceRole?.trim()) {
+      throw new BadRequestException(
+        'Provider transaction source role is unavailable',
+      );
+    }
+
+    const transactionAmount = Number(transaction.amount);
+
+    if (!Number.isFinite(transactionAmount) || transactionAmount <= 0) {
+      throw new BadRequestException('Provider transaction amount is invalid');
+    }
+
+    /*
+     * =====================================================
+     * 3. DETERMINE PROVIDER INCOME
+     * =====================================================
+     */
+
+    const automaticIncome =
+      this.vimopayIncomeService.resolveForSuccessfulTransaction(
+        transactionAmount,
+      );
+
+    let providerIncomeAmount: number;
+
+    let incomeSource:
+      'DUMMY_VIMOPAY_2_PERCENT' | 'VIMOPAY_WALLET' | 'VIMOPAY_MS';
+
+    let externalReference: string | undefined;
+
+    /*
+     * =====================================================
+     * UAT
+     * =====================================================
+     */
+
+    if (automaticIncome.available) {
+      if (automaticIncome.amount === null || !automaticIncome.source) {
+        throw new BadRequestException(
+          'UAT provider income simulation is invalid',
+        );
+      }
+
+      providerIncomeAmount = automaticIncome.amount;
+
+      incomeSource = automaticIncome.source;
+
+      /*
+       * User supplied amount intentionally
+       * ignored in UAT.
+       */
+    } else {
+      /*
+       * ===================================================
+       * PRODUCTION
+       * ===================================================
+       */
+
+      if (
+        typeof input.providerIncomeAmount !== 'number' ||
+        !Number.isFinite(input.providerIncomeAmount) ||
+        input.providerIncomeAmount <= 0
+      ) {
+        throw new BadRequestException(
+          'Production provider income amount must be greater than 0',
+        );
+      }
+
+      if (
+        input.incomeSource !== 'VIMOPAY_WALLET' &&
+        input.incomeSource !== 'VIMOPAY_MS'
+      ) {
+        throw new BadRequestException(
+          'Production incomeSource must be VIMOPAY_WALLET or VIMOPAY_MS',
+        );
+      }
+
+      if (!input.externalReference?.trim()) {
+        throw new BadRequestException(
+          'Production VimoPay wallet/MS external reference is required',
+        );
+      }
+
+      providerIncomeAmount = Number(input.providerIncomeAmount.toFixed(2));
+
+      incomeSource = input.incomeSource;
+
+      externalReference = input.externalReference.trim().slice(0, 150);
+    }
+
+    /*
+     * =====================================================
+     * 4. RECORD OBSERVED PROVIDER INCOME
+     * =====================================================
+     *
+     * First processing:
+     * WAITING_PROVIDER_INCOME / PENDING
+     * → persist observed provider income.
+     *
+     * Already SETTLED retry:
+     * PENDING par downgrade nahi karenge.
+     *
+     * settleProviderIncome() itself is
+     * idempotent and will validate that
+     * amount/source match existing commission.
+     */
+
+    if (transaction.commissionStatus !== 'SETTLED') {
+      await this.providerTransactionService.updateCommissionState({
+        referenceId: transaction.referenceId,
+
+        status: 'PENDING',
+
+        commissionAmount: providerIncomeAmount,
+
+        providerIncomeSource: incomeSource,
+
+        ...(externalReference
+          ? {
+              providerIncomeExternalReference: externalReference,
+            }
+          : {}),
+
+        providerIncomeReconciledBy: input.reconciledBy,
+      });
+    }
+
+    /*
+     * =====================================================
+     * 5. SETTLE THROUGH EXISTING COMMISSION ENGINE
+     * =====================================================
+     */
+
+    const operation = transaction.operation as 'CW' | 'AP' | 'CD';
+
+    const commission = await this.commissionService.settleProviderIncome({
+      providerTransactionId: transaction.id,
+
+      providerTransactionReference: transaction.referenceId,
+
+      userId: transaction.userId,
+
+      role: transaction.sourceRole,
+
+      operation,
+
+      transactionAmount,
+
+      providerIncomeAmount,
+
+      incomeSource,
+
+      externalReference,
+
+      reconciledBy: input.reconciledBy,
+    });
+
+    return {
+      provider: 'VIMOPAY',
+
+      transactionReferenceId: transaction.referenceId,
+
+      operation,
+
+      transactionAmount: transactionAmount.toFixed(2),
+
+      providerIncome: {
+        amount: providerIncomeAmount.toFixed(2),
+
+        source: incomeSource,
+
+        externalReference: externalReference ?? null,
+
+        reconciledBy: input.reconciledBy,
+      },
+
+      commission,
+    };
+  }
+
   async cashDeposit(
     context: VimopayTransactionContext,
     dto: VimopayCashDepositRequestDto,
@@ -3049,13 +2915,23 @@ export class VimopayTransactionService {
   ) {
     /*
      * =====================================================
-     * 1. ACTIVE MERCHANT + DAILY 2FA
+     * 1. ACTIVE MERCHANT
      * =====================================================
      */
 
     const merchant = await this.accessService.getActiveMerchant(
       context.identityId,
     );
+
+    /*
+     * Financial transaction ke liye
+     * authenticated business role mandatory.
+     *
+     * Ye role ProviderTransaction mein
+     * persist hoga so delayed provider-income
+     * reconciliation later same role use kare.
+     */
+    const sourceRole = this.requireFinancialSourceRole(context);
 
     const amount = Number(dto.amount);
 
@@ -3071,6 +2947,9 @@ export class VimopayTransactionService {
      * =====================================================
      */
 
+    /*
+     * Exact request fingerprint.
+     */
     const requestHash = this.idempotencyService.createRequestHash({
       transactionType: 'CD',
 
@@ -3083,6 +2962,30 @@ export class VimopayTransactionService {
       mobileNumber: dto.mobileNumber,
     });
 
+    /*
+     * Stable financial intent.
+     *
+     * Do NOT include:
+     *
+     * - PID data
+     * - IP address
+     * - biometric timestamp
+     * - merchantRefId
+     *
+     * Same logical unresolved CD ko
+     * another Idempotency-Key se
+     * provider dobara hit nahi karna.
+     */
+    const intentHash = this.idempotencyService.createIntentHash({
+      transactionType: 'CD',
+
+      amount: amount.toFixed(2),
+
+      bankIIN: dto.bankIIN,
+
+      aadhaarNumber: dto.aadhaarNumber,
+    });
+
     const idempotency = await this.idempotencyService.begin({
       identityId: context.identityId,
 
@@ -3093,11 +2996,15 @@ export class VimopayTransactionService {
       idempotencyKey,
 
       requestHash,
+
+      intentHash,
     });
 
     /*
-     * Same financial request already
-     * process ho chuki hai.
+     * Same Idempotency-Key already
+     * completed/pending.
+     *
+     * Provider dobara call nahi hoga.
      */
     if (!idempotency.shouldExecute) {
       return idempotency.response;
@@ -3105,11 +3012,17 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 3. ATOMIC PROVIDER TRANSACTION + AEPS PRE-DEBIT
+     * 3. ATOMIC PTXN + FULL AEPS PRE-DEBIT
      * =====================================================
      *
-     * CD mein provider ko call karne se PEHLE
-     * merchant AEPS wallet debit/reserve hoti hai.
+     * Example:
+     *
+     * CD ₹500
+     *
+     * AEPS -₹500 immediately reserved.
+     *
+     * Provider income/commission
+     * yahan calculate nahi hogi.
      */
 
     let prepared: any;
@@ -3124,6 +3037,15 @@ export class VimopayTransactionService {
 
         providerMerchantId: merchant.merchantId,
 
+        /*
+         * IMPORTANT:
+         * authenticated source role
+         */
+        sourceRole,
+
+        /*
+         * FULL transaction amount.
+         */
         amount,
 
         bankIIN: dto.bankIIN,
@@ -3132,13 +3054,11 @@ export class VimopayTransactionService {
       });
     } catch (error) {
       /*
-       * Wallet reservation failed.
+       * Provider call abhi start nahi hui.
        *
-       * Provider ko request nahi gayi,
-       * so AEPS idempotency reservation
-       * safely release kar sakte hain.
+       * Idempotency reservation safely
+       * remove ho sakti hai.
        */
-
       await this.idempotencyService.abandonBeforeProvider(
         idempotency.recordId,
 
@@ -3152,66 +3072,175 @@ export class VimopayTransactionService {
 
     const reservationTransaction = prepared.walletTransaction;
 
-    /*
-     * Canonical references.
-     */
-    const providerTransactionReferenceId: string =
-      providerTransaction.referenceId;
-
-    /*
-     * Commission service ko actual
-     * ProviderTransaction UUID chahiye.
-     */
     const providerTransactionId: string = providerTransaction.id;
 
-    /*
-     * =====================================================
-     * 4. PROVIDER MERCHANT REF
-     * =====================================================
-     */
+    const providerTransactionReference: string =
+      providerTransaction.referenceId;
 
-    const merchantRefId = this.generateMerchantRefId('CD');
+    const reservationTransactionReference: string =
+      reservationTransaction.referenceId;
 
     /*
-     * INITIATED → PROCESSING
+     * Defensive validation.
      */
-    try {
-      await this.providerTransactionService.markProcessing(
-        providerTransactionReferenceId,
 
-        merchantRefId,
-      );
-    } catch (error) {
-      /*
-       * IMPORTANT:
-       *
-       * Wallet already pre-debit ho chuki hai.
-       * Isliye silently provider call continue
-       * nahi karenge.
-       *
-       * Existing reservation state preserve rahegi
-       * for reconciliation.
-       */
-
-      this.logger.error(
-        'Unable to mark Cash Deposit provider transaction as processing',
-
-        error instanceof Error ? error.stack : undefined,
-      );
-
+    if (
+      !providerTransactionId ||
+      !providerTransactionReference ||
+      !reservationTransactionReference
+    ) {
       await this.idempotencyService.markUnknown(
         idempotency.recordId,
 
         idempotency.lockToken,
       );
 
+      throw new InternalServerErrorException(
+        'Cash Deposit reservation references are missing',
+      );
+    }
+
+    /*
+     * =====================================================
+     * 4. PROVIDER MERCHANT REFERENCE
+     * =====================================================
+     */
+
+    const merchantRefId = this.generateMerchantRefId('CD');
+
+    /*
+     * =====================================================
+     * 5. MARK PROVIDER TRANSACTION PROCESSING
+     * =====================================================
+     */
+
+    try {
+      await this.providerTransactionService.markProcessing(
+        providerTransactionReference,
+
+        merchantRefId,
+      );
+    } catch (error) {
+      /*
+       * VimoPay definitely NOT called.
+       *
+       * Therefore:
+       *
+       * - PTXN FAILED
+       * - full AEPS reservation refund
+       * - provider must NOT be retried until
+       *   local state is safely resolved
+       */
+
+      try {
+        await this.providerTransactionService.finalize({
+          referenceId: providerTransactionReference,
+
+          status: 'FAILED',
+
+          providerMerchantRefId: merchantRefId,
+
+          providerStatusCode: 'LOCAL_PRE_PROVIDER_FAILURE',
+
+          providerStatusMessage: 'Cash Deposit provider call did not start',
+
+          metadata: {
+            category: 'FINANCIAL',
+
+            settlementMode: 'PRE_DEBIT',
+
+            incomeModel: 'PROVIDER_INCOME',
+
+            principalAmount: amount.toFixed(2),
+          },
+        });
+      } catch (finalizeError) {
+        this.logger.error(
+          'Unable to mark pre-provider CD transaction FAILED',
+
+          finalizeError instanceof Error ? finalizeError.stack : undefined,
+        );
+
+        try {
+          await this.providerTransactionService.markFinancialRecoveryRequired(
+            providerTransactionReference,
+
+            error instanceof Error
+              ? `CD compensation pending: ${error.message}`
+              : 'CD compensation pending',
+          );
+        } catch (trackingError) {
+          this.logger.error(
+            'Unable to mark CD compensation recovery required',
+
+            trackingError instanceof Error ? trackingError.stack : undefined,
+          );
+        }
+      }
+
+      /*
+       * Refund full reserved principal.
+       */
+
+      let compensated = false;
+
+      try {
+        await this.walletService.compensateCashDeposit({
+          userId: context.identityId,
+
+          providerTransactionReference,
+
+          amount,
+        });
+
+        compensated = true;
+      } catch (compensationError) {
+        this.logger.error(
+          'Unable to compensate CD after provider call preparation failure',
+
+          compensationError instanceof Error
+            ? compensationError.stack
+            : undefined,
+        );
+      }
+
+      /*
+       * Provider definitely wasn't called.
+       *
+       * If local compensation succeeded,
+       * request can safely be released.
+       */
+
+      if (compensated) {
+        await this.idempotencyService.abandonBeforeProvider(
+          idempotency.recordId,
+
+          idempotency.lockToken,
+        );
+      } else {
+        /*
+         * Local financial state unresolved.
+         *
+         * Do NOT permit automatic retry.
+         */
+        await this.idempotencyService.markUnknown(
+          idempotency.recordId,
+
+          idempotency.lockToken,
+
+          merchantRefId,
+        );
+      }
+
       throw error;
     }
 
     /*
      * =====================================================
-     * 5. VIMOPAY PROVIDER CALL
+     * 6. VIMOPAY PROVIDER CALL
      * =====================================================
+     *
+     * Provider receives FULL transaction amount.
      */
 
     let result: Awaited<ReturnType<VimopayService['cashDeposit']>>;
@@ -3226,7 +3255,10 @@ export class VimopayTransactionService {
 
         mobileNumber: dto.mobileNumber,
 
-        amount: dto.amount,
+        /*
+         * FULL amount.
+         */
+        amount: amount.toFixed(2),
 
         bankIIN: dto.bankIIN,
 
@@ -3248,26 +3280,36 @@ export class VimopayTransactionService {
       });
     } catch (error) {
       /*
-       * Provider request start ho gayi,
-       * but definitive result nahi mila.
+       * =====================================================
+       * PROVIDER CALL STARTED BUT RESULT UNKNOWN
+       * =====================================================
        *
-       * IMPORTANT:
+       * CRITICAL:
        *
-       * AEPS pre-debit auto refund nahi hogi.
+       * DO NOT:
        *
-       * Ho sakta hai provider side transaction
-       * actually successful hui ho.
+       * - refund AEPS
+       * - retry VimoPay
+       * - assume failure
+       *
+       * Reservation remains held.
        */
 
       await this.idempotencyService.markUnknown(
         idempotency.recordId,
 
         idempotency.lockToken,
+
+        /*
+         * Preserve generated merchant ref
+         * for reconciliation.
+         */
+        merchantRefId,
       );
 
       try {
         await this.providerTransactionService.markUnknown({
-          referenceId: providerTransactionReferenceId,
+          referenceId: providerTransactionReference,
 
           providerMerchantRefId: merchantRefId,
 
@@ -3278,7 +3320,7 @@ export class VimopayTransactionService {
         });
       } catch (trackingError) {
         this.logger.error(
-          'Unable to mark Cash Deposit transaction UNKNOWN',
+          'Unable to mark CD provider transaction UNKNOWN',
 
           trackingError instanceof Error ? trackingError.stack : undefined,
         );
@@ -3289,16 +3331,7 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * Provider ka definitive response mil chuka hai.
-     *
-     * Is point ke baad local failure ko provider
-     * failure nahi bolenge.
-     * =====================================================
-     */
-
-    /*
-     * =====================================================
-     * 6. FINALIZE CANONICAL PROVIDER TRANSACTION
+     * 7. FINALIZE PROVIDER TRANSACTION
      * =====================================================
      */
 
@@ -3307,7 +3340,7 @@ export class VimopayTransactionService {
     try {
       if (finalStatus) {
         await this.providerTransactionService.finalize({
-          referenceId: providerTransactionReferenceId,
+          referenceId: providerTransactionReference,
 
           status: finalStatus,
 
@@ -3329,11 +3362,20 @@ export class VimopayTransactionService {
             category: 'FINANCIAL',
 
             settlementMode: 'PRE_DEBIT',
+
+            incomeModel: 'PROVIDER_INCOME',
+
+            principalAmount: amount.toFixed(2),
+
+            ...this.getSafeReceiptMetadata(result),
           },
         });
       } else {
+        /*
+         * Unexpected provider response.
+         */
         await this.providerTransactionService.markUnknown({
-          referenceId: providerTransactionReferenceId,
+          referenceId: providerTransactionReference,
 
           providerMerchantRefId: merchantRefId,
 
@@ -3342,13 +3384,11 @@ export class VimopayTransactionService {
       }
     } catch (error) {
       /*
-       * Provider ka definitive result
-       * already mil chuka hai.
+       * Provider response already received.
        *
-       * Transaction tracking failure ko
-       * provider failure nahi bolenge.
+       * Never undo wallet blindly.
+       * Never call provider again.
        */
-
       this.logger.error(
         'Unable to finalize canonical Cash Deposit transaction',
 
@@ -3358,26 +3398,22 @@ export class VimopayTransactionService {
 
     /*
      * =====================================================
-     * 7. PRINCIPAL SETTLEMENT RESULT
+     * 8. PRINCIPAL SETTLEMENT
      * =====================================================
      */
 
     let settlementStatus: 'RESERVED' | 'SETTLED' | 'COMPENSATED' = 'RESERVED';
 
-    /*
-     * Ye original AEPS DEBIT transaction hai.
-     */
-    const settlementTransactionReference: string =
-      reservationTransaction.referenceId;
-
     let compensationTransactionReference: string | null = null;
 
     /*
      * =====================================================
-     * PROVIDER SUCCESS
+     * SUCCESS
      * =====================================================
      *
-     * Original pre-debit now final settlement.
+     * Original AEPS debit already happened.
+     *
+     * Just confirm reservation.
      */
 
     if (result.status === '000') {
@@ -3385,39 +3421,48 @@ export class VimopayTransactionService {
         await this.walletService.confirmCashDeposit({
           userId: context.identityId,
 
-          providerTransactionReference: providerTransactionReferenceId,
+          providerTransactionReference,
         });
 
         settlementStatus = 'SETTLED';
       } catch (error) {
-        /*
-         * Provider transaction SUCCESS hai.
-         *
-         * Money already AEPS wallet se debit hai.
-         *
-         * Confirmation failed hone par
-         * compensation nahi karenge.
-         *
-         * Internal reconciliation confirm karegi.
-         */
-
         settlementStatus = 'RESERVED';
 
         this.logger.error(
-          'CD succeeded but AEPS reservation confirmation is pending',
+          'CD provider success but AEPS reservation confirmation is pending',
 
           error instanceof Error ? error.stack : undefined,
         );
+
+        try {
+          await this.providerTransactionService.markFinancialRecoveryRequired(
+            providerTransactionReference,
+
+            error instanceof Error
+              ? `CD reservation confirmation pending: ${error.message}`
+              : 'CD reservation confirmation pending',
+          );
+        } catch (trackingError) {
+          this.logger.error(
+            'Unable to mark CD financial recovery required',
+
+            trackingError instanceof Error ? trackingError.stack : undefined,
+          );
+        }
       }
     }
 
     /*
      * =====================================================
-     * PROVIDER DEFINITIVE FAILURE
+     * DEFINITIVE FAILURE
      * =====================================================
      *
-     * Original pre-DEBIT merchant ko
-     * return karni hai.
+     * VimoPay:
+     *
+     * 001 = FAILED
+     * 003 = VALIDATION FAILED
+     *
+     * Full AEPS principal refund.
      */
 
     if (result.status === '001' || result.status === '003') {
@@ -3425,7 +3470,7 @@ export class VimopayTransactionService {
         const compensation = await this.walletService.compensateCashDeposit({
           userId: context.identityId,
 
-          providerTransactionReference: providerTransactionReferenceId,
+          providerTransactionReference,
 
           amount,
         });
@@ -3435,238 +3480,341 @@ export class VimopayTransactionService {
         compensationTransactionReference = compensation.referenceId;
       } catch (error) {
         /*
-         * Provider FAILED confirmed hai,
-         * but refund/compensation pending hai.
-         *
-         * Debit RESERVED state mein rahegi
-         * until reconciliation.
+         * Provider definitely failed
+         * but local refund unresolved.
          */
 
         settlementStatus = 'RESERVED';
 
         this.logger.error(
-          'CD failed but AEPS wallet compensation is pending',
+          'CD failed but full AEPS compensation is pending',
 
           error instanceof Error ? error.stack : undefined,
         );
+
+        /*
+         * Ensure recovery queue catches it.
+         */
+        try {
+          await this.providerTransactionService.markFinancialRecoveryRequired(
+            providerTransactionReference,
+
+            error instanceof Error
+              ? `CD failed but compensation pending: ${error.message}`
+              : 'CD failed but compensation pending',
+          );
+        } catch (trackingError) {
+          this.logger.error(
+            'Unable to mark failed CD compensation recovery required',
+
+            trackingError instanceof Error ? trackingError.stack : undefined,
+          );
+        }
       }
     }
 
     /*
      * =====================================================
-     * Provider PENDING / unexpected:
+     * 9. PROVIDER INCOME / COMMISSION
      * =====================================================
-     *
-     * Original debit reserve rahegi.
-     *
-     * No automatic credit/refund.
      */
 
-    /*
-     * =====================================================
-     * 8. COMMISSION SETTLEMENT
-     * =====================================================
-     *
-     * Commission ONLY:
-     *
-     * Provider SUCCESS
-     * +
-     * Principal settlement SETTLED
-     *
-     * hone ke baad PROFIT wallet mein credit hogi.
-     */
+    let providerIncomeAmount: number | null = null;
 
-    type CashDepositCommissionResult = {
-      status: 'NOT_REQUIRED' | 'PENDING' | 'SETTLED';
+    let incomeSource: string | null = null;
 
-      amount: string | null;
-
-      commissionReference: string | null;
-
-      walletTransactionReference: string | null;
-
-      reason?: string;
-    };
-
-    /*
-     * commissionService.settle() ke inferred
-     * return type issue avoid karne ke liye
-     * normalize karenge.
-     */
-
-    type RawCommissionResult = {
-      status?: string;
-
-      amount?: string | number | null;
-
-      commissionReference?: string | null;
-
-      walletTransactionReference?: string | null;
-
-      reason?: string;
-    };
-
-    let commissionResult: CashDepositCommissionResult = {
-      status: 'NOT_REQUIRED',
+    let commissionResult: AepsCommissionSettlementResult = {
+      status: result.status === '000' ? 'PENDING' : 'NOT_REQUIRED',
 
       amount: null,
+
+      grossAmount: amount.toFixed(2),
+
+      /*
+       * Provider income does NOT
+       * reduce principal.
+       */
+      netAmount: amount.toFixed(2),
 
       commissionReference: null,
 
       walletTransactionReference: null,
+
+      distributions: [],
+
+      reason:
+        result.status === '000'
+          ? 'WAITING_FOR_PRINCIPAL_SETTLEMENT'
+          : 'PROVIDER_TRANSACTION_NOT_SUCCESSFUL',
     };
 
     /*
-     * =====================================================
-     * CD SUCCESS + PRINCIPAL SETTLED
-     * =====================================================
+     * Provider income only after:
+     *
+     * provider SUCCESS
+     * +
+     * AEPS reservation confirmed.
      */
 
-    if (result.status === '000') {
-      if (settlementStatus === 'SETTLED') {
-        try {
-          const settledCommission = (await this.commissionService.settle({
-            providerTransactionId,
+    if (result.status === '000' && settlementStatus === 'SETTLED') {
+      try {
+        const income =
+          this.vimopayIncomeService.resolveForSuccessfulTransaction(amount);
 
-            providerTransactionReference: providerTransactionReferenceId,
+        /*
+         * =================================================
+         * PRODUCTION
+         * =================================================
+         *
+         * Actual provider wallet/MS income
+         * will be reconciled later.
+         */
 
-            userId: context.identityId,
+        if (!income.available) {
+          providerIncomeAmount = null;
 
-            /*
-             * Trusted JWT role.
-             */
-            role: context.role,
+          incomeSource = null;
 
-            operation: 'CD',
+          await this.providerTransactionService.updateCommissionState({
+            referenceId: providerTransactionReference,
 
-            amount,
-          })) as RawCommissionResult;
+            status: 'WAITING_PROVIDER_INCOME',
 
-          /*
-           * Normalize commission state.
-           */
-
-          let normalizedStatus: CashDepositCommissionResult['status'];
-
-          if (settledCommission.status === 'SETTLED') {
-            normalizedStatus = 'SETTLED';
-          } else if (settledCommission.status === 'NOT_REQUIRED') {
-            normalizedStatus = 'NOT_REQUIRED';
-          } else {
-            normalizedStatus = 'PENDING';
-          }
-
-          commissionResult = {
-            status: normalizedStatus,
-
-            amount:
-              settledCommission.amount === null ||
-              settledCommission.amount === undefined
-                ? null
-                : String(settledCommission.amount),
-
-            commissionReference: settledCommission.commissionReference ?? null,
-
-            walletTransactionReference:
-              settledCommission.walletTransactionReference ?? null,
-
-            ...(settledCommission.reason
-              ? {
-                  reason: settledCommission.reason,
-                }
-              : {}),
-          };
-        } catch (error) {
-          /*
-           * Provider + principal transaction
-           * already successful hain.
-           *
-           * Commission failure unko rollback
-           * nahi karegi.
-           */
+            failureReason:
+              income.reason ?? 'Waiting for VimoPay provider income',
+          });
 
           commissionResult = {
             status: 'PENDING',
 
             amount: null,
 
+            grossAmount: amount.toFixed(2),
+
+            netAmount: amount.toFixed(2),
+
             commissionReference: null,
 
             walletTransactionReference: null,
 
-            reason: 'COMMISSION_SETTLEMENT_PENDING',
+            distributions: [],
+
+            reason: 'WAITING_FOR_PROVIDER_INCOME',
           };
+        } else {
+          /*
+           * =================================================
+           * UAT / INCOME AVAILABLE
+           * =================================================
+           */
 
-          this.logger.error(
-            'CD commission settlement failed',
-
-            error instanceof Error ? error.stack : undefined,
-          );
-
-          try {
-            await this.providerTransactionService.updateCommissionState({
-              referenceId: providerTransactionReferenceId,
-
-              status: 'PENDING',
-
-              failureReason:
-                error instanceof Error
-                  ? error.message
-                  : 'Cash Deposit commission settlement failed',
-            });
-          } catch (stateError) {
-            this.logger.error(
-              'Unable to mark CD commission pending',
-
-              stateError instanceof Error ? stateError.stack : undefined,
-            );
+          if (
+            income.amount === null ||
+            !Number.isFinite(income.amount) ||
+            income.amount < 0
+          ) {
+            throw new Error('Resolved VimoPay income amount is invalid');
           }
+
+          if (!income.source) {
+            throw new Error('Resolved VimoPay income source is missing');
+          }
+
+          providerIncomeAmount = income.amount;
+
+          incomeSource = income.source;
+
+          /*
+           * Existing provider-funded
+           * commission distribution engine.
+           */
+
+          commissionResult = await this.commissionService.settleProviderIncome({
+            providerTransactionId,
+
+            providerTransactionReference,
+
+            userId: context.identityId,
+
+            /*
+             * IMPORTANT:
+             * frozen authenticated role.
+             */
+            role: sourceRole,
+
+            operation: 'CD',
+
+            /*
+             * FULL principal.
+             */
+            transactionAmount: amount,
+
+            /*
+             * Separate provider income.
+             */
+            providerIncomeAmount: income.amount,
+
+            incomeSource: income.source,
+          });
         }
-      } else {
+      } catch (error) {
         /*
-         * Provider SUCCESS hai,
-         * but principal reservation
-         * SETTLED nahi hui.
+         * Provider + principal state
+         * already authoritative.
          *
-         * Commission abhi nahi denge.
+         * Income failure principal ko
+         * rollback nahi karegi.
          */
 
         commissionResult = {
           status: 'PENDING',
 
-          amount: null,
+          amount:
+            providerIncomeAmount !== null
+              ? providerIncomeAmount.toFixed(2)
+              : null,
+
+          grossAmount: amount.toFixed(2),
+
+          netAmount: amount.toFixed(2),
 
           commissionReference: null,
 
           walletTransactionReference: null,
 
-          reason: 'WAITING_FOR_PRINCIPAL_SETTLEMENT',
+          distributions: [],
+
+          reason: 'PROVIDER_INCOME_SETTLEMENT_PENDING',
         };
+
+        this.logger.error(
+          `CD provider income settlement pending for ${providerTransactionReference}`,
+
+          error instanceof Error ? error.stack : undefined,
+        );
 
         try {
           await this.providerTransactionService.updateCommissionState({
-            referenceId: providerTransactionReferenceId,
+            referenceId: providerTransactionReference,
 
             status: 'PENDING',
 
-            failureReason: 'Waiting for AEPS Cash Deposit principal settlement',
-          });
-        } catch (error) {
-          this.logger.error(
-            'Unable to mark CD commission pending',
+            ...(providerIncomeAmount !== null
+              ? {
+                  commissionAmount: providerIncomeAmount,
+                }
+              : {}),
 
-            error instanceof Error ? error.stack : undefined,
-          );
+            failureReason:
+              error instanceof Error
+                ? error.message
+                : 'Provider income settlement failed',
+          });
+        } catch {
+          /*
+           * Preserve provider and
+           * principal authority.
+           */
         }
       }
     }
 
     /*
      * =====================================================
-     * PROVIDER PENDING / UNKNOWN
+     * 10. SUCCESS BUT PRINCIPAL NOT CONFIRMED
+     * =====================================================
+     */
+
+    if (result.status === '000' && settlementStatus !== 'SETTLED') {
+      commissionResult = {
+        status: 'PENDING',
+
+        amount: null,
+
+        grossAmount: amount.toFixed(2),
+
+        netAmount: amount.toFixed(2),
+
+        commissionReference: null,
+
+        walletTransactionReference: null,
+
+        distributions: [],
+
+        reason: 'WAITING_FOR_PRINCIPAL_SETTLEMENT',
+      };
+
+      try {
+        await this.providerTransactionService.updateCommissionState({
+          referenceId: providerTransactionReference,
+
+          status: 'PENDING',
+
+          failureReason: 'Waiting for AEPS Cash Deposit principal settlement',
+        });
+      } catch {
+        /*
+         * Preserve provider response.
+         */
+      }
+    }
+
+    /*
+     * =====================================================
+     * 11. DEFINITIVE PROVIDER FAILURE
      * =====================================================
      *
-     * Commission tab tak pending.
+     * No provider income exists.
+     */
+
+    if (result.status === '001' || result.status === '003') {
+      commissionResult = {
+        status: 'NOT_REQUIRED',
+
+        amount: '0.00',
+
+        grossAmount: amount.toFixed(2),
+
+        netAmount: amount.toFixed(2),
+
+        commissionReference: null,
+
+        walletTransactionReference: null,
+
+        distributions: [],
+
+        reason: 'PROVIDER_TRANSACTION_FAILED',
+      };
+
+      try {
+        await this.providerTransactionService.updateCommissionState({
+          referenceId: providerTransactionReference,
+
+          status: 'NOT_REQUIRED',
+        });
+      } catch {
+        /*
+         * Preserve provider result.
+         */
+      }
+    }
+
+    /*
+     * =====================================================
+     * 12. PROVIDER PENDING / UNKNOWN
+     * =====================================================
+     *
+     * 002:
+     * provider pending.
+     *
+     * unexpected status:
+     * canonical PTXN marked UNKNOWN.
+     *
+     * In both:
+     *
+     * - reservation remains RESERVED
+     * - no provider income
+     * - no compensation yet
      */
 
     if (
@@ -3679,42 +3827,37 @@ export class VimopayTransactionService {
 
         amount: null,
 
+        grossAmount: amount.toFixed(2),
+
+        netAmount: amount.toFixed(2),
+
         commissionReference: null,
 
         walletTransactionReference: null,
+
+        distributions: [],
 
         reason: 'WAITING_FOR_PROVIDER_RESOLUTION',
       };
 
       try {
         await this.providerTransactionService.updateCommissionState({
-          referenceId: providerTransactionReferenceId,
+          referenceId: providerTransactionReference,
 
           status: 'PENDING',
 
-          failureReason:
-            'Waiting for Cash Deposit provider transaction resolution',
+          failureReason: 'Waiting for Cash Deposit provider resolution',
         });
-      } catch (error) {
-        this.logger.error(
-          'Unable to mark pending CD commission state',
-
-          error instanceof Error ? error.stack : undefined,
-        );
+      } catch {
+        /*
+         * Preserve provider state.
+         */
       }
     }
 
     /*
-     * Provider definitive FAILED:
-     *
-     * Commission remains NOT_REQUIRED.
-     *
-     * No PROFIT credit.
-     */
-
-    /*
      * =====================================================
-     * 9. FINAL API RESPONSE
+     * 13. RESPONSE
      * =====================================================
      */
 
@@ -3723,7 +3866,7 @@ export class VimopayTransactionService {
 
       transactionType: 'CD',
 
-      transactionReferenceId: providerTransactionReferenceId,
+      transactionReferenceId: providerTransactionReference,
 
       profileId: merchant.profileId,
 
@@ -3731,41 +3874,57 @@ export class VimopayTransactionService {
 
       providerMerchantId: merchant.merchantId,
 
-      amount: dto.amount,
+      /*
+       * FULL transaction amount.
+       */
+      amount: amount.toFixed(2),
+
+      accounting: {
+        /*
+         * Full provider amount.
+         */
+        transactionAmount: amount.toFixed(2),
+
+        /*
+         * Full AEPS debit.
+         */
+        principalDebitAmount: amount.toFixed(2),
+
+        /*
+         * Separate provider income.
+         */
+        providerIncomeAmount:
+          providerIncomeAmount !== null
+            ? providerIncomeAmount.toFixed(2)
+            : null,
+
+        incomeSource,
+      },
 
       result,
 
-      /*
-       * AEPS principal debit state.
-       */
       settlement: {
         status: settlementStatus,
 
         walletType: 'AEPS',
 
-        transactionReference: settlementTransactionReference,
+        /*
+         * Original principal debit.
+         */
+        amount: amount.toFixed(2),
+
+        transactionReference: reservationTransactionReference,
 
         compensationTransactionReference,
       },
 
-      /*
-       * PROFIT wallet commission state.
-       */
       commission: commissionResult,
     };
 
     /*
      * =====================================================
-     * 10. COMPLETE IDEMPOTENCY
+     * 14. IDEMPOTENCY COMPLETE
      * =====================================================
-     *
-     * Final response tab cache hogi jab:
-     *
-     * provider result
-     * + principal settlement
-     * + commission result
-     *
-     * determine ho chuke hon.
      */
 
     try {
@@ -3783,13 +3942,6 @@ export class VimopayTransactionService {
         providerTxnRefId: result.txnRefId,
       });
     } catch (error) {
-      /*
-       * Provider already definitive hai.
-       *
-       * Principal/commission wallet entries
-       * rollback nahi karenge.
-       */
-
       this.logger.error(
         'Cash Deposit idempotency finalization failed',
 
@@ -3797,12 +3949,101 @@ export class VimopayTransactionService {
       );
     }
 
+    return response;
+  }
+
+  private requireFinancialSourceRole(
+    context: VimopayTransactionContext,
+  ): string {
+    const role = context.role?.trim();
+
+    if (!role) {
+      throw new InternalServerErrorException(
+        'Authenticated user role is required for financial AEPS transaction',
+      );
+    }
+
+    return role;
+  }
+
+  async syncIdempotencyAfterReconciliation(input: {
+    identityId: string;
+
+    operation: 'CW' | 'AP' | 'CD';
+
+    resolution: 'SUCCESS' | 'FAILED';
+
+    idempotencyKey?: string;
+
+    providerMerchantRefId?: string;
+
+    providerTxnRefId?: string;
+
+    response: unknown;
+  }) {
     /*
      * =====================================================
-     * 11. RETURN
+     * MAP OPERATION
      * =====================================================
      */
 
-    return response;
+    let transactionType: AepsFinancialTransactionType;
+
+    switch (input.operation) {
+      case 'CW':
+        transactionType = AepsFinancialTransactionType.CASH_WITHDRAWAL;
+        break;
+
+      case 'AP':
+        transactionType = AepsFinancialTransactionType.AADHAAR_PAY;
+        break;
+
+      case 'CD':
+        transactionType = AepsFinancialTransactionType.CASH_DEPOSIT;
+        break;
+
+      default:
+        throw new BadRequestException(
+          'Unsupported VimoPay financial operation for idempotency reconciliation',
+        );
+    }
+
+    /*
+     * =====================================================
+     * SYNC
+     * =====================================================
+     */
+
+    return this.idempotencyService.resolveAfterReconciliation({
+      identityId: input.identityId,
+
+      transactionType,
+
+      resolution: input.resolution,
+
+      response: input.response,
+
+      idempotencyKey: input.idempotencyKey,
+
+      providerMerchantRefId: input.providerMerchantRefId,
+
+      providerTxnRefId: input.providerTxnRefId,
+    });
+  }
+
+  private getSafeReceiptMetadata(result: any) {
+    return {
+      ...(typeof result?.txnDateTime === 'string'
+        ? {
+            providerTxnDateTime: result.txnDateTime,
+          }
+        : {}),
+
+      ...(typeof result?.availableBalance === 'string'
+        ? {
+            availableBalance: result.availableBalance,
+          }
+        : {}),
+    };
   }
 }

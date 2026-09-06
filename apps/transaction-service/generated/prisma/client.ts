@@ -54,3 +54,8 @@ export type ProviderTransaction = Prisma.ProviderTransactionModel
  * 
  */
 export type ProviderTransactionReversal = Prisma.ProviderTransactionReversalModel
+/**
+ * Model ProviderTransactionReconciliation
+ * 
+ */
+export type ProviderTransactionReconciliation = Prisma.ProviderTransactionReconciliationModel

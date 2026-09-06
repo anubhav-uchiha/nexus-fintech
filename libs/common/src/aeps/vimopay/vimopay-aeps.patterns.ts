@@ -43,4 +43,9 @@ export const VIMOPAY_AEPS_PATTERNS = {
   AADHAAR_PAY: 'aeps.vimopay.transaction.aadhaar-pay',
 
   CASH_DEPOSIT: 'aeps.vimopay.transaction.cash-deposit',
+
+  RECONCILE_PROVIDER_INCOME: 'aeps.vimopay.provider-income.reconcile',
+
+  SYNC_IDEMPOTENCY_RECONCILIATION:
+    'aeps.vimopay.idempotency.reconciliation.sync',
 } as const;

@@ -36,4 +36,9 @@ export const COMMISSION_PATTERNS = {
 
   FINALIZE_PROVIDER_DISTRIBUTIONS: 'commission.provider.distributions.finalize',
   CANCEL_PROVIDER_COMMISSION: 'commission.provider.cancel',
+
+  MARK_DISTRIBUTION_REVERSED: 'commission.distribution.mark-reversed',
+
+  FINALIZE_PROVIDER_COMMISSION_REVERSAL:
+    'commission.provider.reversal.finalize',
 } as const;

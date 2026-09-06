@@ -329,4 +329,24 @@ export class VimopayAepsService implements OnModuleInit {
       ),
     );
   }
+
+  reconcileProviderIncome(input: {
+    referenceId: string;
+
+    reconciledBy: string;
+
+    providerIncomeAmount?: number;
+
+    incomeSource?: 'VIMOPAY_WALLET' | 'VIMOPAY_MS';
+
+    externalReference?: string;
+  }) {
+    return firstValueFrom(
+      this.client.send(
+        VIMOPAY_AEPS_PATTERNS.RECONCILE_PROVIDER_INCOME,
+
+        input,
+      ),
+    );
+  }
 }

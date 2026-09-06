@@ -38,4 +38,26 @@ export const TRANSACTION_PATTERNS = {
     'transaction.provider.wallet.confirm-reservation',
   UPDATE_PROVIDER_COMMISSION_STATE:
     'transaction.provider.commission.update-state',
+
+  CREDIT_PROVIDER_COMMISSION_DISTRIBUTION:
+    'transaction.provider-commission-distribution.credit',
+
+  PROCESS_PROVIDER_TRANSACTION_REVERSAL:
+    'transaction.provider.reversal.process',
+
+  MARK_PROVIDER_FINANCIAL_RECOVERY_REQUIRED:
+    'transaction.provider.financial-recovery.mark-required',
+
+  RECOVER_PROVIDER_FINANCIAL_EFFECTS:
+    'transaction.provider.financial-recovery.process',
+
+  ADMIN_LIST_PROVIDER_TRANSACTIONS: 'transaction.provider.admin.list',
+
+  LIST_PENDING_PROVIDER_INCOME: 'transaction.provider-income.pending.list',
+
+  LIST_PROVIDER_REVERSALS: 'transaction.provider.reversal.list',
+
+  GET_PROVIDER_REVERSAL: 'transaction.provider.reversal.get',
+
+  GET_PROVIDER_RECEIPT: 'transaction.provider.receipt.get',
 } as const;

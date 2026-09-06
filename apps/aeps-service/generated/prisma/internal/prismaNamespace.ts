@@ -845,7 +845,8 @@ export const AepsTransactionIdempotencyScalarFieldEnum = {
   response: 'response',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  intentHash: 'intentHash'
 } as const
 
 export type AepsTransactionIdempotencyScalarFieldEnum = (typeof AepsTransactionIdempotencyScalarFieldEnum)[keyof typeof AepsTransactionIdempotencyScalarFieldEnum]
